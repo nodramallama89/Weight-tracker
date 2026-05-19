@@ -4,7 +4,7 @@ import gspread
 from google.oauth2.service_account import Credentials
 
 # App config
-st.set_page_config(page_title="Hardy House Journey", layout="wide")
+st.set_page_config(page_title="Hardy House Fitness Dashboard", layout="wide")
 
 # --- Google Sheets Authentication ---
 def get_gsheets_client():
@@ -35,11 +35,14 @@ st.caption("Auto-refreshing view from Google Sheets")
 df = load_data()
 
 if not df.empty:
-    # Pre-processing
+    # 1. Convert Date
     df['Date'] = pd.to_datetime(df.iloc[:, 0], format='%d/%m/%Y', errors='coerce')
-    # Force numeric columns
-    for col in [1, 3, 12]: # B, D, M indices
-        df.iloc[:, col] = pd.to_numeric(df.iloc[:, col], errors='coerce').fillna(0)
+    
+    # 2. Convert numeric columns carefully
+    # We create a copy to avoid the TypeError
+    for col_idx in [1, 3, 12, 16, 17, 18]: # Calories(B), Weight(D), Steps(M), Protein(Q), Carbs(R), Fat(S)
+        col_name = df.columns[col_idx]
+        df[col_name] = pd.to_numeric(df[col_name].astype(str).str.replace('%', ''), errors='coerce').fillna(0)
     
     df = df.dropna(subset=['Date']).sort_values(by="Date")
     latest = df.iloc[-1]
@@ -49,7 +52,7 @@ if not df.empty:
     c1.metric("Weight", f"{int(latest.iloc[3])} lbs")
     c2.metric("Calories", f"{int(latest.iloc[1])} kcal")
     c3.metric("Steps", f"{int(latest.iloc[12]):,}")
-    c4.metric("Body Fat %", f"{latest.iloc[18]}%") # Column S
+    c4.metric("Protein %", f"{int(latest.iloc[16])}%")
 
     st.markdown("---")
     
@@ -70,6 +73,7 @@ if not df.empty:
 
     st.markdown("---")
     st.subheader("Detailed Logs")
+    # Show clean dataframe
     st.dataframe(df.sort_values(by="Date", ascending=False), use_container_width=True)
 
 else:
