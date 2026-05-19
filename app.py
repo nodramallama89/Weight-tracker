@@ -5,7 +5,6 @@ from google.oauth2.service_account import Credentials
 
 st.set_page_config(page_title="Hardy House Command", layout="wide")
 
-# --- Authentication ---
 def get_gsheets_client():
     creds = Credentials.from_service_account_info(
         st.secrets["gcp_service_account"],
@@ -20,43 +19,51 @@ def load_data():
         sheet_url = st.secrets["spreadsheet_url"]
         worksheet = client.open_by_url(sheet_url).worksheet("Main sheet")
         
-        # Get data as a list of lists (the most raw format possible)
-        all_data = worksheet.get_all_values()
+        # Get everything as raw data (list of lists)
+        raw_data = worksheet.get_all_values()
         
-        # Convert to DataFrame, skip first row for headers
-        df = pd.DataFrame(all_data[1:], columns=all_data[0])
+        # Create a clean DataFrame
+        df = pd.DataFrame(raw_data[1:], columns=raw_data[0])
         
-        # BRUTE FORCE CLEAN: 
-        # Remove empty rows
-        df = df[df.iloc[:, 0] != ""]
+        # Manually extract the Step column (index 12)
+        # This bypasses all the type errors by grabbing the raw strings
+        steps_raw = df.iloc[:, 12].tolist()
         
-        # Force the 'Steps' column (index 12) to be strictly numeric
-        # We use 'coerce' so any garbage data becomes a 0
-        df.iloc[:, 12] = pd.to_numeric(df.iloc[:, 12].astype(str).str.replace(',', '').str.replace('.0', ''), errors='coerce').fillna(0)
+        # Convert to a clean list of floats, ignoring empty strings or errors
+        clean_steps = []
+        for x in steps_raw:
+            try:
+                # Remove commas, strip spaces, convert
+                val = float(str(x).replace(',', '').strip())
+                clean_steps.append(val)
+            except:
+                clean_steps.append(0.0)
         
-        # Filter for completed days only
-        df = df[df.iloc[:, 12] > 0]
+        # Add back as a proper numeric column
+        df['Steps_Clean'] = clean_steps
+        
+        # Filter for rows where steps > 0 (The "Completed Day" filter)
+        df = df[df['Steps_Clean'] > 0]
         
         return df
     except Exception as e:
-        st.error(f"Error: {e}")
+        st.error(f"Data Load Error: {e}")
         return pd.DataFrame()
 
-# --- Main App ---
+# --- Main Logic ---
 df = load_data()
 
 if not df.empty:
     st.title("🛡️ Hardy House Command")
     
-    # Simple Numeric Prep
-    df['Steps'] = df.iloc[:, 12].astype(int)
-    last_7 = df.tail(7)
+    # 7-Day Average Calculation
+    # We take the tail(7) of the filtered, cleaned dataframe
+    last_7_avg = df['Steps_Clean'].tail(7).mean()
     
-    c1, c2, c3 = st.columns(3)
-    c1.metric("7-Day Avg Steps", f"{int(last_7['Steps'].mean()):,}")
-    c2.metric("Days on Diet", len(df))
-    c3.metric("Last Logged Date", df.iloc[-1, 0])
-
+    c1, c2 = st.columns(2)
+    c1.metric("7-Day Avg Steps (True)", f"{int(last_7_avg):,}")
+    c2.metric("Total Completed Days", len(df))
+    
     st.dataframe(df.sort_values(by=df.columns[0], ascending=False), use_container_width=True)
 else:
-    st.info("Waiting for data... Ensure Column M (Steps) is clean numbers.")
+    st.warning("No data found or all steps are 0.")
