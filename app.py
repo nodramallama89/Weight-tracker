@@ -21,9 +21,43 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-# ... (Include your existing load_data function) ...
-# [Keep the load_data logic exactly as it is!]
+# --- Authentication & Data Loading ---
+def get_gsheets_client():
+    creds = Credentials.from_service_account_info(
+        st.secrets["gcp_service_account"],
+        scopes=["https://www.googleapis.com/auth/spreadsheets", "https://www.googleapis.com/auth/drive"]
+    )
+    return gspread.authorize(creds)
 
+@st.cache_data(ttl=60)
+def load_data():
+    try:
+        client = get_gsheets_client()
+        worksheet = client.open_by_url(st.secrets["spreadsheet_url"]).worksheet("Main sheet")
+        rows = worksheet.get_all_values()[1:]
+        clean_rows = []
+        for r in rows:
+            if not r[0]: continue
+            def to_num(val):
+                try: return float(str(val).replace('%','').replace(',',''))
+                except: return 0.0
+            row_data = {
+                "Date": pd.to_datetime(r[0], format='%d/%m/%Y'),
+                "Cal": to_num(r[1]),
+                "Weight": to_num(r[3]),
+                "Steps": to_num(r[12]),
+                "Prot": to_num(r[16]),
+                "Carb": to_num(r[17]),
+                "Fat": to_num(r[18]),
+                "Alc": to_num(r[19])
+            }
+            if row_data["Steps"] > 0: clean_rows.append(row_data)
+        return pd.DataFrame(clean_rows)
+    except Exception as e:
+        st.error(f"Error loading: {e}")
+        return pd.DataFrame()
+
+# Load Data
 df = load_data()
 
 if not df.empty:
@@ -40,14 +74,12 @@ if not df.empty:
     st.subheader("⚡ Energy Status")
     c1, c2, c3 = st.columns(3)
     c1.metric("Avg Calories", f"{avg_cal:.0f}")
-    # Delta: Inverse logic (Red if > 0, Green if < 0)
     c2.metric("vs Target (1633)", f"{avg_cal - 1633:.0f}", delta=f"{avg_cal - 1633:.0f}", delta_color="inverse")
     c3.metric("vs Maint (2500)", f"{avg_cal - 2500:.0f}", delta=f"{avg_cal - 2500:.0f}", delta_color="inverse")
     
     # --- Section: Momentum ---
     st.subheader("🚀 Momentum (Steps vs 10k Target)")
     r1, r2, r3 = st.columns(3)
-    # Delta: Normal logic (Green if > 0, Red if < 0)
     r1.metric("7D Avg", f"{s7:,.0f}", delta=f"{s7-10000:,.0f}", delta_color="normal")
     r2.metric("14D Avg", f"{s14:,.0f}", delta=f"{s14-10000:,.0f}", delta_color="normal")
     r3.metric("30D Avg", f"{s30:,.0f}", delta=f"{s30-10000:,.0f}", delta_color="normal")
@@ -59,7 +91,7 @@ if not df.empty:
     d2.metric("Avg Loss/Week", f"{loss_per_week:.2f} lbs")
     d3.metric("Est. Target Date", target_date.strftime('%b %d, %Y') if loss_per_week > 0 else "N/A")
 
-    # --- Restore: Raw Data Expander ---
+    # --- Raw Data Expander ---
     with st.expander("📂 View Raw Telemetry Data"):
         st.dataframe(df.sort_values(by='Date', ascending=False), use_container_width=True)
 else:
