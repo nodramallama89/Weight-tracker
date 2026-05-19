@@ -18,22 +18,28 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 def render_card(title, value, footer, delta_val=None, is_cal=False):
-    # Logic: is_cal=True (lower is better), is_cal=False (higher is better)
-    color = "green" if (delta_val <= 0 if is_cal else delta_val >= 0) else "red"
-    arrow = "↑" if delta_val > 0 else "↓" if delta_val < 0 else ""
+    # Only show delta if delta_val is provided
+    if delta_val is not None:
+        color = "green" if (delta_val <= 0 if is_cal else delta_val >= 0) else "red"
+        arrow = "↑" if delta_val > 0 else "↓" if delta_val < 0 else ""
+        delta_html = f"<div style='color:{color}'>{arrow} {abs(delta_val):.0f} {footer}</div>"
+    else:
+        delta_html = f"<div class='stat-footer'>{footer}</div>"
+        
     st.markdown(f"""
         <div class='card'>
             <div class='stat-title'>{title}</div>
             <div class='stat-val'>{value}</div>
-            <div class='stat-footer' style='color:{color}'>{arrow} {abs(delta_val):.0f} {footer}</div>
+            {delta_html}
         </div>
     """, unsafe_allow_html=True)
 
-# --- Data Loading (Validated) ---
+# --- Data Loading ---
 @st.cache_data(ttl=60)
 def load_data():
     try:
-        client = gspread.authorize(Credentials.from_service_account_info(st.secrets["gcp_service_account"], scopes=["https://www.googleapis.com/auth/spreadsheets", "https://www.googleapis.com/auth/drive"]))
+        creds = Credentials.from_service_account_info(st.secrets["gcp_service_account"], scopes=["https://www.googleapis.com/auth/spreadsheets", "https://www.googleapis.com/auth/drive"])
+        client = gspread.authorize(creds)
         ws = client.open_by_url(st.secrets["spreadsheet_url"]).worksheet("Main sheet")
         rows = ws.get_all_values()[1:]
         clean = []
@@ -52,11 +58,8 @@ df = load_data()
 if not df.empty:
     st.title("🛡️ HARDY HOUSE COMMAND")
     
-    # Metrics
     avg_cal, avg_p, avg_c, avg_f = df['Cal'].mean(), df['Prot'].mean(), df['Carb'].mean(), df['Fat'].mean()
     s7, s14, s30 = df.tail(7)['Steps'].mean(), df.tail(14)['Steps'].mean(), df.tail(30)['Steps'].mean()
-    
-    # Projections
     req_14 = (10000 * 14 - df.tail(14)['Steps'].sum()) / 14
     req_30 = (10000 * 30 - df.tail(30)['Steps'].sum()) / 30
 
@@ -70,8 +73,8 @@ if not df.empty:
     st.subheader("🚀 Momentum & Targets")
     r1, r2, r3, r4 = st.columns(4)
     with r1: render_card("7D Avg Steps", f"{s7:,.0f}", "vs Target 10k", s7-10000)
-    with r2: render_card("14D Projection", f"{req_14:,.0f}", "req. steps/day")
-    with r3: render_card("30D Projection", f"{req_30:,.0f}", "req. steps/day")
+    with r2: render_card("14D Req", f"{req_14:,.0f}", "req. steps/day")
+    with r3: render_card("30D Req", f"{req_30:,.0f}", "req. steps/day")
     with r4: render_card("Days on Diet", f"{len(df)}", "Journey length")
 
     with st.expander("📂 View Raw Telemetry Data"):
