@@ -2,8 +2,16 @@ import streamlit as st
 import pandas as pd
 import gspread
 from google.oauth2.service_account import Credentials
+from datetime import datetime, timedelta
 
 st.set_page_config(page_title="Hardy House Command", layout="wide")
+
+# CSS to make metrics look like cards
+st.markdown("""
+    <style>
+    [data-testid="stMetric"] { background-color: #f0f2f6; padding: 15px; border-radius: 10px; }
+    </style>
+""", unsafe_allow_html=True)
 
 def get_gsheets_client():
     creds = Credentials.from_service_account_info(
@@ -46,51 +54,41 @@ if not df.empty:
     st.title("🛡️ Hardy House Command")
     
     # --- Calculations ---
-    # Global Averages (Diet History)
     avg_cal = df['Cal'].mean()
     avg_steps = df['Steps'].mean()
-    avg_prot = df['Prot'].mean()
-    avg_carb = df['Carb'].mean()
-    avg_fat = df['Fat'].mean()
-    alc_days = (df['Alc'] > 0).sum()
-    alc_freq = len(df) / alc_days if alc_days > 0 else len(df)
+    s7, s14, s30 = df.tail(7)['Steps'].mean(), df.tail(14)['Steps'].mean(), df.tail(30)['Steps'].mean()
     
-    # Steps Windows
-    s7 = df.tail(7)['Steps'].mean()
-    s14 = df.tail(14)['Steps'].mean()
-    s30 = df.tail(30)['Steps'].mean()
+    # Dynamic Loss Rate
+    total_lbs_lost = df.iloc[0]['Weight'] - df.iloc[-1]['Weight']
+    total_days = (df.iloc[-1]['Date'] - df.iloc[0]['Date']).days
+    loss_per_week = (total_lbs_lost / total_days) * 7 if total_days > 0 else 0
     
-    # --- Layout ---
-    st.subheader("Calorie & Step Targets (Journey Averages)")
-    c1, c2, c3 = st.columns(3)
-    # Calories: Over 1633 is RED (bad)
-    c1.metric("Avg Calories", f"{avg_cal:.0f}", f"{avg_cal - 1633:.0f}", delta_color="inverse")
-    c2.metric("Avg Steps (All time)", f"{avg_steps:,.0f}")
-    c3.metric("Maintenance Var", f"{2500 - avg_cal:.0f} kcal gap", delta_color="normal")
-    
-    st.subheader("Rolling Step Trends")
-    r1, r2, r3 = st.columns(3)
-    r1.metric("7D Avg Steps", f"{s7:,.0f}")
-    r2.metric("14D Avg Steps", f"{s14:,.0f}", f"{s7-s14:,.0f} vs 14D")
-    r3.metric("30D Avg Steps", f"{s30:,.0f}", f"{s7-s30:,.0f} vs 30D")
-    
-    st.subheader("Lifestyle & Macros")
-    m1, m2, m3, m4 = st.columns(4)
-    m1.metric("Avg Protein", f"{avg_prot:.0f}%")
-    m2.metric("Avg Carbs", f"{avg_carb:.0f}%")
-    m3.metric("Avg Fat", f"{avg_fat:.0f}%")
-    m4.metric("Alc Frequency", f"1 in {alc_freq:.1f} days")
-    
-    st.subheader("Diet Milestones")
-    d1, d2 = st.columns(2)
-    d1.metric("Days on Diet", len(df))
     # Est target date
-    start_w = df.iloc[0]['Weight']
-    latest_w = df.iloc[-1]['Weight']
-    lbs_lost = start_w - latest_w
-    weeks = (df.iloc[-1]['Date'] - df.iloc[0]['Date']).days / 7
-    loss_per_week = lbs_lost / weeks if weeks > 0 else 0
-    d2.metric("Avg Loss/Week", f"{loss_per_week:.2f} lbs")
+    weight_to_target = df.iloc[-1]['Weight'] - 175
+    days_to_target = weight_to_target / (loss_per_week / 7) if loss_per_week > 0 else 0
+    target_date = datetime.now() + timedelta(days=days_to_target)
+
+    # --- UI Layout ---
+    with st.container():
+        st.subheader("Calorie & Step Targets")
+        c1, c2, c3 = st.columns(3)
+        c1.metric("Avg Calories", f"{avg_cal:.0f}", f"{avg_cal - 1633:.0f}", delta_color="inverse")
+        c2.metric("Avg Steps (All time)", f"{avg_steps:,.0f}")
+        c3.metric("Maintenance Var", f"{2500 - avg_cal:.0f} kcal gap")
+
+    with st.container():
+        st.subheader("Rolling Step Trends")
+        r1, r2, r3 = st.columns(3)
+        r1.metric("7D Avg Steps", f"{s7:,.0f}")
+        r2.metric("14D Avg Steps", f"{s14:,.0f}", f"{s7-s14:,.0f} vs 14D", delta_color="normal")
+        r3.metric("30D Avg Steps", f"{s30:,.0f}", f"{s7-s30:,.0f} vs 30D", delta_color="normal")
+
+    with st.container():
+        st.subheader("Diet Milestones")
+        d1, d2, d3 = st.columns(3)
+        d1.metric("Days on Diet", len(df))
+        d2.metric("Avg Loss/Week", f"{loss_per_week:.2f} lbs")
+        d3.metric("Est. Target Date", target_date.strftime('%b %d, %Y') if loss_per_week > 0 else "N/A")
 
     with st.expander("See Raw Data"):
         st.dataframe(df.sort_values(by='Date', ascending=False), use_container_width=True)
