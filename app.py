@@ -52,11 +52,12 @@ if not df.empty:
     def get_num(idx):
         return pd.to_numeric(df.iloc[:, idx].astype(str).str.replace('%','').str.replace(',',''), errors='coerce')
 
-    tab1, tab2, tab3, tab4, tab5, tab6, tab7, tab8, tab9, tab10, tab11 = st.tabs([
+    tab1, tab2, tab3, tab4, tab5, tab6, tab7, tab8, tab9, tab10, tab11, tab12, tab13 = st.tabs([
         "🛡️ Review", "📊 Life", "🔥 Calories", "⚖️ Weight", "📉 Gain/Loss", 
-        "👟 Steps", "🥗 Macros", "📈 Averages", "❤️ BP", "📅 Weekend Warrior", "🎯 Deficit ROI"
+        "👟 Steps", "🥗 Macros", "📈 Averages", "❤️ BP", "📅 Weekend Warrior", "🎯 Deficit ROI", "📅 Calendar", "🚀 Velocity"
     ])
     
+    # --- Tab 1: Review ---
     with tab1:
         completed = df[df.iloc[:, 12] != ""] 
         if not completed.empty:
@@ -71,6 +72,7 @@ if not df.empty:
             for i, idx in enumerate([16, 17, 18, 19]):
                 m[i].markdown(f"<div class='card'><div class='label'>{labels[i]}</div><div class='val' style='font-size:1.5rem;'>{str(y.iloc[idx]).replace('%','')}%</div></div>", unsafe_allow_html=True)
 
+    # --- Tab 2: Life ---
     with tab2:
         l = df.iloc[-1]
         st.title("Lifetime Stats")
@@ -86,6 +88,26 @@ if not df.empty:
             st.markdown(f"<div class='card'><div class='label'>BMI</div><div class='val'>{l.iloc[10]}</div></div>", unsafe_allow_html=True)
             st.markdown(f"<div class='card'><div class='label'>Target BMI</div><div class='val'>{l.iloc[11]}</div></div>", unsafe_allow_html=True)
 
+    # --- Tab 12: Calendar Heatmap ---
+    with tab12:
+        st.title("Consistency Calendar")
+        # Creating a simple grid (week of year vs day of week)
+        df['Week'] = df[0].dt.isocalendar().week
+        df['Day'] = df[0].dt.dayofweek
+        heatmap_data = df.pivot_table(index='Day', columns='Week', values=1, aggfunc='count').fillna(0)
+        fig = go.Figure(data=go.Heatmap(z=heatmap_data.values, x=heatmap_data.columns, y=['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'], colorscale='Greens'))
+        st.plotly_chart(apply_theme(fig, "Consistency Tracker (Days Logged)"), use_container_width=True)
+
+    # --- Tab 13: Weight Velocity ---
+    with tab13:
+        st.title("Weight Loss Velocity")
+        st.markdown("<div class='card'>This is your weight loss 'speedometer'. Positive values = Losing weight. Zero = Plateau. Negative = Gaining.</div>", unsafe_allow_html=True)
+        velocity = get_num(3).diff() * -1
+        fig = go.Figure()
+        fig.add_trace(go.Bar(x=df[0], y=velocity, marker_color=['#51cf66' if x > 0 else '#ff6b6b' for x in velocity]))
+        st.plotly_chart(apply_theme(fig, "Speed of Progress (lbs/day)"), use_container_width=True)
+
+    # --- Other Tabs ---
     with tab10:
         st.title("Weekday vs. Weekend")
         plot_df = df.copy()
@@ -93,7 +115,6 @@ if not df.empty:
         plot_df[1] = pd.to_numeric(plot_df[1].astype(str).str.replace(',', ''), errors='coerce')
         plot_df[12] = pd.to_numeric(plot_df[12].astype(str).str.replace(',', ''), errors='coerce')
         summary = plot_df.groupby('Type')[[1, 12]].mean()
-        
         c1, c2 = st.columns(2)
         with c1:
             fig = go.Figure([go.Bar(x=summary.index, y=summary[1], marker_color=['#ff9f43', '#ff6b6b'])])
@@ -103,8 +124,7 @@ if not df.empty:
             st.plotly_chart(apply_theme(fig, "Avg Steps"), use_container_width=True)
 
     with tab11:
-        st.title("Deficit ROI")
-        st.markdown("<div class='card' style='color: white;'>This chart tracks the relationship between your <b>Calorie Deficit</b> (x-axis) and <b>Weight Loss</b> (y-axis). <br>Dots to the right = Higher Deficit. Dots below the dashed line = Weight Lost.</div>", unsafe_allow_html=True)
+        st.title("Deficit ROI (Efficiency)")
         fig = go.Figure()
         fig.add_trace(go.Scatter(x=get_num(2), y=get_num(5), mode='markers', marker=dict(color='#feca57', size=12)))
         fig.add_hline(y=0, line_dash="dash", line_color="white")
