@@ -12,22 +12,25 @@ def load_data():
         client = gspread.authorize(creds)
         ws = client.open_by_url(st.secrets["spreadsheet_url"]).worksheet("Main sheet")
         data = ws.get_all_values()
-        df = pd.DataFrame(data[1:], columns=data[0])
+        # Define headers based on your list
+        headers = ["Date", "Cal", "Net_Cal", "Weight", "Weight_ST", "Gain_Loss", "Total_Loss", "Total_Loss_ST", 
+                   "To_Target", "To_Target_ST", "BMI", "To_Target_BMI", "Steps", "Miles", "Active_Cal", 
+                   "Prot", "Carb", "Fat", "Alc", "Notes", "BP_Sys", "BP_Dia"]
+        df = pd.DataFrame(data[1:], columns=headers)
         
-        # Clean numeric columns
-        cols = ['Cal', 'Steps', 'Prot', 'Carb', 'Fat', 'Alc']
-        for col in cols:
+        # Clean columns to numeric
+        for col in ['Cal', 'Steps', 'Prot', 'Carb', 'Fat', 'Alc']:
             df[col] = pd.to_numeric(df[col].astype(str).str.replace('%','').str.replace(',',''), errors='coerce')
         return df
     except Exception as e:
-        st.error(f"Error: {e}")
+        st.error(f"Error loading: {e}")
         return pd.DataFrame()
 
 df = load_data()
 
 if not df.empty:
-    # THIS is the logic fix: Filter for completed rows where Steps > 0
-    completed_rows = df[df['Steps'].notna() & (df['Steps'] > 0)]
+    # Filter for completed rows: Steps (Column M) must have data
+    completed_rows = df[df['Steps'].notna()]
     
     if not completed_rows.empty:
         yesterday = completed_rows.iloc[-1]
@@ -35,21 +38,21 @@ if not df.empty:
         st.title("🛡️ Yesterday's Review")
         st.subheader(f"Date: {yesterday['Date']}")
         
-        # Calories
+        # 1. Calories (Column B)
         cal_diff = yesterday['Cal'] - 1633
         st.metric("Calories Consumed", f"{yesterday['Cal']:.0f}", f"{cal_diff:+.0f} vs 1633")
         
-        # Steps
+        # 2. Steps (Column M)
         step_diff = yesterday['Steps'] - 10000
         st.metric("Steps", f"{yesterday['Steps']:,.0f}", f"{step_diff:+.0f} vs 10k")
         
-        # Macros
+        # 3. Macros (Columns Q, R, S, T)
         cols = st.columns(4)
         cols[0].metric("Prot", f"{yesterday['Prot']:.0f}%")
         cols[1].metric("Carbs", f"{yesterday['Carb']:.0f}%")
         cols[2].metric("Fat", f"{yesterday['Fat']:.0f}%")
-        cols[3].metric("Alc", f"{yesterday['Alc']:.0f}%")
+        cols[3].metric("Alc", f"{yesterday['Alc']:.0f} kcal")
     else:
-        st.error("No completed rows (with steps) found.")
+        st.error("No completed rows found.")
 else:
     st.error("Could not load data.")
