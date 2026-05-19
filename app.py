@@ -7,7 +7,7 @@ from google.oauth2.service_account import Credentials
 
 st.set_page_config(page_title="Hardy House Command", layout="wide")
 
-# --- CSS: Scaled Up Glassmorphism ---
+# --- CSS ---
 st.markdown("""
     <style>
     .stApp { background-image: url('https://raw.githubusercontent.com/nodramallama89/Weight-tracker/254d2662ac5ab10a7396cb5471a719e3d3f25095/cool-background-ppt.jpg'); background-size: cover; background-attachment: fixed; }
@@ -27,6 +27,7 @@ def load_data():
         ws = client.open_by_url(st.secrets["spreadsheet_url"]).worksheet("Main sheet")
         data = ws.get_all_values()
         df = pd.DataFrame(data[1:])
+        # Ensure date is actually a date object for the "Weekday" logic
         df[0] = pd.to_datetime(df[0], dayfirst=True, errors='coerce')
         return df
     except: return pd.DataFrame()
@@ -73,8 +74,41 @@ if not df.empty:
             st.markdown(f"<div class='card'><div class='label'>BMI</div><div class='val'>{l.iloc[10]}</div></div>", unsafe_allow_html=True)
             st.markdown(f"<div class='card'><div class='label'>Target BMI</div><div class='val'>{l.iloc[11]}</div></div>", unsafe_allow_html=True)
 
-    # --- Tab 3: Calories ---
-    with tab3:
+    # --- Tab 10: Weekend Warrior (FIXED) ---
+    with tab10:
+        st.title("Weekday vs. Weekend")
+        
+        # Create a working copy and force numeric
+        plot_df = df.copy()
+        plot_df['Type'] = plot_df[0].dt.dayofweek.apply(lambda x: 'Weekend' if x >= 5 else 'Weekday')
+        
+        # Explicit numeric conversion for aggregation
+        plot_df[1] = pd.to_numeric(plot_df[1].astype(str).str.replace(',', ''), errors='coerce')
+        plot_df[12] = pd.to_numeric(plot_df[12].astype(str).str.replace(',', ''), errors='coerce')
+        
+        summary = plot_df.groupby('Type')[[1, 12]].mean()
+        
+        c1, c2 = st.columns(2)
+        with c1:
+            fig = go.Figure([go.Bar(x=summary.index, y=summary[1], marker_color=['#ff9f43', '#ff6b6b'])])
+            fig.update_layout(title="Avg Calories", paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', font_color="white")
+            st.plotly_chart(fig, use_container_width=True)
+        with c2:
+            fig = go.Figure([go.Bar(x=summary.index, y=summary[12], marker_color=['#1dd1a1', '#48dbfb'])])
+            fig.update_layout(title="Avg Steps", paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', font_color="white")
+            st.plotly_chart(fig, use_container_width=True)
+
+    # --- Tab 11: Deficit ROI ---
+    with tab11:
+        st.title("Deficit ROI (Efficiency)")
+        fig = go.Figure()
+        fig.add_trace(go.Scatter(x=get_num(2), y=get_num(5), mode='markers', marker=dict(color='#feca57', size=10)))
+        fig.add_hline(y=0, line_dash="dash", line_color="white")
+        fig.update_layout(title="Net Calories vs. Weight Change", paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', font_color="white", xaxis=dict(gridcolor='rgba(255,255,255,0.2)'), yaxis=dict(gridcolor='rgba(255,255,255,0.2)'))
+        st.plotly_chart(fig, use_container_width=True)
+
+    # --- Tabs 3-9 (Kept as is) ---
+    with tab3: # Calories
         st.title("Calories Consumption")
         fig = go.Figure()
         fig.add_trace(go.Bar(x=df.iloc[:, 0], y=get_num(1), name="Calories", text=get_num(1), texttemplate='%{text:.0f}', textposition='auto', marker_color='#ff9f43'))
@@ -82,16 +116,14 @@ if not df.empty:
         fig.update_layout(paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', font_color="white", legend=dict(font=dict(color='white')), xaxis=dict(gridcolor='rgba(255,255,255,0.2)'), yaxis=dict(gridcolor='rgba(255,255,255,0.2)'))
         st.plotly_chart(fig, use_container_width=True)
 
-    # --- Tab 4: Weight ---
-    with tab4:
+    with tab4: # Weight
         st.title("Weight Progress")
         fig = go.Figure()
         fig.add_trace(go.Scatter(x=df.iloc[:, 0], y=get_num(3), mode='lines+markers', text=get_num(3), texttemplate='%{text:.1f}', textposition='top center', line=dict(color='#ffffff', width=4)))
         fig.update_layout(paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', font_color="white", xaxis=dict(gridcolor='rgba(255,255,255,0.2)'), yaxis=dict(gridcolor='rgba(255,255,255,0.2)'))
         st.plotly_chart(fig, use_container_width=True)
 
-    # --- Tab 5: Gain/Loss ---
-    with tab5:
+    with tab5: # Gain/Loss
         st.title("Gain/Loss Trend")
         fig = go.Figure()
         fig.add_trace(go.Scatter(x=df.iloc[:, 0], y=get_num(5), mode='lines+markers', text=get_num(5), texttemplate='%{text:.1f}', textposition='top center', line=dict(color='#ff9f43', width=4)))
@@ -99,17 +131,7 @@ if not df.empty:
         fig.update_layout(paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', font_color="white", xaxis=dict(gridcolor='rgba(255,255,255,0.2)'), yaxis=dict(gridcolor='rgba(255,255,255,0.2)'))
         st.plotly_chart(fig, use_container_width=True)
 
-    # --- Tab 6: Steps & Active Burn ---
-    with tab6:
-        st.title("Steps & Active Burn")
-        fig = make_subplots(specs=[[{"secondary_y": True}]])
-        fig.add_trace(go.Bar(x=df.iloc[:, 0], y=get_num(12), name="Steps", marker_color='#1dd1a1'), secondary_y=False)
-        fig.add_trace(go.Scatter(x=df.iloc[:, 0], y=get_num(15), name="Active Cals", mode='lines+markers', text=get_num(15), texttemplate='%{text:.0f}', line=dict(color='#feca57', width=3)), secondary_y=True)
-        fig.update_layout(paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', font_color="white", legend=dict(font=dict(color='white')), xaxis=dict(gridcolor='rgba(255,255,255,0.2)'), yaxis=dict(gridcolor='rgba(255,255,255,0.2)'))
-        st.plotly_chart(fig, use_container_width=True)
-
-    # --- Tab 7: Macros ---
-    with tab7:
+    with tab7: # Macros
         st.title("Macros Trend")
         fig = go.Figure()
         fig.add_trace(go.Scatter(x=df.iloc[:, 0], y=get_num(16), name="Protein", mode='lines+markers', text=get_num(16), texttemplate='%{text:.0f}', textposition='top center', line=dict(color='#ff6b6b', width=3)))
@@ -118,8 +140,7 @@ if not df.empty:
         fig.update_layout(paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', font_color="white", legend=dict(font=dict(color='white')), xaxis=dict(gridcolor='rgba(255,255,255,0.2)'), yaxis=dict(gridcolor='rgba(255,255,255,0.2)'))
         st.plotly_chart(fig, use_container_width=True)
 
-    # --- Tab 8: Averages ---
-    with tab8:
+    with tab8: # Averages
         st.title("Historical Averages")
         c1, c2, c3 = st.columns(3)
         with c1:
@@ -133,8 +154,15 @@ if not df.empty:
             st.markdown(f"<div class='card'><div class='label'>Avg Loss/Week</div><div class='val'>{avg_loss:.2f} lbs</div></div>", unsafe_allow_html=True)
             st.markdown(f"<div class='card'><div class='label'>Avg Fat</div><div class='val'>{get_num(18).mean():.0f}%</div></div>", unsafe_allow_html=True)
 
-    # --- Tab 9: Blood Pressure ---
-    with tab9:
+    with tab6: # Steps
+        st.title("Steps & Active Burn")
+        fig = make_subplots(specs=[[{"secondary_y": True}]])
+        fig.add_trace(go.Bar(x=df.iloc[:, 0], y=get_num(12), name="Steps", marker_color='#1dd1a1'), secondary_y=False)
+        fig.add_trace(go.Scatter(x=df.iloc[:, 0], y=get_num(15), name="Active Cals", mode='lines+markers', text=get_num(15), texttemplate='%{text:.0f}', line=dict(color='#feca57', width=3)), secondary_y=True)
+        fig.update_layout(paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', font_color="white", legend=dict(font=dict(color='white')), xaxis=dict(gridcolor='rgba(255,255,255,0.2)'), yaxis=dict(gridcolor='rgba(255,255,255,0.2)'))
+        st.plotly_chart(fig, use_container_width=True)
+
+    with tab9: # BP
         st.title("Blood Pressure")
         fig = go.Figure()
         fig.add_hrect(y0=0, y1=80, fillcolor="green", opacity=0.15, line_width=0, layer="below")
@@ -142,31 +170,6 @@ if not df.empty:
         fig.add_trace(go.Scatter(x=df.iloc[:, 0], y=get_num(21), name="Systolic", mode='lines+markers', connectgaps=True, text=get_num(21), texttemplate='%{text:.0f}', textposition='top center', line=dict(color='#ff7675', width=3)))
         fig.add_trace(go.Scatter(x=df.iloc[:, 0], y=get_num(22), name="Diastolic", mode='lines+markers', connectgaps=True, text=get_num(22), texttemplate='%{text:.0f}', textposition='bottom center', line=dict(color='#74b9ff', width=3)))
         fig.update_layout(paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', font_color="white", legend=dict(font=dict(color='white')), xaxis=dict(gridcolor='rgba(255,255,255,0.2)'), yaxis=dict(gridcolor='rgba(255,255,255,0.2)'))
-        st.plotly_chart(fig, use_container_width=True)
-
-    # --- Tab 10: Weekend Warrior ---
-    with tab10:
-        st.title("Weekday vs. Weekend")
-        df['Type'] = df[0].dt.dayofweek.apply(lambda x: 'Weekend' if x >= 5 else 'Weekday')
-        summary = df.groupby('Type').agg({1: 'mean', 12: 'mean'})
-        summary.columns = ['Avg Cals', 'Avg Steps']
-        c1, c2 = st.columns(2)
-        with c1:
-            fig = go.Figure([go.Bar(x=summary.index, y=summary['Avg Cals'], marker_color=['#ff9f43', '#ff6b6b'])])
-            fig.update_layout(title="Avg Calories", paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', font_color="white")
-            st.plotly_chart(fig, use_container_width=True)
-        with c2:
-            fig = go.Figure([go.Bar(x=summary.index, y=summary['Avg Steps'], marker_color=['#1dd1a1', '#48dbfb'])])
-            fig.update_layout(title="Avg Steps", paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', font_color="white")
-            st.plotly_chart(fig, use_container_width=True)
-
-    # --- Tab 11: Deficit ROI ---
-    with tab11:
-        st.title("Deficit ROI (Efficiency)")
-        fig = go.Figure()
-        fig.add_trace(go.Scatter(x=get_num(2), y=get_num(5), mode='markers', marker=dict(color='#feca57', size=10)))
-        fig.add_hline(y=0, line_dash="dash", line_color="white")
-        fig.update_layout(title="Net Calories vs. Weight Change", paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', font_color="white", xaxis=dict(gridcolor='rgba(255,255,255,0.2)'), yaxis=dict(gridcolor='rgba(255,255,255,0.2)'))
         st.plotly_chart(fig, use_container_width=True)
 else:
     st.error("Could not load data.")
