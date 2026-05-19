@@ -9,9 +9,9 @@ st.set_page_config(page_title="Journey Tracker", layout="wide")
 
 # Goals Constants
 TARGET_CALORIES = 1633
-TARGET_PROTEIN_G = 141
-TARGET_CARB_G = 166
-TARGET_FAT_G = 46
+TARGET_PROTEIN_G = 102  # 25% of 1633 kcal
+TARGET_CARB_G = 204     # 50% of 1633 kcal
+TARGET_FAT_G = 45       # 25% of 1633 kcal
 
 # --- Google Sheets Authentication & Connection ---
 def get_gsheets_client():
@@ -80,12 +80,6 @@ with st.sidebar.form("entry_form"):
         date_str = date.strftime("%d/%m/%Y")
         
         # Prepare the list in the exact order of the sheet columns. 
-        # Note: Your sheet has many columns. We will append the core data to the first few columns
-        # and leave the rest blank so they don't overwrite your formulas or other data.
-        # This order matches: Date, Calories consumed, Net calories, Weight (lbs)
-        # However, because of your complex sheet structure, appending rows might be tricky 
-        # without explicitly telling gspread *which* columns to update. 
-        # For this first test, we will just try a basic append.
         new_row = [date_str, calories, "", weight, "", "", "", "", "", "", "", "", steps]
         
         with st.spinner("Writing to Google Sheets..."):
@@ -99,40 +93,52 @@ df = load_data()
 
 if not df.empty:
     # Ensure Date column is datetime for correct sorting and charting
-    # Your dates are DD/MM/YYYY
     df['Date'] = pd.to_datetime(df['Date'], format='%d/%m/%Y', errors='coerce')
+    
+    # --- THE FIX: Clean up numeric columns ---
+    # This forces blank cells ("") to become proper numbers (0) so the math doesn't crash
+    df['Weight (lbs)'] = pd.to_numeric(df['Weight (lbs)'], errors='coerce').fillna(0)
+    df['Calories consumed (tgt 1633)'] = pd.to_numeric(df['Calories consumed (tgt 1633)'], errors='coerce').fillna(0)
+    df['Steps'] = pd.to_numeric(df['Steps'], errors='coerce').fillna(0)
+    
+    # Drop rows where the Date is missing (this clears out all those blank rows at the bottom of your sheet)
+    df = df.dropna(subset=['Date'])
+    
     df = df.sort_values(by="Date")
     
-    # Top level metrics
-    latest = df.iloc[-1]
-    col1, col2, col3 = st.columns(3)
-    
-    col1.metric("Latest Weight", f"{latest['Weight (lbs)']} lbs")
-    
-    cal_delta = latest['Calories consumed (tgt 1633)'] - TARGET_CALORIES
-    col2.metric("Latest Calories", f"{latest['Calories consumed (tgt 1633)']} kcal", delta=f"{cal_delta} from target", delta_color="inverse")
-    
-    col3.metric("Latest Steps", f"{latest['Steps']}")
-    
-    st.markdown("---")
-    
-    # Visualizations
-    st.subheader("Trends")
-    tab1, tab2, tab3 = st.tabs(["Weight Trend", "Calorie Intake", "Steps"])
-    
-    with tab1:
-        st.line_chart(data=df.set_index('Date')['Weight (lbs)'])
+    # Check again if we have data after cleaning out the blank rows
+    if not df.empty:
+        # Top level metrics
+        latest = df.iloc[-1]
+        col1, col2, col3 = st.columns(3)
         
-    with tab2:
-        st.bar_chart(data=df.set_index('Date')['Calories consumed (tgt 1633)'])
+        col1.metric("Latest Weight", f"{int(latest['Weight (lbs)'])} lbs")
         
-    with tab3:
-        st.bar_chart(data=df.set_index('Date')['Steps'])
+        cal_delta = int(latest['Calories consumed (tgt 1633)'] - TARGET_CALORIES)
+        col2.metric("Latest Calories", f"{int(latest['Calories consumed (tgt 1633)'])} kcal", delta=f"{cal_delta} from target", delta_color="inverse")
+        
+        col3.metric("Latest Steps", f"{int(latest['Steps'])}")
+        
+        st.markdown("---")
+        
+        # Visualizations
+        st.subheader("Trends")
+        tab1, tab2, tab3 = st.tabs(["Weight Trend", "Calorie Intake", "Steps"])
+        
+        with tab1:
+            st.line_chart(data=df.set_index('Date')['Weight (lbs)'])
+            
+        with tab2:
+            st.bar_chart(data=df.set_index('Date')['Calories consumed (tgt 1633)'])
+            
+        with tab3:
+            st.bar_chart(data=df.set_index('Date')['Steps'])
 
-    st.markdown("---")
-    st.subheader("Google Sheet Data")
-    # Display the dataframe with the most recent entries at the top
-    st.dataframe(df.sort_values(by="Date", ascending=False), use_container_width=True)
-    
+        st.markdown("---")
+        st.subheader("Google Sheet Data")
+        # Display the dataframe with the most recent entries at the top
+        st.dataframe(df.sort_values(by="Date", ascending=False), use_container_width=True)
+    else:
+        st.info("No valid dates found in the sheet. Make sure your dates are formatted as DD/MM/YYYY.")
 else:
     st.info("No data found in the Google Sheet. Please ensure your sheet has headers and use the sidebar to log your first entry!")
