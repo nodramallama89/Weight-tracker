@@ -31,9 +31,13 @@ def load_data():
 df = load_data()
 
 if not df.empty:
-    tab1, tab2, tab3, tab4 = st.tabs(["🛡️ Yesterday's Review", "📊 Lifetime Stats", "⚖️ Weight", "📉 Gain/Loss"])
+    tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs(["🛡️ Review", "📊 Life", "⚖️ Weight", "📉 Gain/Loss", "👟 Steps", "🥗 Macros"])
     
-    # --- Tab 1: Yesterday's Review ---
+    # Helper to clean/convert for charts
+    def get_num(idx):
+        return pd.to_numeric(df.iloc[:, idx].astype(str).str.replace('%','').str.replace(',',''), errors='coerce')
+
+    # --- Tab 1: Review ---
     with tab1:
         completed = df[df.iloc[:, 12] != ""] 
         if not completed.empty:
@@ -42,15 +46,8 @@ if not df.empty:
             cals, steps = float(str(y.iloc[1]).replace(',','')), float(str(y.iloc[12]).replace(',',''))
             
             c1, c2 = st.columns(2)
-            with c1:
-                st.markdown(f"<div class='card'><div class='label'>Calories</div><div class='val'>{cals:.0f}</div><div style='color:{'#ff6b6b' if cals>1633 else '#51cf66'}'>{cals-1633:+.0f} vs 1633</div></div>", unsafe_allow_html=True)
-            with c2:
-                st.markdown(f"<div class='card'><div class='label'>Steps</div><div class='val'>{steps:,.0f}</div><div style='color:{'#51cf66' if steps>=10000 else '#ff6b6b'}'>{steps-10000:+.0f} vs 10k</div></div>", unsafe_allow_html=True)
-            
-            m = st.columns(4)
-            labels = ["Prot", "Carb", "Fat", "Alc"]
-            for i, idx in enumerate([16, 17, 18, 19]):
-                m[i].markdown(f"<div class='card'><div class='label'>{labels[i]}</div><div class='val' style='font-size:1.5rem;'>{str(y.iloc[idx]).replace('%','')}%</div></div>", unsafe_allow_html=True)
+            with c1: st.markdown(f"<div class='card'><div class='label'>Calories</div><div class='val'>{cals:.0f}</div><div style='color:{'#ff6b6b' if cals>1633 else '#51cf66'}'>{cals-1633:+.0f} vs 1633</div></div>", unsafe_allow_html=True)
+            with c2: st.markdown(f"<div class='card'><div class='label'>Steps</div><div class='val'>{steps:,.0f}</div><div style='color:{'#51cf66' if steps>=10000 else '#ff6b6b'}'>{steps-10000:+.0f} vs 10k</div></div>", unsafe_allow_html=True)
 
     # --- Tab 2: Lifetime Stats ---
     with tab2:
@@ -67,32 +64,39 @@ if not df.empty:
             st.markdown(f"<div class='card'><div class='label'>BMI</div><div class='val'>{l.iloc[10]}</div></div>", unsafe_allow_html=True)
             st.markdown(f"<div class='card'><div class='label'>Target BMI</div><div class='val'>{l.iloc[11]}</div></div>", unsafe_allow_html=True)
 
-    # --- Tab 3: Weight Graph ---
+    # --- Tab 3: Weight ---
     with tab3:
         st.title("Weight Progress")
         fig = go.Figure()
-        fig.add_trace(go.Scatter(x=df.iloc[:, 0], y=pd.to_numeric(df.iloc[:, 3], errors='coerce'), mode='lines+markers', line=dict(color='#ffffff', width=4)))
-        fig.update_layout(paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', font_color="white",
-                          xaxis=dict(gridcolor='rgba(255,255,255,0.2)', tickfont=dict(size=14)), 
-                          yaxis=dict(gridcolor='rgba(255,255,255,0.2)', tickfont=dict(size=14)),
-                          margin=dict(l=40, r=40, t=40, b=40))
+        fig.add_trace(go.Scatter(x=df.iloc[:, 0], y=get_num(3), mode='lines+markers', line=dict(color='#ffffff', width=4)))
+        fig.update_layout(paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', font_color="white", xaxis=dict(gridcolor='rgba(255,255,255,0.2)'), yaxis=dict(gridcolor='rgba(255,255,255,0.2)'))
         st.plotly_chart(fig, use_container_width=True)
 
-    # --- Tab 4: Gain/Loss Graph ---
+    # --- Tab 4: Gain/Loss ---
     with tab4:
         st.title("Gain/Loss Trend")
-        # Column F is index 5
-        dates = df.iloc[:, 0]
-        gain_loss = pd.to_numeric(df.iloc[:, 5], errors='coerce')
-        
         fig = go.Figure()
-        fig.add_trace(go.Scatter(x=dates, y=gain_loss, mode='lines+markers', line=dict(color='#ff9f43', width=4)))
-        fig.add_hline(y=0, line_dash="dash", line_color="white") # Zero reference line
-        
-        fig.update_layout(paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', font_color="white",
-                          xaxis=dict(gridcolor='rgba(255,255,255,0.2)', tickfont=dict(size=14)), 
-                          yaxis=dict(gridcolor='rgba(255,255,255,0.2)', tickfont=dict(size=14)),
-                          margin=dict(l=40, r=40, t=40, b=40))
+        fig.add_trace(go.Scatter(x=df.iloc[:, 0], y=get_num(5), mode='lines+markers', line=dict(color='#ff9f43', width=4)))
+        fig.add_hline(y=0, line_dash="dash", line_color="white")
+        fig.update_layout(paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', font_color="white", xaxis=dict(gridcolor='rgba(255,255,255,0.2)'), yaxis=dict(gridcolor='rgba(255,255,255,0.2)'))
+        st.plotly_chart(fig, use_container_width=True)
+
+    # --- Tab 5: Steps (Bar) ---
+    with tab5:
+        st.title("Steps Trend")
+        fig = go.Figure()
+        fig.add_trace(go.Bar(x=df.iloc[:, 0], y=get_num(12), marker_color='#1dd1a1'))
+        fig.update_layout(paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', font_color="white", xaxis=dict(gridcolor='rgba(255,255,255,0.2)'), yaxis=dict(gridcolor='rgba(255,255,255,0.2)'))
+        st.plotly_chart(fig, use_container_width=True)
+
+    # --- Tab 6: Macros (Line) ---
+    with tab6:
+        st.title("Macros Trend")
+        fig = go.Figure()
+        fig.add_trace(go.Scatter(x=df.iloc[:, 0], y=get_num(16), name="Protein", line=dict(color='#ff6b6b', width=3)))
+        fig.add_trace(go.Scatter(x=df.iloc[:, 0], y=get_num(17), name="Carbs", line=dict(color='#48dbfb', width=3)))
+        fig.add_trace(go.Scatter(x=df.iloc[:, 0], y=get_num(18), name="Fat", line=dict(color='#feca57', width=3)))
+        fig.update_layout(paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', font_color="white", xaxis=dict(gridcolor='rgba(255,255,255,0.2)'), yaxis=dict(gridcolor='rgba(255,255,255,0.2)'))
         st.plotly_chart(fig, use_container_width=True)
 else:
     st.error("Could not load data.")
