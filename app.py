@@ -2,90 +2,78 @@ import streamlit as st
 import pandas as pd
 import gspread
 from google.oauth2.service_account import Credentials
-from datetime import datetime, timedelta
 
-st.set_page_config(page_title="Hardy House Command", layout="wide")
+st.set_page_config(page_title="Yesterday's Review", layout="centered")
 
-# CSS for Glassmorphism
+# --- Glassmorphism Style ---
 st.markdown("""
     <style>
-    .card { background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(10px); border-radius: 20px; padding: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); border: 1px solid rgba(255,255,255,0.3); height: 100%; }
-    .title { font-size: 0.7rem; color: #8e8e93; text-transform: uppercase; font-weight: 700; }
-    .val { font-size: 1.4rem; font-weight: 800; color: #1c1c1e; margin: 5px 0; }
-    .delta { font-size: 0.75rem; font-weight: 600; }
+    .card { background: white; border-radius: 20px; padding: 25px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); text-align: center; }
+    .val { font-size: 2.5rem; font-weight: 800; color: #1c1c1e; }
+    .label { font-size: 0.9rem; color: #8e8e93; text-transform: uppercase; font-weight: 600; }
+    .delta { font-size: 1rem; font-weight: 700; margin-top: 5px; }
     </style>
 """, unsafe_allow_html=True)
 
-def render_card(title, val, delta_text, delta_val, is_good_if_higher):
-    # Logic: Higher steps/lower calories = Green
-    # Calories (is_good=False): Green if delta <= 0, Red if delta > 0
-    # Steps/Weight Loss (is_good=True): Green if delta >= 0, Red if delta < 0
-    if not is_good_if_higher: # Calories Logic
-        color = "green" if delta_val <= 0 else "red"
-        arrow = "↓" if delta_val <= 0 else "↑"
-    else: # Steps/Progress Logic
-        color = "green" if delta_val >= 0 else "red"
-        arrow = "↑" if delta_val >= 0 else "↓"
-    
-    st.markdown(f"""
-        <div class='card'>
-            <div class='title'>{title}</div>
-            <div class='val'>{val}</div>
-            <div class='delta' style='color:{color}'>{arrow} {delta_text}</div>
-        </div>
-    """, unsafe_allow_html=True)
-
-# Data Loading
 @st.cache_data(ttl=60)
 def load_data():
     try:
         creds = Credentials.from_service_account_info(st.secrets["gcp_service_account"], scopes=["https://www.googleapis.com/auth/spreadsheets", "https://www.googleapis.com/auth/drive"])
         client = gspread.authorize(creds)
         ws = client.open_by_url(st.secrets["spreadsheet_url"]).worksheet("Main sheet")
-        # Ensure we read the table fully
         data = ws.get_all_values()
         df = pd.DataFrame(data[1:], columns=data[0])
-        # Clean numeric cols
-        cols = ['Cal', 'Weight', 'Steps', 'Prot', 'Carb', 'Fat']
-        for c in cols: df[c] = pd.to_numeric(df[c].astype(str).str.replace('%','').str.replace(',',''), errors='coerce')
-        df['Date'] = pd.to_datetime(df['Date'], format='%d/%m/%Y')
-        return df[df['Steps'] > 0]
+        # Force numeric, convert errors to NaN, then drop incomplete rows
+        for col in ['Cal', 'Steps', 'Prot', 'Carb', 'Fat', 'Alc']:
+            df[col] = pd.to_numeric(df[col].astype(str).str.replace('%','').str.replace(',',''), errors='coerce')
+        # Only keep full rows where steps are recorded
+        return df.dropna(subset=['Steps', 'Cal'])
     except: return pd.DataFrame()
 
 df = load_data()
 
 if not df.empty:
-    st.title("🛡️ HARDY HOUSE COMMAND")
+    # Get the very last row
+    yesterday = df.iloc[-1]
     
-    # Matching your spreadsheet logic (using sums/means of specific columns)
-    # Average calories per day calculation (The Column average)
-    avg_cal_per_day = df['Cal'].mean() 
+    st.title("🛡️ Yesterday's Review")
     
-    # Energy Row
-    st.subheader("⚡ Energy")
-    c1, c2, c3, c4 = st.columns(4)
-    with c1: render_card("Avg Daily Cals", f"{avg_cal_per_day:.0f}", "", 0, True)
-    with c2: render_card("vs Maint 2500", f"{avg_cal_per_day-2500:+.0f}", "vs 2500", avg_cal_per_day-2500, False)
-    with c3: render_card("vs Target 1633", f"{avg_cal_per_day-1633:+.0f}", "vs 1633", avg_cal_per_day-1633, False)
-    with c4: render_card("7D Avg Cals", f"{df.tail(7)['Cal'].mean():.0f}", "Cals", 0, True)
-
-    # Steps Row
-    s7, s14, s30 = df.tail(7)['Steps'].mean(), df.tail(14)['Steps'].mean(), df.tail(30)['Steps'].mean()
-    st.subheader("🚀 Steps")
-    r1, r2, r3, r4, r5 = st.columns(5)
-    with r1: render_card("Avg Steps", f"{df['Steps'].mean():,.0f}", f"{df['Steps'].mean()-10000:+.0f} vs 10k", df['Steps'].mean()-10000, True)
-    with r2: render_card("7D Avg", f"{s7:,.0f}", f"{s7-df['Steps'].mean():+.0f} vs Avg", s7-df['Steps'].mean(), True)
-    with r3: render_card("14D Avg", f"{s14:,.0f}", f"{s14-df['Steps'].mean():+.0f} vs Avg", s14-df['Steps'].mean(), True)
-    with r4: render_card("Req 14D to 10k", f"{10000-s14:,.0f}", "Steps/Day", 0, True)
-    with r5: render_card("Req 30D to 10k", f"{10000-s30:,.0f}", "Steps/Day", 0, True)
-
-    # Macros Row
-    st.subheader("🎯 Macros & Progress")
-    m1, m2, m3, m4, m5 = st.columns(5)
-    with m1: render_card("Protein", f"{df['Prot'].mean():.0f}%", "Avg", 0, True)
-    with m2: render_card("Carbs", f"{df['Carb'].mean():.0f}%", "Avg", 0, True)
-    with m3: render_card("Fat", f"{df['Fat'].mean():.0f}%", "Avg", 0, True)
-    loss = df.iloc[0]['Weight'] - df.iloc[-1]['Weight']
-    with m4: render_card("Total Loss", f"{loss:.1f} lbs", f"{int(loss//14)}st {loss%14:.1f}lbs", loss, True)
-    latest_gain = df.iloc[-1]['Weight'] - df.iloc[-2]['Weight']
-    with m5: render_card("Latest Change", f"{abs(latest_gain):.1f} lbs", "Gain/Loss", latest_gain * -1, True)
+    # 1. Calories
+    cal_diff = yesterday['Cal'] - 1633
+    cal_color = "green" if cal_diff <= 0 else "red"
+    cal_arrow = "↓" if cal_diff <= 0 else "↑"
+    
+    st.markdown(f"""
+        <div class='card'>
+            <div class='label'>Calories Consumed</div>
+            <div class='val'>{yesterday['Cal']:.0f}</div>
+            <div class='delta' style='color:{cal_color}'>{cal_arrow} {abs(cal_diff):.0f} vs 1633</div>
+        </div>
+    """, unsafe_allow_html=True)
+    
+    st.write("---")
+    
+    # 2. Steps
+    step_diff = yesterday['Steps'] - 10000
+    step_color = "green" if step_diff >= 0 else "red"
+    step_arrow = "↑" if step_diff >= 0 else "↓"
+    
+    st.markdown(f"""
+        <div class='card'>
+            <div class='label'>Steps</div>
+            <div class='val'>{yesterday['Steps']:,.0f}</div>
+            <div class='delta' style='color:{step_color}'>{step_arrow} {abs(step_diff):,.0f} vs 10,000</div>
+        </div>
+    """, unsafe_allow_html=True)
+    
+    st.write("---")
+    
+    # 3. Macros
+    cols = st.columns(4)
+    cols[0].metric("Protein", f"{yesterday['Prot']:.0f}%")
+    cols[1].metric("Carbs", f"{yesterday['Carb']:.0f}%")
+    cols[2].metric("Fat", f"{yesterday['Fat']:.0f}%")
+    cols[3].metric("Alcohol", f"{yesterday['Alc']:.0f}%")
+    
+else:
+    st.error("No full data rows found.")
