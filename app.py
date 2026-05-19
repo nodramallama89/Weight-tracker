@@ -26,7 +26,10 @@ def load_data():
         client = gspread.authorize(creds)
         ws = client.open_by_url(st.secrets["spreadsheet_url"]).worksheet("Main sheet")
         data = ws.get_all_values()
-        return pd.DataFrame(data[1:])
+        df = pd.DataFrame(data[1:])
+        # Convert date column (0) for behavioral analysis
+        df[0] = pd.to_datetime(df[0], dayfirst=True, errors='coerce')
+        return df
     except: return pd.DataFrame()
 
 df = load_data()
@@ -35,7 +38,10 @@ if not df.empty:
     def get_num(idx):
         return pd.to_numeric(df.iloc[:, idx].astype(str).str.replace('%','').str.replace(',',''), errors='coerce')
 
-    tab1, tab2, tab3, tab4, tab5, tab6, tab7, tab8, tab9 = st.tabs(["🛡️ Review", "📊 Life", "🔥 Calories", "⚖️ Weight", "📉 Gain/Loss", "👟 Steps", "🥗 Macros", "📈 Averages", "❤️ BP"])
+    tab1, tab2, tab3, tab4, tab5, tab6, tab7, tab8, tab9, tab10, tab11 = st.tabs([
+        "🛡️ Review", "📊 Life", "🔥 Calories", "⚖️ Weight", "📉 Gain/Loss", 
+        "👟 Steps", "🥗 Macros", "📈 Averages", "❤️ BP", "📅 Weekend Warrior", "🎯 Deficit ROI"
+    ])
     
     # --- Tab 1: Review ---
     with tab1:
@@ -47,7 +53,6 @@ if not df.empty:
             c1, c2 = st.columns(2)
             with c1: st.markdown(f"<div class='card'><div class='label'>Calories</div><div class='val'>{cals:.0f}</div><div style='color:{'#ff6b6b' if cals>1633 else '#51cf66'}'>{cals-1633:+.0f} vs 1633</div></div>", unsafe_allow_html=True)
             with c2: st.markdown(f"<div class='card'><div class='label'>Steps</div><div class='val'>{steps:,.0f}</div><div style='color:{'#51cf66' if steps>=10000 else '#ff6b6b'}'>{steps-10000:+.0f} vs 10k</div></div>", unsafe_allow_html=True)
-            
             m = st.columns(4)
             labels = ["Protein", "Carbs", "Fat", "Alcohol"]
             for i, idx in enumerate([16, 17, 18, 19]):
@@ -69,7 +74,33 @@ if not df.empty:
             st.markdown(f"<div class='card'><div class='label'>BMI</div><div class='val'>{l.iloc[10]}</div></div>", unsafe_allow_html=True)
             st.markdown(f"<div class='card'><div class='label'>Target BMI</div><div class='val'>{l.iloc[11]}</div></div>", unsafe_allow_html=True)
 
-    # --- Tabs 3, 4, 5, 7, 8 (Standard Graphs) ---
+    # --- Tab 10: Weekend Warrior ---
+    with tab10:
+        st.title("Weekday vs. Weekend")
+        df['Type'] = df[0].dt.dayofweek.apply(lambda x: 'Weekend' if x >= 5 else 'Weekday')
+        summary = df.groupby('Type').agg({1: 'mean', 12: 'mean'})
+        summary.columns = ['Avg Cals', 'Avg Steps']
+        
+        c1, c2 = st.columns(2)
+        with c1:
+            fig = go.Figure([go.Bar(x=summary.index, y=summary['Avg Cals'], marker_color=['#ff9f43', '#ff6b6b'])])
+            fig.update_layout(title="Avg Calories", paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', font_color="white")
+            st.plotly_chart(fig, use_container_width=True)
+        with c2:
+            fig = go.Figure([go.Bar(x=summary.index, y=summary['Avg Steps'], marker_color=['#1dd1a1', '#48dbfb'])])
+            fig.update_layout(title="Avg Steps", paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', font_color="white")
+            st.plotly_chart(fig, use_container_width=True)
+
+    # --- Tab 11: Deficit ROI ---
+    with tab11:
+        st.title("Deficit ROI (Efficiency)")
+        fig = go.Figure()
+        fig.add_trace(go.Scatter(x=get_num(2), y=get_num(5), mode='markers', marker=dict(color='#feca57', size=10)))
+        fig.add_hline(y=0, line_dash="dash", line_color="white")
+        fig.update_layout(title="Net Calories vs. Weight Change", paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', font_color="white", xaxis=dict(gridcolor='rgba(255,255,255,0.2)'), yaxis=dict(gridcolor='rgba(255,255,255,0.2)'))
+        st.plotly_chart(fig, use_container_width=True)
+
+    # --- Other Tabs (3-9) ---
     with tab3: # Calories
         st.title("Calories Consumption")
         fig = go.Figure()
@@ -91,6 +122,14 @@ if not df.empty:
         fig.add_trace(go.Scatter(x=df.iloc[:, 0], y=get_num(5), mode='lines+markers', text=get_num(5), texttemplate='%{text:.1f}', textposition='top center', line=dict(color='#ff9f43', width=4)))
         fig.add_hline(y=0, line_dash="dash", line_color="white")
         fig.update_layout(paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', font_color="white", xaxis=dict(gridcolor='rgba(255,255,255,0.2)'), yaxis=dict(gridcolor='rgba(255,255,255,0.2)'))
+        st.plotly_chart(fig, use_container_width=True)
+
+    with tab6: # Steps
+        st.title("Steps & Active Burn")
+        fig = make_subplots(specs=[[{"secondary_y": True}]])
+        fig.add_trace(go.Bar(x=df.iloc[:, 0], y=get_num(12), name="Steps", marker_color='#1dd1a1'), secondary_y=False)
+        fig.add_trace(go.Scatter(x=df.iloc[:, 0], y=get_num(15), name="Active Cals", mode='lines+markers', text=get_num(15), texttemplate='%{text:.0f}', line=dict(color='#feca57', width=3)), secondary_y=True)
+        fig.update_layout(paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', font_color="white", legend=dict(font=dict(color='white')), xaxis=dict(gridcolor='rgba(255,255,255,0.2)'), yaxis=dict(gridcolor='rgba(255,255,255,0.2)'))
         st.plotly_chart(fig, use_container_width=True)
 
     with tab7: # Macros
@@ -116,26 +155,10 @@ if not df.empty:
             st.markdown(f"<div class='card'><div class='label'>Avg Loss/Week</div><div class='val'>{avg_loss:.2f} lbs</div></div>", unsafe_allow_html=True)
             st.markdown(f"<div class='card'><div class='label'>Avg Fat</div><div class='val'>{get_num(18).mean():.0f}%</div></div>", unsafe_allow_html=True)
 
-    with tab6: # Steps
-        st.title("Steps & Active Burn")
-        fig = make_subplots(specs=[[{"secondary_y": True}]])
-        fig.add_trace(go.Bar(x=df.iloc[:, 0], y=get_num(12), name="Steps", marker_color='#1dd1a1'), secondary_y=False)
-        fig.add_trace(go.Scatter(x=df.iloc[:, 0], y=get_num(15), name="Active Cals", mode='lines+markers', text=get_num(15), texttemplate='%{text:.0f}', line=dict(color='#feca57', width=3)), secondary_y=True)
-        fig.update_layout(paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', font_color="white", legend=dict(font=dict(color='white')), xaxis=dict(gridcolor='rgba(255,255,255,0.2)'), yaxis=dict(gridcolor='rgba(255,255,255,0.2)'))
-        st.plotly_chart(fig, use_container_width=True)
-
-    # --- Tab 9: BP (Refined Bands) ---
-    with tab9:
+    with tab9: # BP
         st.title("Blood Pressure")
         fig = go.Figure()
-        # Diastolic Healthy Band (Green 0-80)
-        fig.add_hrect(y0=0, y1=80, fillcolor="green", opacity=0.15, line_width=0, layer="below", name="Healthy Diastolic")
-        # Systolic Healthy Band (Light Green 80-120)
-        fig.add_hrect(y0=80, y1=120, fillcolor="lightgreen", opacity=0.15, line_width=0, layer="below", name="Healthy Systolic")
-        
+        fig.add_hrect(y0=0, y1=80, fillcolor="green", opacity=0.15, line_width=0, layer="below")
+        fig.add_hrect(y0=80, y1=120, fillcolor="lightgreen", opacity=0.15, line_width=0, layer="below")
         fig.add_trace(go.Scatter(x=df.iloc[:, 0], y=get_num(21), name="Systolic", mode='lines+markers', connectgaps=True, text=get_num(21), texttemplate='%{text:.0f}', textposition='top center', line=dict(color='#ff7675', width=3)))
-        fig.add_trace(go.Scatter(x=df.iloc[:, 0], y=get_num(22), name="Diastolic", mode='lines+markers', connectgaps=True, text=get_num(22), texttemplate='%{text:.0f}', textposition='bottom center', line=dict(color='#74b9ff', width=3)))
-        fig.update_layout(paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', font_color="white", legend=dict(font=dict(color='white')), xaxis=dict(gridcolor='rgba(255,255,255,0.2)'), yaxis=dict(gridcolor='rgba(255,255,255,0.2)'))
-        st.plotly_chart(fig, use_container_width=True)
-else:
-    st.error("Could not load data.")
+        fig.add_trace(go.Scatter(x=df.iloc[:, 0], y=get_num(22), name="Diastolic", mode='lines+markers', connectgaps=True, text=get_num(22), texttemplate='%{text:.0f}',
