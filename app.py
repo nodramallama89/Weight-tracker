@@ -7,7 +7,7 @@ from google.oauth2.service_account import Credentials
 
 st.set_page_config(page_title="Hardy House Command", layout="wide")
 
-# --- CSS ---
+# --- CSS: Scaled Up Glassmorphism ---
 st.markdown("""
     <style>
     .stApp { background-image: url('https://raw.githubusercontent.com/nodramallama89/Weight-tracker/254d2662ac5ab10a7396cb5471a719e3d3f25095/cool-background-ppt.jpg'); background-size: cover; background-attachment: fixed; }
@@ -37,19 +37,17 @@ if not df.empty:
 
     tab1, tab2, tab3, tab4, tab5, tab6, tab7, tab8, tab9 = st.tabs(["🛡️ Review", "📊 Life", "🔥 Calories", "⚖️ Weight", "📉 Gain/Loss", "👟 Steps", "🥗 Macros", "📈 Averages", "❤️ BP"])
     
-    # --- Tab 1: Review (Restored Full Detail) ---
+    # --- Tab 1: Review ---
     with tab1:
         completed = df[df.iloc[:, 12] != ""] 
         if not completed.empty:
             y = completed.iloc[-1]
             st.title("Yesterday's Review")
             cals, steps = float(str(y.iloc[1]).replace(',','')), float(str(y.iloc[12]).replace(',',''))
-            
             c1, c2 = st.columns(2)
             with c1: st.markdown(f"<div class='card'><div class='label'>Calories</div><div class='val'>{cals:.0f}</div><div style='color:{'#ff6b6b' if cals>1633 else '#51cf66'}'>{cals-1633:+.0f} vs 1633</div></div>", unsafe_allow_html=True)
             with c2: st.markdown(f"<div class='card'><div class='label'>Steps</div><div class='val'>{steps:,.0f}</div><div style='color:{'#51cf66' if steps>=10000 else '#ff6b6b'}'>{steps-10000:+.0f} vs 10k</div></div>", unsafe_allow_html=True)
             
-            # Macro Row
             m = st.columns(4)
             labels = ["Protein", "Carbs", "Fat", "Alcohol"]
             for i, idx in enumerate([16, 17, 18, 19]):
@@ -118,8 +116,7 @@ if not df.empty:
             st.markdown(f"<div class='card'><div class='label'>Avg Loss/Week</div><div class='val'>{avg_loss:.2f} lbs</div></div>", unsafe_allow_html=True)
             st.markdown(f"<div class='card'><div class='label'>Avg Fat</div><div class='val'>{get_num(18).mean():.0f}%</div></div>", unsafe_allow_html=True)
 
-    # --- Tab 6: Steps & Active Cals (Merged) ---
-    with tab6:
+    with tab6: # Steps
         st.title("Steps & Active Burn")
         fig = make_subplots(specs=[[{"secondary_y": True}]])
         fig.add_trace(go.Bar(x=df.iloc[:, 0], y=get_num(12), name="Steps", marker_color='#1dd1a1'), secondary_y=False)
@@ -127,13 +124,14 @@ if not df.empty:
         fig.update_layout(paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', font_color="white", legend=dict(font=dict(color='white')), xaxis=dict(gridcolor='rgba(255,255,255,0.2)'), yaxis=dict(gridcolor='rgba(255,255,255,0.2)'))
         st.plotly_chart(fig, use_container_width=True)
 
-    # --- Tab 9: BP (With Healthy Range Overlay) ---
+    # --- Tab 9: BP (Refined Bands) ---
     with tab9:
         st.title("Blood Pressure")
         fig = go.Figure()
-        # Overlay for Healthy Zone (0-120 Systolic, 0-80 Diastolic)
-        fig.add_hrect(y0=0, y1=80, fillcolor="green", opacity=0.1, line_width=0, layer="below") # Healthy Diastolic range base
-        fig.add_hrect(y0=80, y1=120, fillcolor="green", opacity=0.1, line_width=0, layer="below") # Healthy Systolic range
+        # Diastolic Healthy Band (Green 0-80)
+        fig.add_hrect(y0=0, y1=80, fillcolor="green", opacity=0.15, line_width=0, layer="below", name="Healthy Diastolic")
+        # Systolic Healthy Band (Light Green 80-120)
+        fig.add_hrect(y0=80, y1=120, fillcolor="lightgreen", opacity=0.15, line_width=0, layer="below", name="Healthy Systolic")
         
         fig.add_trace(go.Scatter(x=df.iloc[:, 0], y=get_num(21), name="Systolic", mode='lines+markers', connectgaps=True, text=get_num(21), texttemplate='%{text:.0f}', textposition='top center', line=dict(color='#ff7675', width=3)))
         fig.add_trace(go.Scatter(x=df.iloc[:, 0], y=get_num(22), name="Diastolic", mode='lines+markers', connectgaps=True, text=get_num(22), texttemplate='%{text:.0f}', textposition='bottom center', line=dict(color='#74b9ff', width=3)))
