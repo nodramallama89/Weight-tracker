@@ -18,17 +18,15 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 def render_card(title, value, footer, delta_val=None, is_bad_if_positive=False):
-    color = "green" if (delta_val <= 0 if not is_bad_if_positive else delta_val >= 0) else "red"
-    arrow = "↑" if delta_val > 0 else "↓" if delta_val < 0 else ""
-    st.markdown(f"""
-        <div class='card'>
-            <div class='stat-title'>{title}</div>
-            <div class='stat-val'>{value}</div>
-            <div class='stat-footer' style='color:{color}'>{arrow} {abs(delta_val):.0f} {footer}</div>
-        </div>
-    """, unsafe_allow_html=True)
+    if delta_val is not None:
+        color = "green" if (delta_val <= 0 if not is_bad_if_positive else delta_val >= 0) else "red"
+        arrow = "↑" if delta_val > 0 else "↓" if delta_val < 0 else ""
+        delta_html = f"<div style='color:{color}'>{arrow} {abs(delta_val):.0f} {footer}</div>"
+    else:
+        delta_html = f"<div class='stat-footer' style='color:#8e8e93'>{footer}</div>"
+    st.markdown(f"<div class='card'><div class='stat-title'>{title}</div><div class='stat-val'>{value}</div>{delta_html}</div>", unsafe_allow_html=True)
 
-# --- Data Loading (Validated) ---
+# --- Data Loading ---
 @st.cache_data(ttl=60)
 def load_data():
     try:
@@ -51,20 +49,15 @@ df = load_data()
 
 if not df.empty:
     st.title("🛡️ HARDY HOUSE COMMAND")
-    
-    # Calcs
     avg_cal, avg_steps = df['Cal'].mean(), df['Steps'].mean()
     s7, s14, s30 = df.tail(7)['Steps'].mean(), df.tail(14)['Steps'].mean(), df.tail(30)['Steps'].mean()
     c7, c30 = df.tail(7)['Cal'].mean(), df.tail(30)['Cal'].mean()
     
-    # Weight
-    start_w, end_w = df.iloc[0]['Weight'], df.iloc[-1]['Weight']
-    total_loss = start_w - end_w
+    total_loss = df.iloc[0]['Weight'] - df.iloc[-1]['Weight']
     loss_per_week = (total_loss / ((df.iloc[-1]['Date'] - df.iloc[0]['Date']).days / 7))
-    target_date = datetime.now() + timedelta(days=(end_w - 175) / (loss_per_week / 7))
+    target_date = datetime.now() + timedelta(days=(df.iloc[-1]['Weight'] - 175) / (loss_per_week / 7))
 
-    # --- Energy ---
-    st.subheader("⚡ Calories")
+    st.subheader("⚡ Energy")
     c1, c2, c3, c4, c5 = st.columns(5)
     with c1: render_card("Avg Daily", f"{avg_cal:.0f}", "All Time")
     with c2: render_card("vs Maint", f"{avg_cal-2500:.0f}", "vs 2500", avg_cal-2500, True)
@@ -72,7 +65,6 @@ if not df.empty:
     with c4: render_card("7D Avg", f"{c7:.0f}", "Calories")
     with c5: render_card("30D Avg", f"{c30:.0f}", "Calories")
 
-    # --- Steps ---
     st.subheader("🚀 Steps & Momentum")
     r1, r2, r3, r4, r5, r6 = st.columns(6)
     with r1: render_card("All Time Avg", f"{avg_steps:,.0f}", "vs 10k", avg_steps-10000)
@@ -82,7 +74,6 @@ if not df.empty:
     with r5: render_card("Req 14D", f"{(10000*14 - df.tail(14)['Steps'].sum())/14:,.0f}", "Steps/Day")
     with r6: render_card("Req 30D", f"{(10000*30 - df.tail(30)['Steps'].sum())/30:,.0f}", "Steps/Day")
 
-    # --- Macros & Weight ---
     st.subheader("🎯 Macros & Progress")
     m1, m2, m3, m4, m5, m6 = st.columns(6)
     with m1: render_card("Protein", f"{df['Prot'].mean():.0f}%", "Avg")
@@ -90,7 +81,7 @@ if not df.empty:
     with m3: render_card("Fat", f"{df['Fat'].mean():.0f}%", "Avg")
     with m4: render_card("Total Loss", f"{total_loss:.1f} lbs", f"{int(total_loss//14)}st {total_loss%14:.1f}lbs")
     with m5: render_card("Target Date", target_date.strftime('%d %b'), "Est.")
-    with m6: render_card("Latest Change", f"{df.iloc[-2]['Weight'] - df.iloc[-1]['Weight']:.1f} lbs", "Last record")
+    with m6: render_card("Latest Change", f"{df.iloc[-2]['Weight'] - df.iloc[-1]['Weight']:.1f} lbs", "Last update")
 
     with st.expander("📂 Raw Data"):
         st.dataframe(df.sort_values(by='Date', ascending=False), use_container_width=True)
