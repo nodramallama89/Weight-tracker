@@ -7,7 +7,7 @@ from google.oauth2.service_account import Credentials
 
 st.set_page_config(page_title="Hardy House Command", layout="wide")
 
-# --- CSS: Scaled Up Glassmorphism ---
+# --- CSS ---
 st.markdown("""
     <style>
     .stApp { background-image: url('https://raw.githubusercontent.com/nodramallama89/Weight-tracker/254d2662ac5ab10a7396cb5471a719e3d3f25095/cool-background-ppt.jpg'); background-size: cover; background-attachment: fixed; }
@@ -37,16 +37,23 @@ if not df.empty:
 
     tab1, tab2, tab3, tab4, tab5, tab6, tab7, tab8, tab9 = st.tabs(["🛡️ Review", "📊 Life", "🔥 Calories", "⚖️ Weight", "📉 Gain/Loss", "👟 Steps", "🥗 Macros", "📈 Averages", "❤️ BP"])
     
-    # --- Tab 1: Review ---
+    # --- Tab 1: Review (Restored Full Detail) ---
     with tab1:
         completed = df[df.iloc[:, 12] != ""] 
         if not completed.empty:
             y = completed.iloc[-1]
             st.title("Yesterday's Review")
             cals, steps = float(str(y.iloc[1]).replace(',','')), float(str(y.iloc[12]).replace(',',''))
+            
             c1, c2 = st.columns(2)
             with c1: st.markdown(f"<div class='card'><div class='label'>Calories</div><div class='val'>{cals:.0f}</div><div style='color:{'#ff6b6b' if cals>1633 else '#51cf66'}'>{cals-1633:+.0f} vs 1633</div></div>", unsafe_allow_html=True)
             with c2: st.markdown(f"<div class='card'><div class='label'>Steps</div><div class='val'>{steps:,.0f}</div><div style='color:{'#51cf66' if steps>=10000 else '#ff6b6b'}'>{steps-10000:+.0f} vs 10k</div></div>", unsafe_allow_html=True)
+            
+            # Macro Row
+            m = st.columns(4)
+            labels = ["Protein", "Carbs", "Fat", "Alcohol"]
+            for i, idx in enumerate([16, 17, 18, 19]):
+                m[i].markdown(f"<div class='card'><div class='label'>{labels[i]}</div><div class='val' style='font-size:1.5rem;'>{str(y.iloc[idx]).replace('%','')}%</div></div>", unsafe_allow_html=True)
 
     # --- Tab 2: Life ---
     with tab2:
@@ -68,7 +75,7 @@ if not df.empty:
     with tab3: # Calories
         st.title("Calories Consumption")
         fig = go.Figure()
-        fig.add_trace(go.Bar(x=df.iloc[:, 0], y=get_num(1), name="Calories", marker_color='#ff9f43'))
+        fig.add_trace(go.Bar(x=df.iloc[:, 0], y=get_num(1), name="Calories", text=get_num(1), texttemplate='%{text:.0f}', textposition='auto', marker_color='#ff9f43'))
         fig.add_trace(go.Scatter(x=df.iloc[:, 0], y=get_num(2), name="Net Cal", mode='lines+markers', line=dict(color='#ffffff', width=3)))
         fig.update_layout(paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', font_color="white", legend=dict(font=dict(color='white')), xaxis=dict(gridcolor='rgba(255,255,255,0.2)'), yaxis=dict(gridcolor='rgba(255,255,255,0.2)'))
         st.plotly_chart(fig, use_container_width=True)
@@ -76,14 +83,14 @@ if not df.empty:
     with tab4: # Weight
         st.title("Weight Progress")
         fig = go.Figure()
-        fig.add_trace(go.Scatter(x=df.iloc[:, 0], y=get_num(3), mode='lines+markers', line=dict(color='#ffffff', width=4)))
+        fig.add_trace(go.Scatter(x=df.iloc[:, 0], y=get_num(3), mode='lines+markers', text=get_num(3), texttemplate='%{text:.1f}', textposition='top center', line=dict(color='#ffffff', width=4)))
         fig.update_layout(paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', font_color="white", xaxis=dict(gridcolor='rgba(255,255,255,0.2)'), yaxis=dict(gridcolor='rgba(255,255,255,0.2)'))
         st.plotly_chart(fig, use_container_width=True)
 
     with tab5: # Gain/Loss
         st.title("Gain/Loss Trend")
         fig = go.Figure()
-        fig.add_trace(go.Scatter(x=df.iloc[:, 0], y=get_num(5), mode='lines+markers', line=dict(color='#ff9f43', width=4)))
+        fig.add_trace(go.Scatter(x=df.iloc[:, 0], y=get_num(5), mode='lines+markers', text=get_num(5), texttemplate='%{text:.1f}', textposition='top center', line=dict(color='#ff9f43', width=4)))
         fig.add_hline(y=0, line_dash="dash", line_color="white")
         fig.update_layout(paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', font_color="white", xaxis=dict(gridcolor='rgba(255,255,255,0.2)'), yaxis=dict(gridcolor='rgba(255,255,255,0.2)'))
         st.plotly_chart(fig, use_container_width=True)
@@ -91,9 +98,9 @@ if not df.empty:
     with tab7: # Macros
         st.title("Macros Trend")
         fig = go.Figure()
-        fig.add_trace(go.Scatter(x=df.iloc[:, 0], y=get_num(16), name="Protein", line=dict(color='#ff6b6b', width=3)))
-        fig.add_trace(go.Scatter(x=df.iloc[:, 0], y=get_num(17), name="Carbs", line=dict(color='#48dbfb', width=3)))
-        fig.add_trace(go.Scatter(x=df.iloc[:, 0], y=get_num(18), name="Fat", line=dict(color='#feca57', width=3)))
+        fig.add_trace(go.Scatter(x=df.iloc[:, 0], y=get_num(16), name="Protein", mode='lines+markers', text=get_num(16), texttemplate='%{text:.0f}', textposition='top center', line=dict(color='#ff6b6b', width=3)))
+        fig.add_trace(go.Scatter(x=df.iloc[:, 0], y=get_num(17), name="Carbs", mode='lines+markers', text=get_num(17), texttemplate='%{text:.0f}', textposition='top center', line=dict(color='#48dbfb', width=3)))
+        fig.add_trace(go.Scatter(x=df.iloc[:, 0], y=get_num(18), name="Fat", mode='lines+markers', text=get_num(18), texttemplate='%{text:.0f}', textposition='top center', line=dict(color='#feca57', width=3)))
         fig.update_layout(paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', font_color="white", legend=dict(font=dict(color='white')), xaxis=dict(gridcolor='rgba(255,255,255,0.2)'), yaxis=dict(gridcolor='rgba(255,255,255,0.2)'))
         st.plotly_chart(fig, use_container_width=True)
 
@@ -111,22 +118,25 @@ if not df.empty:
             st.markdown(f"<div class='card'><div class='label'>Avg Loss/Week</div><div class='val'>{avg_loss:.2f} lbs</div></div>", unsafe_allow_html=True)
             st.markdown(f"<div class='card'><div class='label'>Avg Fat</div><div class='val'>{get_num(18).mean():.0f}%</div></div>", unsafe_allow_html=True)
 
-    # --- Tab 6: Steps & Active Cals (Combined) ---
+    # --- Tab 6: Steps & Active Cals (Merged) ---
     with tab6:
         st.title("Steps & Active Burn")
         fig = make_subplots(specs=[[{"secondary_y": True}]])
         fig.add_trace(go.Bar(x=df.iloc[:, 0], y=get_num(12), name="Steps", marker_color='#1dd1a1'), secondary_y=False)
-        fig.add_trace(go.Scatter(x=df.iloc[:, 0], y=get_num(15), name="Active Cals", mode='lines', line=dict(color='#feca57', width=3)), secondary_y=True)
+        fig.add_trace(go.Scatter(x=df.iloc[:, 0], y=get_num(15), name="Active Cals", mode='lines+markers', text=get_num(15), texttemplate='%{text:.0f}', line=dict(color='#feca57', width=3)), secondary_y=True)
         fig.update_layout(paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', font_color="white", legend=dict(font=dict(color='white')), xaxis=dict(gridcolor='rgba(255,255,255,0.2)'), yaxis=dict(gridcolor='rgba(255,255,255,0.2)'))
         st.plotly_chart(fig, use_container_width=True)
 
-    # --- Tab 9: BP (V=21, W=22) ---
+    # --- Tab 9: BP (With Healthy Range Overlay) ---
     with tab9:
         st.title("Blood Pressure")
         fig = go.Figure()
-        # connectgaps=True is the magic here
-        fig.add_trace(go.Scatter(x=df.iloc[:, 0], y=get_num(21), name="Systolic", mode='lines+markers', connectgaps=True, line=dict(color='#ff7675', width=3)))
-        fig.add_trace(go.Scatter(x=df.iloc[:, 0], y=get_num(22), name="Diastolic", mode='lines+markers', connectgaps=True, line=dict(color='#74b9ff', width=3)))
+        # Overlay for Healthy Zone (0-120 Systolic, 0-80 Diastolic)
+        fig.add_hrect(y0=0, y1=80, fillcolor="green", opacity=0.1, line_width=0, layer="below") # Healthy Diastolic range base
+        fig.add_hrect(y0=80, y1=120, fillcolor="green", opacity=0.1, line_width=0, layer="below") # Healthy Systolic range
+        
+        fig.add_trace(go.Scatter(x=df.iloc[:, 0], y=get_num(21), name="Systolic", mode='lines+markers', connectgaps=True, text=get_num(21), texttemplate='%{text:.0f}', textposition='top center', line=dict(color='#ff7675', width=3)))
+        fig.add_trace(go.Scatter(x=df.iloc[:, 0], y=get_num(22), name="Diastolic", mode='lines+markers', connectgaps=True, text=get_num(22), texttemplate='%{text:.0f}', textposition='bottom center', line=dict(color='#74b9ff', width=3)))
         fig.update_layout(paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', font_color="white", legend=dict(font=dict(color='white')), xaxis=dict(gridcolor='rgba(255,255,255,0.2)'), yaxis=dict(gridcolor='rgba(255,255,255,0.2)'))
         st.plotly_chart(fig, use_container_width=True)
 else:
