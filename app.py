@@ -51,9 +51,9 @@ df = load_data()
 if not df.empty:
     def get_num(idx): return pd.to_numeric(df.iloc[:, idx].astype(str).str.replace('%','').str.replace(',',''), errors='coerce')
 
-    tab1, tab2, tab3, tab4, tab5, tab6, tab7, tab8, tab9, tab10 = st.tabs([
-        "🛡️ Review", "📊 Life", "🔥 Calories", "⚖️ Weight", "📉 Velocity", 
-        "👟 Steps", "🥗 Macros", "📈 Averages", "❤️ BP", "📅 Weekend Warrior"
+    tab1, tab2, tab3, tab4, tab5, tab6, tab7, tab8, tab9, tab10, tab11 = st.tabs([
+        "🛡️ Review", "📊 Life", "🔥 Calories", "⚖️ Weight", "📉 Gain/Loss", 
+        "🚀 Velocity", "👟 Steps", "🥗 Macros", "📈 Averages", "❤️ BP", "📅 Weekend Warrior"
     ])
     
     with tab1: # Review
@@ -85,7 +85,7 @@ if not df.empty:
             st.markdown(f"<div class='card'><div class='label'>BMI</div><div class='val'>{l.iloc[10]}</div></div>", unsafe_allow_html=True)
             st.markdown(f"<div class='card'><div class='label'>Target BMI</div><div class='val'>{l.iloc[11]}</div></div>", unsafe_allow_html=True)
 
-    with tab5: # Velocity Only
+    with tab5: # Velocity
         st.title("Weight Velocity")
         velocity = get_num(3).diff() * -1
         fig = go.Figure()
@@ -93,28 +93,19 @@ if not df.empty:
         fig.add_hline(y=0, line_dash="dash", line_color="white")
         st.plotly_chart(apply_theme(fig, "Daily Weight Progress (lbs/day)"), use_container_width=True)
 
-    with tab10: # Weekend
-        st.title("Weekday vs. Weekend")
-        plot_df = df.copy()
-        plot_df['Type'] = plot_df[0].dt.dayofweek.apply(lambda x: 'Weekend' if x >= 5 else 'Weekday')
-        plot_df[1] = pd.to_numeric(plot_df[1].astype(str).str.replace(',', ''), errors='coerce')
-        plot_df[12] = pd.to_numeric(plot_df[12].astype(str).str.replace(',', ''), errors='coerce')
-        summary = plot_df.groupby('Type')[[1, 12]].mean()
-        c1, c2 = st.columns(2)
-        for i, col in enumerate([1, 12]):
-            fig = go.Figure([go.Bar(x=summary.index, y=summary[col], marker_color=['#ff6b6b', '#1dd1a1'])])
-            (c1 if i==0 else c2).plotly_chart(apply_theme(fig, "Avg Calories" if i==0 else "Avg Steps"), use_container_width=True)
+    with tab4: # Gain/Loss Trend
+        st.title("Gain/Loss Trend")
+        fig = go.Figure()
+        fig.add_trace(go.Scatter(x=df[0], y=get_num(5), mode='lines+markers', line=dict(color='#ff9f43', width=4)))
+        fig.add_hline(y=0, line_dash="dash", line_color="white")
+        st.plotly_chart(apply_theme(fig, "Total Trend"), use_container_width=True)
 
+    # All other tabs maintained...
     with tab3: # Calories
         fig = go.Figure()
         fig.add_trace(go.Bar(x=df.iloc[:, 0], y=get_num(1), name="Calories", text=get_num(1), texttemplate='%{text:.0f}', textposition='auto', marker_color='#ff9f43'))
         fig.add_trace(go.Scatter(x=df.iloc[:, 0], y=get_num(2), name="Net Cal", mode='lines+markers', line=dict(color='#ffffff', width=3)))
         st.plotly_chart(apply_theme(fig, "Calories Consumption"), use_container_width=True)
-
-    with tab4: # Weight
-        fig = go.Figure()
-        fig.add_trace(go.Scatter(x=df.iloc[:, 0], y=get_num(3), mode='lines+markers', text=get_num(3), texttemplate='%{text:.1f}', textposition='top center', line=dict(color='#ffffff', width=4)))
-        st.plotly_chart(apply_theme(fig, "Weight Progress"), use_container_width=True)
 
     with tab6: # Steps
         fig = make_subplots(specs=[[{"secondary_y": True}]])
@@ -150,5 +141,17 @@ if not df.empty:
         fig.add_trace(go.Scatter(x=df.iloc[:, 0], y=get_num(21), name="Systolic", mode='lines+markers', connectgaps=True, line=dict(color='#ff7675', width=3)))
         fig.add_trace(go.Scatter(x=df.iloc[:, 0], y=get_num(22), name="Diastolic", mode='lines+markers', connectgaps=True, line=dict(color='#74b9ff', width=3)))
         st.plotly_chart(apply_theme(fig, "Blood Pressure"), use_container_width=True)
+        
+    with tab10: # Weekend
+        st.title("Weekday vs. Weekend")
+        plot_df = df.copy()
+        plot_df['Type'] = plot_df[0].dt.dayofweek.apply(lambda x: 'Weekend' if x >= 5 else 'Weekday')
+        plot_df[1] = pd.to_numeric(plot_df[1].astype(str).str.replace(',', ''), errors='coerce')
+        plot_df[12] = pd.to_numeric(plot_df[12].astype(str).str.replace(',', ''), errors='coerce')
+        summary = plot_df.groupby('Type')[[1, 12]].mean()
+        c1, c2 = st.columns(2)
+        for i, col in enumerate([1, 12]):
+            fig = go.Figure([go.Bar(x=summary.index, y=summary[col], marker_color=['#ff6b6b', '#1dd1a1'])])
+            (c1 if i==0 else c2).plotly_chart(apply_theme(fig, "Avg Calories" if i==0 else "Avg Steps"), use_container_width=True)
 else:
     st.error("Could not load data.")
