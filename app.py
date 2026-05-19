@@ -3,32 +3,16 @@ import pandas as pd
 import gspread
 from google.oauth2.service_account import Credentials
 
-st.set_page_config(page_title="Yesterday's Review", layout="centered")
+st.set_page_config(page_title="Hardy House Command", layout="centered")
 
-# --- CSS: iOS Glassmorphism + Background ---
+# --- CSS: iOS Glassmorphism ---
 st.markdown("""
     <style>
-    .stApp {
-        background-image: url('https://raw.githubusercontent.com/nodramallama89/Weight-tracker/254d2662ac5ab10a7396cb5471a719e3d3f25095/cool-background-ppt.jpg');
-        background-size: cover;
-        background-attachment: fixed;
-    }
-    .card {
-        background: rgba(255, 255, 255, 0.15);
-        backdrop-filter: blur(12px);
-        -webkit-backdrop-filter: blur(12px);
-        border-radius: 20px;
-        padding: 25px;
-        box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
-        border: 1px solid rgba(255, 255, 255, 0.2);
-        text-align: center;
-        margin-bottom: 20px;
-        color: white;
-    }
-    .val { font-size: 3rem; font-weight: 800; }
-    .label { font-size: 0.9rem; text-transform: uppercase; letter-spacing: 1px; opacity: 0.9; }
-    .delta { font-size: 1.1rem; font-weight: 600; margin-top: 5px; }
-    h1, h2 { color: white !important; text-align: center; }
+    .stApp { background-image: url('https://raw.githubusercontent.com/nodramallama89/Weight-tracker/254d2662ac5ab10a7396cb5471a719e3d3f25095/cool-background-ppt.jpg'); background-size: cover; background-attachment: fixed; }
+    .card { background: rgba(255, 255, 255, 0.15); backdrop-filter: blur(12px); border-radius: 20px; padding: 25px; box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37); border: 1px solid rgba(255, 255, 255, 0.2); text-align: center; color: white; margin-bottom: 20px; }
+    .val { font-size: 2.2rem; font-weight: 800; }
+    .label { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 1px; opacity: 0.9; }
+    h1, h2, h3 { color: white !important; text-align: center; }
     </style>
 """, unsafe_allow_html=True)
 
@@ -39,65 +23,49 @@ def load_data():
         client = gspread.authorize(creds)
         ws = client.open_by_url(st.secrets["spreadsheet_url"]).worksheet("Main sheet")
         data = ws.get_all_values()
-        return pd.DataFrame(data[1:])
+        df = pd.DataFrame(data[1:])
+        return df
     except: return pd.DataFrame()
 
 df = load_data()
 
 if not df.empty:
-    # Column Index Mapping: 12 is Steps (M), 1 is Calories (B)
-    completed_rows = df[df[12] != ""]
+    tab1, tab2 = st.tabs(["🛡️ Yesterday's Review", "📊 Lifetime Stats"])
     
-    if not completed_rows.empty:
-        yesterday = completed_rows.iloc[-1]
-        
-        def to_n(val):
-            try: return float(str(val).replace('%','').replace(',',''))
-            except: return 0.0
+    # --- Tab 1: Yesterday's Review (Last row with steps) ---
+    with tab1:
+        completed = df[df[12] != ""] # Column M (12)
+        if not completed.empty:
+            y = completed.iloc[-1]
+            st.title("Yesterday's Review")
+            st.markdown(f"### {y[0]}") # Date
+            
+            cals, steps = float(str(y[1]).replace(',','')), float(str(y[12]).replace(',',''))
+            
+            # Cards
+            st.markdown(f"<div class='card'><div class='label'>Calories</div><div class='val'>{cals:.0f}</div><div style='color:{'#ff6b6b' if cals>1633 else '#51cf66'}'>{cals-1633:+.0f} vs 1633</div></div>", unsafe_allow_html=True)
+            st.markdown(f"<div class='card'><div class='label'>Steps</div><div class='val'>{steps:,.0f}</div><div style='color:{'#51cf66' if steps>=10000 else '#ff6b6b'}'>{steps-10000:+.0f} vs 10k</div></div>", unsafe_allow_html=True)
+            
+            # Macros
+            m = st.columns(4)
+            labels = ["Prot", "Carb", "Fat", "Alc"]
+            for i, idx in enumerate([16, 17, 18, 19]):
+                m[i].markdown(f"<div class='card'><div class='label'>{labels[i]}</div><div style='font-size:1.2rem'>{y[idx]}%</div></div>", unsafe_allow_html=True)
+        else:
+            st.error("No completed days yet.")
 
-        cals = to_n(yesterday[1])
-        steps = to_n(yesterday[12])
+    # --- Tab 2: Lifetime Stats (Latest row) ---
+    with tab2:
+        l = df.iloc[-1] # The absolute latest entry (Morning weight)
+        st.title("Lifetime Stats")
         
-        st.title("🛡️ Yesterday's Review")
-        
-        # 1. Calories
-        cal_diff = cals - 1633
-        st.markdown(f"""
-            <div class='card'>
-                <div class='label'>Calories Consumed</div>
-                <div class='val'>{cals:.0f}</div>
-                <div class='delta' style='color: {'#ff6b6b' if cal_diff > 0 else '#51cf66'}'>
-                    {'+' if cal_diff > 0 else ''}{cal_diff:.0f} vs 1633
-                </div>
-            </div>
-        """, unsafe_allow_html=True)
-        
-        # 2. Steps
-        step_diff = steps - 10000
-        st.markdown(f"""
-            <div class='card'>
-                <div class='label'>Steps</div>
-                <div class='val'>{steps:,.0f}</div>
-                <div class='delta' style='color: {'#51cf66' if step_diff >= 0 else '#ff6b6b'}'>
-                    {'+' if step_diff >= 0 else ''}{step_diff:,.0f} vs 10k
-                </div>
-            </div>
-        """, unsafe_allow_html=True)
-        
-        # 3. Macros
-        cols = st.columns(4)
-        macro_labels = ["Prot", "Carb", "Fat", "Alc"]
-        macro_indices = [16, 17, 18, 19]
-        
-        for i, col in enumerate(cols):
-            val = to_n(yesterday[macro_indices[i]])
-            col.markdown(f"""
-                <div class='card'>
-                    <div class='label'>{macro_labels[i]}</div>
-                    <div class='val' style='font-size: 1.5rem'>{val:.0f}{'%' if i<3 else ''}</div>
-                </div>
-            """, unsafe_allow_html=True)
-    else:
-        st.error("No completed rows found.")
+        # Grid layout for lifetime stats
+        col1, col2 = st.columns(2)
+        with col1:
+            st.markdown(f"<div class='card'><div class='label'>Total Loss</div><div class='val'>{l[6]} lbs</div><div>{l[7]}</div></div>", unsafe_allow_html=True)
+            st.markdown(f"<div class='card'><div class='label'>To Target</div><div class='val'>{l[8]} lbs</div><div>{l[9]}</div></div>", unsafe_allow_html=True)
+        with col2:
+            st.markdown(f"<div class='card'><div class='label'>BMI</div><div class='val'>{l[10]}</div><div>Current</div></div>", unsafe_allow_html=True)
+            st.markdown(f"<div class='card'><div class='label'>To Target BMI</div><div class='val'>{l[11]}</div><div>Remaining</div></div>", unsafe_allow_html=True)
 else:
     st.error("Could not load data.")
