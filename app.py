@@ -19,48 +19,44 @@ def load_data():
         client = get_gsheets_client()
         sheet_url = st.secrets["spreadsheet_url"]
         worksheet = client.open_by_url(sheet_url).worksheet("Main sheet")
-        values = worksheet.get_all_values()
-        df = pd.DataFrame(values[1:], columns=values[0])
         
-        # 1. Ensure Date is clean
+        # Get data as a list of lists (the most raw format possible)
+        all_data = worksheet.get_all_values()
+        
+        # Convert to DataFrame, skip first row for headers
+        df = pd.DataFrame(all_data[1:], columns=all_data[0])
+        
+        # BRUTE FORCE CLEAN: 
+        # Remove empty rows
         df = df[df.iloc[:, 0] != ""]
         
-        # 2. Convert Steps (Col M, index 12) to numeric safely
-        df.iloc[:, 12] = pd.to_numeric(df.iloc[:, 12], errors='coerce').fillna(0)
+        # Force the 'Steps' column (index 12) to be strictly numeric
+        # We use 'coerce' so any garbage data becomes a 0
+        df.iloc[:, 12] = pd.to_numeric(df.iloc[:, 12].astype(str).str.replace(',', '').str.replace('.0', ''), errors='coerce').fillna(0)
         
-        # 3. Filter: Only keep rows where Steps > 0
+        # Filter for completed days only
         df = df[df.iloc[:, 12] > 0]
         
         return df
     except Exception as e:
-        st.error(f"Error loading data: {e}")
+        st.error(f"Error: {e}")
         return pd.DataFrame()
 
-# --- Load & Prep ---
+# --- Main App ---
 df = load_data()
 
 if not df.empty:
-    # Convert all relevant columns to numeric
-    # B:1, D:3, M:12, P:15, Q:16, R:17, S:18, T:19, V:21, W:22
-    numeric_indices = [1, 3, 12, 15, 16, 17, 18, 19, 21, 22]
-    for idx in numeric_indices:
-        df.iloc[:, idx] = pd.to_numeric(df.iloc[:, idx].astype(str).str.replace('%', ''), errors='coerce').fillna(0)
-    
-    df['Date'] = pd.to_datetime(df.iloc[:, 0], format='%d/%m/%Y')
-    df = df.sort_values('Date')
-    
-    # --- Metrics ---
-    total_days = len(df)
-    last_7 = df.tail(7)
-    
     st.title("🛡️ Hardy House Command")
     
+    # Simple Numeric Prep
+    df['Steps'] = df.iloc[:, 12].astype(int)
+    last_7 = df.tail(7)
+    
     c1, c2, c3 = st.columns(3)
-    c1.metric("7-Day Avg Steps", f"{int(last_7.iloc[:, 12].mean()):,}")
-    c2.metric("Days on Diet", total_days)
+    c1.metric("7-Day Avg Steps", f"{int(last_7['Steps'].mean()):,}")
+    c2.metric("Days on Diet", len(df))
     c3.metric("Last Logged Date", df.iloc[-1, 0])
 
-    st.subheader("Data Preview")
-    st.dataframe(df.sort_values(by="Date", ascending=False), use_container_width=True)
+    st.dataframe(df.sort_values(by=df.columns[0], ascending=False), use_container_width=True)
 else:
-    st.info("Waiting for data... Please ensure your 'Main sheet' is populated and the Steps column has values for completed days.")
+    st.info("Waiting for data... Ensure Column M (Steps) is clean numbers.")
