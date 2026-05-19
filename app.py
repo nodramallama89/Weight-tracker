@@ -95,9 +95,11 @@ if not df.empty:
 
     with tab12: # Calendar Heatmap
         st.title("Performance Calendar")
+        # FORCE NUMERIC
+        df['Heat'] = get_num(5)
         df['Week'] = df[0].dt.isocalendar().week
         df['Day'] = df[0].dt.dayofweek
-        heat = df.pivot_table(index='Day', columns='Week', values=5, aggfunc='mean')
+        heat = df.pivot_table(index='Day', columns='Week', values='Heat', aggfunc='mean')
         fig = go.Figure(data=go.Heatmap(z=heat.values, x=heat.columns, y=['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'], colorscale='RdYlGn', zmid=0))
         st.plotly_chart(apply_theme(fig, "Daily Gain (Red) vs Loss (Green)"), use_container_width=True)
 
@@ -121,7 +123,6 @@ if not df.empty:
         fig.add_vline(x=0, line_dash="dash", line_color="red")
         st.plotly_chart(apply_theme(fig, "Net Calories vs. Weight Change"), use_container_width=True)
 
-    # Remaining tabs
     with tab3: # Calories
         fig = go.Figure()
         fig.add_trace(go.Bar(x=df.iloc[:, 0], y=get_num(1), name="Calories", text=get_num(1), texttemplate='%{text:.0f}', textposition='auto', marker_color='#ff9f43'))
