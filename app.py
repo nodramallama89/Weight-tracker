@@ -67,7 +67,7 @@ if not df.empty:
         st.title("Weight Progress")
         fig = go.Figure()
         fig.add_trace(go.Scatter(x=df.iloc[:, 0], y=get_num(3), mode='lines+markers', line=dict(color='#ffffff', width=4)))
-        fig.update_layout(paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', font_color="white", xaxis=dict(gridcolor='rgba(255,255,255,0.2)', rangeslider=dict(visible=True)), yaxis=dict(gridcolor='rgba(255,255,255,0.2)'))
+        fig.update_layout(paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', font_color="white", xaxis=dict(gridcolor='rgba(255,255,255,0.2)'), yaxis=dict(gridcolor='rgba(255,255,255,0.2)'))
         st.plotly_chart(fig, use_container_width=True)
 
     # --- Tab 4: Gain/Loss ---
@@ -76,7 +76,7 @@ if not df.empty:
         fig = go.Figure()
         fig.add_trace(go.Scatter(x=df.iloc[:, 0], y=get_num(5), mode='lines+markers', line=dict(color='#ff9f43', width=4)))
         fig.add_hline(y=0, line_dash="dash", line_color="white")
-        fig.update_layout(paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', font_color="white", xaxis=dict(gridcolor='rgba(255,255,255,0.2)', rangeslider=dict(visible=True)), yaxis=dict(gridcolor='rgba(255,255,255,0.2)'))
+        fig.update_layout(paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', font_color="white", xaxis=dict(gridcolor='rgba(255,255,255,0.2)'), yaxis=dict(gridcolor='rgba(255,255,255,0.2)'))
         st.plotly_chart(fig, use_container_width=True)
 
     # --- Tab 5: Steps ---
@@ -84,7 +84,7 @@ if not df.empty:
         st.title("Steps Trend")
         fig = go.Figure()
         fig.add_trace(go.Bar(x=df.iloc[:, 0], y=get_num(12), marker_color='#1dd1a1'))
-        fig.update_layout(paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', font_color="white", xaxis=dict(gridcolor='rgba(255,255,255,0.2)', rangeslider=dict(visible=True)), yaxis=dict(gridcolor='rgba(255,255,255,0.2)'))
+        fig.update_layout(paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', font_color="white", xaxis=dict(gridcolor='rgba(255,255,255,0.2)'), yaxis=dict(gridcolor='rgba(255,255,255,0.2)'))
         st.plotly_chart(fig, use_container_width=True)
 
     # --- Tab 6: Macros ---
@@ -94,13 +94,12 @@ if not df.empty:
         fig.add_trace(go.Scatter(x=df.iloc[:, 0], y=get_num(16), name="Protein", line=dict(color='#ff6b6b', width=3)))
         fig.add_trace(go.Scatter(x=df.iloc[:, 0], y=get_num(17), name="Carbs", line=dict(color='#48dbfb', width=3)))
         fig.add_trace(go.Scatter(x=df.iloc[:, 0], y=get_num(18), name="Fat", line=dict(color='#feca57', width=3)))
-        # FIX: Added legend font color here
         fig.update_layout(
             paper_bgcolor='rgba(0,0,0,0)', 
             plot_bgcolor='rgba(0,0,0,0)', 
             font_color="white", 
-            legend=dict(font=dict(color='white')), # LEGEND FIX
-            xaxis=dict(gridcolor='rgba(255,255,255,0.2)', rangeslider=dict(visible=True)), 
+            legend=dict(font=dict(color='white')),
+            xaxis=dict(gridcolor='rgba(255,255,255,0.2)'), 
             yaxis=dict(gridcolor='rgba(255,255,255,0.2)')
         )
         st.plotly_chart(fig, use_container_width=True)
