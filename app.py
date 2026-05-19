@@ -3,7 +3,34 @@ import pandas as pd
 import gspread
 from google.oauth2.service_account import Credentials
 
-st.set_page_config(page_title="Hardy House Command", layout="centered")
+st.set_page_config(page_title="Yesterday's Review", layout="centered")
+
+# --- CSS: iOS Glassmorphism + Background ---
+st.markdown("""
+    <style>
+    .stApp {
+        background-image: url('https://raw.githubusercontent.com/nodramallama89/Weight-tracker/254d2662ac5ab10a7396cb5471a719e3d3f25095/cool-background-ppt.jpg');
+        background-size: cover;
+        background-attachment: fixed;
+    }
+    .card {
+        background: rgba(255, 255, 255, 0.15);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border-radius: 20px;
+        padding: 25px;
+        box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        text-align: center;
+        margin-bottom: 20px;
+        color: white;
+    }
+    .val { font-size: 3rem; font-weight: 800; }
+    .label { font-size: 0.9rem; text-transform: uppercase; letter-spacing: 1px; opacity: 0.9; }
+    .delta { font-size: 1.1rem; font-weight: 600; margin-top: 5px; }
+    h1, h2 { color: white !important; text-align: center; }
+    </style>
+""", unsafe_allow_html=True)
 
 @st.cache_data(ttl=60)
 def load_data():
@@ -12,54 +39,65 @@ def load_data():
         client = gspread.authorize(creds)
         ws = client.open_by_url(st.secrets["spreadsheet_url"]).worksheet("Main sheet")
         data = ws.get_all_values()
-        # Create dataframe, skip first row (headers)
-        df = pd.DataFrame(data[1:])
-        return df
-    except Exception as e:
-        st.error(f"Error loading: {e}")
-        return pd.DataFrame()
+        return pd.DataFrame(data[1:])
+    except: return pd.DataFrame()
 
 df = load_data()
 
 if not df.empty:
-    # Column Index Mapping (0-based)
-    # A=0, B=1, ..., M=12, Q=16, R=17, S=18, T=19
-    # We filter by Steps (Column 12) being NOT empty
+    # Column Index Mapping: 12 is Steps (M), 1 is Calories (B)
     completed_rows = df[df[12] != ""]
     
     if not completed_rows.empty:
         yesterday = completed_rows.iloc[-1]
         
-        # Helper to convert to float safely
         def to_n(val):
             try: return float(str(val).replace('%','').replace(',',''))
             except: return 0.0
 
-        cals = to_n(yesterday[1]) # Column B
-        steps = to_n(yesterday[12]) # Column M
-        prot = to_n(yesterday[16]) # Column Q
-        carbs = to_n(yesterday[17]) # Column R
-        fat = to_n(yesterday[18]) # Column S
-        alc = to_n(yesterday[19]) # Column T
+        cals = to_n(yesterday[1])
+        steps = to_n(yesterday[12])
         
         st.title("🛡️ Yesterday's Review")
-        st.subheader(f"Date: {yesterday[0]}") # Column A
         
-        # 1. Calories (Target 1633)
+        # 1. Calories
         cal_diff = cals - 1633
-        st.metric("Calories Consumed", f"{cals:.0f}", f"{cal_diff:+.0f} vs 1633", delta_color="inverse")
+        st.markdown(f"""
+            <div class='card'>
+                <div class='label'>Calories Consumed</div>
+                <div class='val'>{cals:.0f}</div>
+                <div class='delta' style='color: {'#ff6b6b' if cal_diff > 0 else '#51cf66'}'>
+                    {'+' if cal_diff > 0 else ''}{cal_diff:.0f} vs 1633
+                </div>
+            </div>
+        """, unsafe_allow_html=True)
         
-        # 2. Steps (Target 10,000)
+        # 2. Steps
         step_diff = steps - 10000
-        st.metric("Steps", f"{steps:,.0f}", f"{step_diff:+.0f} vs 10k")
+        st.markdown(f"""
+            <div class='card'>
+                <div class='label'>Steps</div>
+                <div class='val'>{steps:,.0f}</div>
+                <div class='delta' style='color: {'#51cf66' if step_diff >= 0 else '#ff6b6b'}'>
+                    {'+' if step_diff >= 0 else ''}{step_diff:,.0f} vs 10k
+                </div>
+            </div>
+        """, unsafe_allow_html=True)
         
         # 3. Macros
         cols = st.columns(4)
-        cols[0].metric("Prot", f"{prot:.0f}%")
-        cols[1].metric("Carbs", f"{carbs:.0f}%")
-        cols[2].metric("Fat", f"{fat:.0f}%")
-        cols[3].metric("Alc", f"{alc:.0f}")
+        macro_labels = ["Prot", "Carb", "Fat", "Alc"]
+        macro_indices = [16, 17, 18, 19]
+        
+        for i, col in enumerate(cols):
+            val = to_n(yesterday[macro_indices[i]])
+            col.markdown(f"""
+                <div class='card'>
+                    <div class='label'>{macro_labels[i]}</div>
+                    <div class='val' style='font-size: 1.5rem'>{val:.0f}{'%' if i<3 else ''}</div>
+                </div>
+            """, unsafe_allow_html=True)
     else:
-        st.error("No completed rows (with steps) found.")
+        st.error("No completed rows found.")
 else:
     st.error("Could not load data.")
