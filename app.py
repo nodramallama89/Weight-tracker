@@ -6,10 +6,9 @@ from datetime import datetime, timedelta
 
 st.set_page_config(page_title="Hardy House Command", layout="wide")
 
-# --- Polished "App-Like" Styling ---
+# --- CSS Styling ---
 st.markdown("""
     <style>
-    /* Force consistent height for cards */
     [data-testid="column"] { display: flex; }
     .card {
         background-color: #ffffff;
@@ -37,15 +36,49 @@ def render_card(title, value, footer):
         </div>
     """, unsafe_allow_html=True)
 
-# --- Logic & Data Loading ---
-# [Include your validated load_data() function here]
-# ...
+# --- Authentication & Data Loading ---
+def get_gsheets_client():
+    creds = Credentials.from_service_account_info(
+        st.secrets["gcp_service_account"],
+        scopes=["https://www.googleapis.com/auth/spreadsheets", "https://www.googleapis.com/auth/drive"]
+    )
+    return gspread.authorize(creds)
 
+@st.cache_data(ttl=60)
+def load_data():
+    try:
+        client = get_gsheets_client()
+        worksheet = client.open_by_url(st.secrets["spreadsheet_url"]).worksheet("Main sheet")
+        rows = worksheet.get_all_values()[1:]
+        clean_rows = []
+        for r in rows:
+            if not r[0]: continue
+            def to_num(val):
+                try: return float(str(val).replace('%','').replace(',',''))
+                except: return 0.0
+            row_data = {
+                "Date": pd.to_datetime(r[0], format='%d/%m/%Y'),
+                "Cal": to_num(r[1]),
+                "Weight": to_num(r[3]),
+                "Steps": to_num(r[12]),
+                "Prot": to_num(r[16]),
+                "Carb": to_num(r[17]),
+                "Fat": to_num(r[18]),
+                "Alc": to_num(r[19])
+            }
+            if row_data["Steps"] > 0: clean_rows.append(row_data)
+        return pd.DataFrame(clean_rows)
+    except Exception as e:
+        st.error(f"Error loading: {e}")
+        return pd.DataFrame()
+
+# --- App Execution ---
 df = load_data()
 
 if not df.empty:
     st.title("🛡️ HARDY HOUSE COMMAND")
     
+    # Calculations
     avg_cal = df['Cal'].mean()
     s7, s14, s30 = df.tail(7)['Steps'].mean(), df.tail(14)['Steps'].mean(), df.tail(30)['Steps'].mean()
     loss_per_week = ((df.iloc[0]['Weight'] - df.iloc[-1]['Weight']) / ((df.iloc[-1]['Date'] - df.iloc[0]['Date']).days / 7))
@@ -71,7 +104,9 @@ if not df.empty:
     m1, m2, m3 = st.columns(3)
     with m1: render_card("Days on Diet", f"{len(df)}", "Since day 1")
     with m2: render_card("Avg Loss/Week", f"{loss_per_week:.2f} lbs", "Overall pace")
-    with m3: render_card("Est. Target Date", target_date.strftime('%b %d, %Y'), "Based on lifetime pace")
+    with m3: render_card("Est. Target Date", target_date.strftime('%b %d, %Y') if loss_per_week > 0 else "N/A", "Based on lifetime pace")
 
     with st.expander("📂 View Raw Telemetry Data"):
         st.dataframe(df.sort_values(by='Date', ascending=False), use_container_width=True)
+else:
+    st.info("System initializing... Awaiting valid telemetry.")
