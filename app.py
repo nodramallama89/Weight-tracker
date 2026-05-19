@@ -6,27 +6,34 @@ from datetime import datetime, timedelta
 
 st.set_page_config(page_title="Hardy House Command", layout="wide")
 
-# --- iOS/Glassmorphism CSS ---
+# --- CSS for Cards ---
 st.markdown("""
     <style>
-    .card { background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(15px); border-radius: 20px; padding: 20px; box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15); border: 1px solid rgba(255, 255, 255, 0.18); height: 100%; }
-    .stat-title { font-size: 0.7rem; color: #8e8e93; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600; }
-    .stat-val { font-size: 1.5rem; font-weight: 700; color: #1c1c1e; margin: 5px 0; }
-    .stat-footer { font-size: 0.75rem; font-weight: 600; }
-    .stApp { background: #f2f2f7; }
+    .card { background: white; padding: 20px; border-radius: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+    .val { font-size: 24px; font-weight: bold; }
+    .footer { font-size: 14px; }
     </style>
 """, unsafe_allow_html=True)
 
-def render_card(title, value, footer, delta_val=None, is_bad_if_positive=False):
-    if delta_val is not None:
-        color = "green" if (delta_val <= 0 if not is_bad_if_positive else delta_val >= 0) else "red"
-        arrow = "↑" if delta_val > 0 else "↓" if delta_val < 0 else ""
-        delta_html = f"<div style='color:{color}'>{arrow} {abs(delta_val):.0f} {footer}</div>"
+def render_card(title, value, footer, delta, is_good_if_higher):
+    # Logic: If is_good_if_higher is True: Green if delta >= 0, Red if delta < 0
+    # If False (Calories): Green if delta <= 0, Red if delta > 0
+    if is_good_if_higher:
+        color = "green" if delta >= 0 else "red"
+        arrow = "↑" if delta >= 0 else "↓"
     else:
-        delta_html = f"<div class='stat-footer' style='color:#8e8e93'>{footer}</div>"
-    st.markdown(f"<div class='card'><div class='stat-title'>{title}</div><div class='stat-val'>{value}</div>{delta_html}</div>", unsafe_allow_html=True)
+        color = "green" if delta <= 0 else "red"
+        arrow = "↓" if delta <= 0 else "↑"
+    
+    st.markdown(f"""
+        <div class='card'>
+            <div style='color:grey; font-size:12px; text-transform:uppercase;'>{title}</div>
+            <div class='val'>{value}</div>
+            <div class='footer' style='color:{color}'>{arrow} {abs(delta):.0f} {footer}</div>
+        </div>
+    """, unsafe_allow_html=True)
 
-# --- Data Loading ---
+# --- Data Load ---
 @st.cache_data(ttl=60)
 def load_data():
     try:
@@ -49,39 +56,23 @@ df = load_data()
 
 if not df.empty:
     st.title("🛡️ HARDY HOUSE COMMAND")
-    avg_cal, avg_steps = df['Cal'].mean(), df['Steps'].mean()
-    s7, s14, s30 = df.tail(7)['Steps'].mean(), df.tail(14)['Steps'].mean(), df.tail(30)['Steps'].mean()
-    c7, c30 = df.tail(7)['Cal'].mean(), df.tail(30)['Cal'].mean()
     
-    total_loss = df.iloc[0]['Weight'] - df.iloc[-1]['Weight']
-    loss_per_week = (total_loss / ((df.iloc[-1]['Date'] - df.iloc[0]['Date']).days / 7))
-    target_date = datetime.now() + timedelta(days=(df.iloc[-1]['Weight'] - 175) / (loss_per_week / 7))
-
+    avg_cal = df['Cal'].mean()
+    s7, s14, s30 = df.tail(7)['Steps'].mean(), df.tail(14)['Steps'].mean(), df.tail(30)['Steps'].mean()
+    
+    # Weight Logic
+    latest_change = df.iloc[-1]['Weight'] - df.iloc[-2]['Weight']
+    
+    # Energy Row
     st.subheader("⚡ Energy")
-    c1, c2, c3, c4, c5 = st.columns(5)
-    with c1: render_card("Avg Daily", f"{avg_cal:.0f}", "All Time")
-    with c2: render_card("vs Maint", f"{avg_cal-2500:.0f}", "vs 2500", avg_cal-2500, True)
-    with c3: render_card("vs Target", f"{avg_cal-1633:.0f}", "vs 1633", avg_cal-1633, True)
-    with c4: render_card("7D Avg", f"{c7:.0f}", "Calories")
-    with c5: render_card("30D Avg", f"{c30:.0f}", "Calories")
-
-    st.subheader("🚀 Steps & Momentum")
-    r1, r2, r3, r4, r5, r6 = st.columns(6)
-    with r1: render_card("All Time Avg", f"{avg_steps:,.0f}", "vs 10k", avg_steps-10000)
-    with r2: render_card("7D Avg", f"{s7:,.0f}", "vs Avg", s7-avg_steps)
-    with r3: render_card("14D Avg", f"{s14:,.0f}", "vs Avg", s14-avg_steps)
-    with r4: render_card("30D Avg", f"{s30:,.0f}", "vs Avg", s30-avg_steps)
-    with r5: render_card("Req 14D", f"{(10000*14 - df.tail(14)['Steps'].sum())/14:,.0f}", "Steps/Day")
-    with r6: render_card("Req 30D", f"{(10000*30 - df.tail(30)['Steps'].sum())/30:,.0f}", "Steps/Day")
-
-    st.subheader("🎯 Macros & Progress")
-    m1, m2, m3, m4, m5, m6 = st.columns(6)
-    with m1: render_card("Protein", f"{df['Prot'].mean():.0f}%", "Avg")
-    with m2: render_card("Net Carbs", f"{df['Carb'].mean():.0f}%", "Avg")
-    with m3: render_card("Fat", f"{df['Fat'].mean():.0f}%", "Avg")
-    with m4: render_card("Total Loss", f"{total_loss:.1f} lbs", f"{int(total_loss//14)}st {total_loss%14:.1f}lbs")
-    with m5: render_card("Target Date", target_date.strftime('%d %b'), "Est.")
-    with m6: render_card("Latest Change", f"{df.iloc[-2]['Weight'] - df.iloc[-1]['Weight']:.1f} lbs", "Last update")
-
-    with st.expander("📂 Raw Data"):
-        st.dataframe(df.sort_values(by='Date', ascending=False), use_container_width=True)
+    c1, c2, c3 = st.columns(3)
+    with c1: render_card("Avg Calories", f"{avg_cal:.0f}", "Lifetime Avg", 0, False)
+    with c2: render_card("vs Target 1633", f"{avg_cal:.0f}", "vs Target", avg_cal-1633, False)
+    with c3: render_card("vs Maint 2500", f"{avg_cal:.0f}", "vs Maint", avg_cal-2500, False)
+    
+    # Steps Row
+    st.subheader("🚀 Steps")
+    r1, r2, r3 = st.columns(3)
+    with r1: render_card("7D Avg", f"{s7:,.0f}", "vs 10k", s7-10000, True)
+    with r2: render_card("14D Req", f"{10000 - s14:,.0f}", "Steps/Day", 0, True) # Fixed projection
+    with r3: render_card("Latest Change", f"{latest_change:.1f} lbs", "Gain/Loss", latest_change * -1, True)
