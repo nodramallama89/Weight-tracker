@@ -3,7 +3,7 @@ import pandas as pd
 import gspread
 from google.oauth2.service_account import Credentials
 
-st.set_page_config(page_title="Yesterday's Review", layout="centered")
+st.set_page_config(page_title="Hardy House Command", layout="centered")
 
 @st.cache_data(ttl=60)
 def load_data():
@@ -12,15 +12,8 @@ def load_data():
         client = gspread.authorize(creds)
         ws = client.open_by_url(st.secrets["spreadsheet_url"]).worksheet("Main sheet")
         data = ws.get_all_values()
-        # Define headers based on your list
-        headers = ["Date", "Cal", "Net_Cal", "Weight", "Weight_ST", "Gain_Loss", "Total_Loss", "Total_Loss_ST", 
-                   "To_Target", "To_Target_ST", "BMI", "To_Target_BMI", "Steps", "Miles", "Active_Cal", 
-                   "Prot", "Carb", "Fat", "Alc", "Notes", "BP_Sys", "BP_Dia"]
-        df = pd.DataFrame(data[1:], columns=headers)
-        
-        # Clean columns to numeric
-        for col in ['Cal', 'Steps', 'Prot', 'Carb', 'Fat', 'Alc']:
-            df[col] = pd.to_numeric(df[col].astype(str).str.replace('%','').str.replace(',',''), errors='coerce')
+        # Create dataframe, skip first row (headers)
+        df = pd.DataFrame(data[1:])
         return df
     except Exception as e:
         st.error(f"Error loading: {e}")
@@ -29,30 +22,44 @@ def load_data():
 df = load_data()
 
 if not df.empty:
-    # Filter for completed rows: Steps (Column M) must have data
-    completed_rows = df[df['Steps'].notna()]
+    # Column Index Mapping (0-based)
+    # A=0, B=1, ..., M=12, Q=16, R=17, S=18, T=19
+    # We filter by Steps (Column 12) being NOT empty
+    completed_rows = df[df[12] != ""]
     
     if not completed_rows.empty:
         yesterday = completed_rows.iloc[-1]
         
+        # Helper to convert to float safely
+        def to_n(val):
+            try: return float(str(val).replace('%','').replace(',',''))
+            except: return 0.0
+
+        cals = to_n(yesterday[1]) # Column B
+        steps = to_n(yesterday[12]) # Column M
+        prot = to_n(yesterday[16]) # Column Q
+        carbs = to_n(yesterday[17]) # Column R
+        fat = to_n(yesterday[18]) # Column S
+        alc = to_n(yesterday[19]) # Column T
+        
         st.title("🛡️ Yesterday's Review")
-        st.subheader(f"Date: {yesterday['Date']}")
+        st.subheader(f"Date: {yesterday[0]}") # Column A
         
-        # 1. Calories (Column B)
-        cal_diff = yesterday['Cal'] - 1633
-        st.metric("Calories Consumed", f"{yesterday['Cal']:.0f}", f"{cal_diff:+.0f} vs 1633")
+        # 1. Calories (Target 1633)
+        cal_diff = cals - 1633
+        st.metric("Calories Consumed", f"{cals:.0f}", f"{cal_diff:+.0f} vs 1633", delta_color="inverse")
         
-        # 2. Steps (Column M)
-        step_diff = yesterday['Steps'] - 10000
-        st.metric("Steps", f"{yesterday['Steps']:,.0f}", f"{step_diff:+.0f} vs 10k")
+        # 2. Steps (Target 10,000)
+        step_diff = steps - 10000
+        st.metric("Steps", f"{steps:,.0f}", f"{step_diff:+.0f} vs 10k")
         
-        # 3. Macros (Columns Q, R, S, T)
+        # 3. Macros
         cols = st.columns(4)
-        cols[0].metric("Prot", f"{yesterday['Prot']:.0f}%")
-        cols[1].metric("Carbs", f"{yesterday['Carb']:.0f}%")
-        cols[2].metric("Fat", f"{yesterday['Fat']:.0f}%")
-        cols[3].metric("Alc", f"{yesterday['Alc']:.0f} kcal")
+        cols[0].metric("Prot", f"{prot:.0f}%")
+        cols[1].metric("Carbs", f"{carbs:.0f}%")
+        cols[2].metric("Fat", f"{fat:.0f}%")
+        cols[3].metric("Alc", f"{alc:.0f}")
     else:
-        st.error("No completed rows found.")
+        st.error("No completed rows (with steps) found.")
 else:
     st.error("Could not load data.")
