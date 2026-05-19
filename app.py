@@ -20,7 +20,6 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-# --- Helper to force White Theme on all Plotly Charts ---
 def apply_theme(fig, title=""):
     fig.update_layout(
         title=dict(text=title, font=dict(color='white')),
@@ -51,7 +50,7 @@ df = load_data()
 if not df.empty:
     def get_num(idx): return pd.to_numeric(df.iloc[:, idx].astype(str).str.replace('%','').str.replace(',',''), errors='coerce')
 
-    tab1, tab2, tab3, tab4, tab5, tab6, tab7, tab8, tab9, tab10, tab11 = st.tabs([
+    tab1, tab2, tab3, tab4, tab5, tab6, tab7, tab8, tab9, tab10 = st.tabs([
         "🛡️ Review", "📊 Life", "🔥 Calories", "⚖️ Weight", "📉 Gain/Loss", 
         "🚀 Velocity", "👟 Steps", "🥗 Macros", "📈 Averages", "❤️ BP", "📅 Weekend Warrior"
     ])
@@ -85,42 +84,44 @@ if not df.empty:
             st.markdown(f"<div class='card'><div class='label'>BMI</div><div class='val'>{l.iloc[10]}</div></div>", unsafe_allow_html=True)
             st.markdown(f"<div class='card'><div class='label'>Target BMI</div><div class='val'>{l.iloc[11]}</div></div>", unsafe_allow_html=True)
 
-    with tab5: # Velocity
-        st.title("Weight Velocity")
+    with tab3: # Calories
+        fig = go.Figure()
+        fig.add_trace(go.Bar(x=df.iloc[:, 0], y=get_num(1), name="Calories", marker_color='#ff9f43'))
+        fig.add_trace(go.Scatter(x=df.iloc[:, 0], y=get_num(2), name="Net Cal", mode='lines+markers', line=dict(color='#ffffff', width=3)))
+        st.plotly_chart(apply_theme(fig, "Calories Consumption"), use_container_width=True)
+
+    with tab4: # Weight
+        fig = go.Figure()
+        fig.add_trace(go.Scatter(x=df.iloc[:, 0], y=get_num(3), mode='lines+markers', line=dict(color='#ffffff', width=4)))
+        st.plotly_chart(apply_theme(fig, "Weight Progress"), use_container_width=True)
+
+    with tab5: # Gain/Loss Trend
+        fig = go.Figure()
+        fig.add_trace(go.Scatter(x=df.iloc[:, 0], y=get_num(5), mode='lines+markers', line=dict(color='#ff9f43', width=4)))
+        fig.add_hline(y=0, line_dash="dash", line_color="white")
+        st.plotly_chart(apply_theme(fig, "Total Weight Trend"), use_container_width=True)
+
+    with tab6: # Velocity
         velocity = get_num(3).diff() * -1
         fig = go.Figure()
         fig.add_trace(go.Bar(x=df[0], y=velocity, name="Velocity", marker_color=['#51cf66' if x > 0 else '#ff6b6b' for x in velocity]))
         fig.add_hline(y=0, line_dash="dash", line_color="white")
-        st.plotly_chart(apply_theme(fig, "Daily Weight Progress (lbs/day)"), use_container_width=True)
+        st.plotly_chart(apply_theme(fig, "Daily Velocity (lbs/day)"), use_container_width=True)
 
-    with tab4: # Gain/Loss Trend
-        st.title("Gain/Loss Trend")
-        fig = go.Figure()
-        fig.add_trace(go.Scatter(x=df[0], y=get_num(5), mode='lines+markers', line=dict(color='#ff9f43', width=4)))
-        fig.add_hline(y=0, line_dash="dash", line_color="white")
-        st.plotly_chart(apply_theme(fig, "Total Trend"), use_container_width=True)
-
-    # All other tabs maintained...
-    with tab3: # Calories
-        fig = go.Figure()
-        fig.add_trace(go.Bar(x=df.iloc[:, 0], y=get_num(1), name="Calories", text=get_num(1), texttemplate='%{text:.0f}', textposition='auto', marker_color='#ff9f43'))
-        fig.add_trace(go.Scatter(x=df.iloc[:, 0], y=get_num(2), name="Net Cal", mode='lines+markers', line=dict(color='#ffffff', width=3)))
-        st.plotly_chart(apply_theme(fig, "Calories Consumption"), use_container_width=True)
-
-    with tab6: # Steps
+    with tab7: # Steps
         fig = make_subplots(specs=[[{"secondary_y": True}]])
         fig.add_trace(go.Bar(x=df.iloc[:, 0], y=get_num(12), name="Steps", marker_color='#1dd1a1'), secondary_y=False)
         fig.add_trace(go.Scatter(x=df.iloc[:, 0], y=get_num(15), name="Active Cals", mode='lines+markers', line=dict(color='#feca57', width=3)), secondary_y=True)
         st.plotly_chart(apply_theme(fig, "Steps & Active Burn"), use_container_width=True)
 
-    with tab7: # Macros
+    with tab8: # Macros
         fig = go.Figure()
         fig.add_trace(go.Scatter(x=df.iloc[:, 0], y=get_num(16), name="Protein", mode='lines+markers', line=dict(color='#ff6b6b', width=3)))
         fig.add_trace(go.Scatter(x=df.iloc[:, 0], y=get_num(17), name="Carbs", mode='lines+markers', line=dict(color='#48dbfb', width=3)))
         fig.add_trace(go.Scatter(x=df.iloc[:, 0], y=get_num(18), name="Fat", mode='lines+markers', line=dict(color='#feca57', width=3)))
         st.plotly_chart(apply_theme(fig, "Macros Trend"), use_container_width=True)
 
-    with tab8: # Averages
+    with tab9: # Averages
         st.title("Historical Averages")
         c1, c2, c3 = st.columns(3)
         with c1:
@@ -134,7 +135,7 @@ if not df.empty:
             st.markdown(f"<div class='card'><div class='label'>Avg Loss/Week</div><div class='val'>{avg_loss:.2f} lbs</div></div>", unsafe_allow_html=True)
             st.markdown(f"<div class='card'><div class='label'>Avg Fat</div><div class='val'>{get_num(18).mean():.0f}%</div></div>", unsafe_allow_html=True)
 
-    with tab9: # BP
+    with tab10: # BP
         fig = go.Figure()
         fig.add_hrect(y0=0, y1=80, fillcolor="green", opacity=0.15, line_width=0, layer="below")
         fig.add_hrect(y0=80, y1=120, fillcolor="lightgreen", opacity=0.15, line_width=0, layer="below")
@@ -142,7 +143,7 @@ if not df.empty:
         fig.add_trace(go.Scatter(x=df.iloc[:, 0], y=get_num(22), name="Diastolic", mode='lines+markers', connectgaps=True, line=dict(color='#74b9ff', width=3)))
         st.plotly_chart(apply_theme(fig, "Blood Pressure"), use_container_width=True)
         
-    with tab10: # Weekend
+    with tab11: # Weekend
         st.title("Weekday vs. Weekend")
         plot_df = df.copy()
         plot_df['Type'] = plot_df[0].dt.dayofweek.apply(lambda x: 'Weekend' if x >= 5 else 'Weekday')
