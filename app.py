@@ -2,11 +2,12 @@ import streamlit as st
 import pandas as pd
 import gspread
 from google.oauth2.service_account import Credentials
+import datetime
 
 # App config
-st.set_page_config(page_title="Hardy House Fitness Dashboard", layout="wide")
+st.set_page_config(page_title="Hardy House Command", layout="wide")
 
-# --- Google Sheets Authentication ---
+# --- Authentication ---
 def get_gsheets_client():
     creds = Credentials.from_service_account_info(
         st.secrets["gcp_service_account"],
@@ -21,60 +22,76 @@ def load_data():
         sheet_url = st.secrets["spreadsheet_url"]
         worksheet = client.open_by_url(sheet_url).worksheet("Main sheet")
         values = worksheet.get_all_values()
-        # Convert to DataFrame
         df = pd.DataFrame(values[1:], columns=values[0])
+        # Clean: Drop rows where Date is empty
+        df = df[df.iloc[:, 0] != ""]
         return df
     except Exception as e:
-        st.error(f"Could not load data: {e}")
+        st.error(f"Error: {e}")
         return pd.DataFrame()
 
-# --- Dashboard UI ---
-st.title("📈 Hardy House Fitness Dashboard")
-st.caption("Auto-refreshing view from Google Sheets")
-
+# --- Load & Clean Data ---
 df = load_data()
-
 if not df.empty:
-    # 1. Convert Date
-    df['Date'] = pd.to_datetime(df.iloc[:, 0], format='%d/%m/%Y', errors='coerce')
+    df['Date'] = pd.to_datetime(df.iloc[:, 0], format='%d/%m/%Y')
+    # Numeric conversion
+    cols_to_num = {1: 'Cal', 3: 'Weight', 12: 'Steps', 16: 'Prot', 17: 'Carb', 18: 'Fat', 19: 'Alc'}
+    for idx, name in cols_to_num.items():
+        df[name] = pd.to_numeric(df.iloc[:, idx].astype(str).str.replace('%', ''), errors='coerce').fillna(0)
     
-    # 2. Convert numeric columns carefully
-    # We create a copy to avoid the TypeError
-    for col_idx in [1, 3, 12, 16, 17, 18]: # Calories(B), Weight(D), Steps(M), Protein(Q), Carbs(R), Fat(S)
-        col_name = df.columns[col_idx]
-        df[col_name] = pd.to_numeric(df[col_name].astype(str).str.replace('%', ''), errors='coerce').fillna(0)
+    df = df.sort_values('Date')
     
-    df = df.dropna(subset=['Date']).sort_values(by="Date")
-    latest = df.iloc[-1]
+    # --- Calculations ---
+    # Global Metrics
+    total_days = len(df)
+    avg_cal = df['Cal'].mean()
+    avg_steps = df['Steps'].mean()
+    
+    # Rolling averages
+    last_7 = df.tail(7)
+    last_14 = df.tail(14)
+    last_30 = df.tail(30)
+    
+    # Alcohol Logic
+    alc_days = (df['Alc'] > 0).sum()
+    alc_freq = total_days / alc_days if alc_days > 0 else 0
+    
+    # Weight Loss Rate (per week)
+    if total_days >= 7:
+        start_w = df.iloc[0]['Weight']
+        latest_w = df.iloc[-1]['Weight']
+        weeks = (df.iloc[-1]['Date'] - df.iloc[0]['Date']).days / 7
+        avg_loss_per_week = (start_w - latest_w) / weeks if weeks > 0 else 0
+    else:
+        avg_loss_per_week = 0
 
-    # Top Metrics
-    c1, c2, c3, c4 = st.columns(4)
-    c1.metric("Weight", f"{int(latest.iloc[3])} lbs")
-    c2.metric("Calories", f"{int(latest.iloc[1])} kcal")
-    c3.metric("Steps", f"{int(latest.iloc[12]):,}")
-    c4.metric("Protein %", f"{int(latest.iloc[16])}%")
-
-    st.markdown("---")
+    # --- UI Layout ---
+    st.title("🛡️ Hardy House Command")
     
-    # Graphs
-    tab1, tab2 = st.tabs(["Weight & Progress", "Activity & Macros"])
+    tab1, tab2 = st.tabs(["📊 Averages & Metrics", "📈 Detailed Trends"])
     
     with tab1:
-        st.subheader("Weight Trend")
-        st.line_chart(data=df.set_index('Date').iloc[:, 3])
-        st.subheader("Total Loss (lbs)")
-        st.bar_chart(data=df.set_index('Date').iloc[:, 6])
+        st.subheader("Calorie & Step Targets")
+        c1, c2, c3 = st.columns(3)
+        c1.metric("Avg Calories", f"{int(avg_cal)}", f"{int(avg_cal - 1633)} vs Target")
+        c2.metric("Avg Steps", f"{int(avg_steps):,}", f"{int(avg_steps - 10000)} vs Target")
+        c3.metric("Variance to Maint", f"{int(2500 - avg_cal)} under")
+        
+        st.subheader("Macro & Lifestyle")
+        c4, c5, c6 = st.columns(3)
+        c4.metric("Avg Protein %", f"{df['Prot'].mean():.1f}%")
+        c5.metric("Avg Carbs %", f"{df['Carb'].mean():.1f}%")
+        c6.metric("Alcohol Freq", f"1 in {alc_freq:.1f} days")
+        
+        st.subheader("Trends & Projections")
+        c7, c8, c9 = st.columns(3)
+        c7.metric("Days on Diet", total_days)
+        c8.metric("Avg Loss/Week", f"{avg_loss_per_week:.2f} lbs")
+        c9.metric("7-Day Step Avg", f"{int(last_7['Steps'].mean()):,}")
         
     with tab2:
-        st.subheader("Step Count")
-        st.area_chart(data=df.set_index('Date').iloc[:, 12])
-        st.subheader("Macro Split (P/C/F %)")
-        st.line_chart(data=df.set_index('Date').iloc[:, 16:19])
-
-    st.markdown("---")
-    st.subheader("Detailed Logs")
-    # Show clean dataframe
-    st.dataframe(df.sort_values(by="Date", ascending=False), use_container_width=True)
+        st.line_chart(df.set_index('Date')[['Weight']])
+        st.line_chart(df.set_index('Date')[['Cal', 'Steps']])
 
 else:
-    st.warning("No data found. Check your sheet connection.")
+    st.info("Waiting for data...")
