@@ -7,11 +7,7 @@ import datetime
 # App config
 st.set_page_config(page_title="Journey Tracker", layout="wide")
 
-# Goals Constants
 TARGET_CALORIES = 1633
-TARGET_PROTEIN_G = 102  # 25% of 1633 kcal
-TARGET_CARB_G = 204     # 50% of 1633 kcal
-TARGET_FAT_G = 45       # 25% of 1633 kcal
 
 # --- Google Sheets Authentication & Connection ---
 def get_gsheets_client():
@@ -24,50 +20,89 @@ def get_gsheets_client():
     )
     return gspread.authorize(credentials)
 
-# Cache the data load so we don't hit Google's API limits on every button click
 @st.cache_data(ttl=60)
 def load_data():
     try:
         client = get_gsheets_client()
         sheet_url = st.secrets["spreadsheet_url"]
         worksheet = client.open_by_url(sheet_url).worksheet("Main sheet")
-        records = worksheet.get_all_records()
-        return pd.DataFrame(records)
+        
+        # Pull raw values so we can rely on index positions rather than exact header names
+        values = worksheet.get_all_values()
+        if len(values) > 1:
+            df = pd.DataFrame(values[1:], columns=values[0])
+            # Ensure dataframe has at least 23 columns (up to W) to avoid index errors
+            while len(df.columns) < 23:
+                df[len(df.columns)] = ""
+            return df
+        return pd.DataFrame()
     except Exception as e:
         st.error(f"Error loading data from Google Sheets: {e}")
         return pd.DataFrame()
 
-def upsert_data_to_sheet(date_str, calories, weight, steps):
+def upsert_data_to_sheet(date_str, calories, weight, steps, active_cal, protein, carbs, fat, alcohol, notes, sys_bp, dia_bp):
     try:
         client = get_gsheets_client()
         sheet_url = st.secrets["spreadsheet_url"]
         worksheet = client.open_by_url(sheet_url).worksheet("Main sheet")
         
-        try:
-            # Try to find the date string exactly as it appears in column 1
-            cell = worksheet.find(date_str, in_column=1)
-            row = cell.row
+        dates = worksheet.col_values(1)
+        
+        if date_str in dates:
+            # DATE FOUND: Update specific cells
+            row = dates.index(date_str) + 1
             
-            # DATE FOUND: Update specific cells so we don't overwrite any formulas in other columns
-            # Column 2 = Calories, Column 4 = Weight, Column 13 = Steps
-            worksheet.update_cell(row, 2, calories)
-            worksheet.update_cell(row, 4, weight)
-            worksheet.update_cell(row, 13, steps)
-            
+            updates = [
+                {'range': f'B{row}', 'values': [[calories]]},
+                {'range': f'D{row}', 'values': [[weight]]},
+                {'range': f'M{row}', 'values': [[steps]]},
+                {'range': f'P{row}', 'values': [[active_cal]]},
+                {'range': f'Q{row}', 'values': [[protein]]},
+                {'range': f'R{row}', 'values': [[carbs]]},
+                {'range': f'S{row}', 'values': [[fat]]},
+                {'range': f'T{row}', 'values': [[alcohol]]},
+                {'range': f'U{row}', 'values': [[notes]]},
+                {'range': f'V{row}', 'values': [[sys_bp]]},
+                {'range': f'W{row}', 'values': [[dia_bp]]},
+            ]
+            worksheet.batch_update(updates, value_input_option='USER_ENTERED')
             st.cache_data.clear()
             return "updated"
             
-        except Exception as e:
-            # If the specific gspread CellNotFound error is thrown, it means it's a new date
-            if "CellNotFound" in str(type(e)):
-                # DATE NOT FOUND: Append a new row
-                new_row = [date_str, calories, "", weight, "", "", "", "", "", "", "", "", steps]
-                worksheet.append_row(new_row)
-                st.cache_data.clear()
-                return "appended"
-            else:
-                st.error(f"Error finding cell: {e}")
-                return "error"
+        else:
+            # DATE NOT FOUND: Append new row and dynamically inject formulas
+            row = len(dates) + 1
+            
+            new_row = [
+                date_str,                                    # A (0)
+                calories,                                    # B (1)
+                f"=B{row}-P{row}",                           # C (2) - Net calories
+                weight,                                      # D (3)
+                f'=INT(D{row}/14) & "st " & MOD(D{row},14) & "lbs"', # E (4) - Weight ST
+                f"=D{row}-D{row-1}",                         # F (5) - Gain/Loss
+                f'=IF(D{row}="", "", $D$2-D{row})',          # G (6) - Total loss lbs
+                f'=IF(D{row}="", "", INT(($D$2-D{row})/14) & "st " & MOD(($D$2-D{row}),14) & "lbs")', # H (7)
+                f"=D{row}-175",                              # I (8) - To target lbs
+                f'=IF(D{row}>175, INT((D{row}-175)/14) & "st " & MOD((D{row}-175),14) & "lbs", "Goal Reached!")', # J (9)
+                f"=ROUND((D{row}*703)/(69^2), 1)",           # K (10) - BMI
+                f"=K{row}-25.8",                             # L (11) - To target BMI
+                steps,                                       # M (12)
+                f"=(M{row} * 2.4) / 5280",                   # N (13) - Approx miles
+                "",                                          # O (14) - Blank column based on your list
+                active_cal,                                  # P (15)
+                protein,                                     # Q (16)
+                carbs,                                       # R (17)
+                fat,                                         # S (18)
+                alcohol,                                     # T (19)
+                notes,                                       # U (20)
+                sys_bp,                                      # V (21)
+                dia_bp                                       # W (22)
+            ]
+            
+            # Using USER_ENTERED forces Google Sheets to execute the formulas
+            worksheet.update(values=[new_row], range_name=f"A{row}:W{row}", value_input_option='USER_ENTERED')
+            st.cache_data.clear()
+            return "appended"
             
     except Exception as e:
         st.error(f"Error writing to Google Sheets: {e}")
@@ -75,71 +110,87 @@ def upsert_data_to_sheet(date_str, calories, weight, steps):
 
 st.title("Personal Journey Tracker")
 
-# Load existing data to check against
 df = load_data()
 
 # --- Sidebar for Data Entry ---
 st.sidebar.header("Log Daily Data")
 
-# We place the date picker OUTSIDE the form so changing the date 
-# instantly updates the form fields below with any existing data.
 selected_date = st.sidebar.date_input("Select Date", datetime.date.today())
 date_str = selected_date.strftime("%d/%m/%Y")
 
 # Default values
-existing_weight = 200
-existing_calories = TARGET_CALORIES
-existing_steps = 10000
+e_weight = 200
+e_calories = TARGET_CALORIES
+e_steps = 10000
+e_active = 0
+e_protein = 0
+e_carbs = 0
+e_fat = 0
+e_alcohol = 0
+e_notes = ""
+e_sys = 120
+e_dia = 80
 
-# If data exists for this date, pre-fill the variables
+# Pre-fill values if date exists (using index numbers so header changes won't break it)
 if not df.empty:
-    day_data = df[df['Date'] == date_str]
+    # Filter by Date (Column A / index 0)
+    day_data = df[df.iloc[:, 0] == date_str]
     if not day_data.empty:
-        latest_entry = day_data.iloc[-1]
+        latest = day_data.iloc[-1]
         
-        # Safely extract existing numbers, ignoring blanks
-        try:
-            w_val = latest_entry.get('Weight (lbs)', '')
-            if str(w_val).strip() != "": existing_weight = int(float(w_val))
-        except: pass
-        
-        try:
-            c_val = latest_entry.get('Calories consumed (tgt 1633)', '')
-            if str(c_val).strip() != "": existing_calories = int(float(c_val))
-        except: pass
-        
-        try:
-            s_val = latest_entry.get('Steps', '')
-            if str(s_val).strip() != "": existing_steps = int(float(s_val))
-        except: pass
+        def safe_int(val, default):
+            try:
+                return int(float(val)) if str(val).strip() != "" else default
+            except:
+                return default
 
-# The actual form
+        e_calories = safe_int(latest.iloc[1], e_calories)    # B
+        e_weight = safe_int(latest.iloc[3], e_weight)        # D
+        e_steps = safe_int(latest.iloc[12], e_steps)         # M
+        e_active = safe_int(latest.iloc[15], e_active)       # P
+        e_protein = safe_int(latest.iloc[16], e_protein)     # Q
+        e_carbs = safe_int(latest.iloc[17], e_carbs)         # R
+        e_fat = safe_int(latest.iloc[18], e_fat)             # S
+        e_alcohol = safe_int(latest.iloc[19], e_alcohol)     # T
+        e_notes = str(latest.iloc[20])                       # U
+        e_sys = safe_int(latest.iloc[21], e_sys)             # V
+        e_dia = safe_int(latest.iloc[22], e_dia)             # W
+
 with st.sidebar.form("entry_form"):
     
-    # Weight tracked in whole pounds
-    weight = st.number_input("Weight (lbs)", min_value=50, max_value=500, value=existing_weight, step=1, format="%d")
-    steps = st.number_input("Steps", min_value=0, value=existing_steps, step=100)
-    calories = st.number_input("Calories", min_value=0, value=existing_calories, step=1)
-    
-    st.markdown("### Macros")
-    st.caption(f"Target Split: 25% P / 50% C / 25% F")
-    protein = st.number_input("Protein (g)", min_value=0, value=TARGET_PROTEIN_G, step=1)
-    carbs = st.number_input("Carbs (g)", min_value=0, value=TARGET_CARB_G, step=1)
-    fat = st.number_input("Fat (g)", min_value=0, value=TARGET_FAT_G, step=1)
+    st.subheader("Core Metrics")
+    weight = st.number_input("Weight (lbs)", min_value=50, max_value=500, value=e_weight, step=1)
+    calories = st.number_input("Calories Consumed", min_value=0, value=e_calories, step=1)
+    active_cal = st.number_input("Active Calories", min_value=0, value=e_active, step=1)
+    steps = st.number_input("Steps", min_value=0, value=e_steps, step=100)
     
     st.markdown("---")
-    st.markdown("### Security")
-    admin_pin_input = st.text_input("Admin PIN", type="password", help="Required to save or update data")
+    st.subheader("Macros (% of Target)")
+    col1, col2, col3 = st.columns(3)
+    with col1: protein = st.number_input("Protein", min_value=0, max_value=300, value=e_protein, step=1)
+    with col2: carbs = st.number_input("Carbs", min_value=0, max_value=300, value=e_carbs, step=1)
+    with col3: fat = st.number_input("Fat", min_value=0, max_value=300, value=e_fat, step=1)
     
+    st.markdown("---")
+    st.subheader("Health & Extras")
+    alcohol = st.number_input("Alcohol (Kcal)", min_value=0, value=e_alcohol, step=1)
+    
+    b_col1, b_col2 = st.columns(2)
+    with b_col1: sys_bp = st.number_input("Systolic BP", min_value=50, max_value=250, value=e_sys, step=1)
+    with b_col2: dia_bp = st.number_input("Diastolic BP", min_value=30, max_value=150, value=e_dia, step=1)
+    
+    notes = st.text_area("Notes", value=e_notes)
+    
+    st.markdown("---")
+    admin_pin_input = st.text_input("Admin PIN", type="password")
     submitted = st.form_submit_button("Save to Google Sheets")
     
     if submitted:
-        # Check against the PIN in your secrets. If not set, it defaults to checking for "0000"
-        if admin_pin_input != st.secrets.get("admin_pin", "0000"):
+        if admin_pin_input != str(st.secrets.get("admin_pin", "0000")):
             st.error("Incorrect PIN. Data not saved.")
         else:
             with st.spinner("Writing to Google Sheets..."):
-                result = upsert_data_to_sheet(date_str, calories, weight, steps)
+                result = upsert_data_to_sheet(date_str, calories, weight, steps, active_cal, protein, carbs, fat, alcohol, notes, sys_bp, dia_bp)
                 
             if result == "updated":
                 st.success(f"Data for {date_str} successfully updated!")
@@ -148,55 +199,47 @@ with st.sidebar.form("entry_form"):
 
 # --- Main Dashboard ---
 if not df.empty:
-    # We work on a copy so we don't mess up the raw string dates needed for the sidebar search
     dashboard_df = df.copy()
     
-    dashboard_df['Date'] = pd.to_datetime(dashboard_df['Date'], format='%d/%m/%Y', errors='coerce')
+    # Rename columns using explicit index references to prevent plotting crashes
+    dashboard_df = dashboard_df.rename(columns={
+        dashboard_df.columns[0]: 'Date',
+        dashboard_df.columns[1]: 'Calories',
+        dashboard_df.columns[3]: 'Weight',
+        dashboard_df.columns[12]: 'Steps'
+    })
     
-    # Force blank cells to become proper numbers (0) so the math doesn't crash
-    dashboard_df['Weight (lbs)'] = pd.to_numeric(dashboard_df['Weight (lbs)'], errors='coerce').fillna(0)
-    dashboard_df['Calories consumed (tgt 1633)'] = pd.to_numeric(dashboard_df['Calories consumed (tgt 1633)'], errors='coerce').fillna(0)
+    dashboard_df['Date'] = pd.to_datetime(dashboard_df['Date'], format='%d/%m/%Y', errors='coerce')
+    dashboard_df['Weight'] = pd.to_numeric(dashboard_df['Weight'], errors='coerce').fillna(0)
+    dashboard_df['Calories'] = pd.to_numeric(dashboard_df['Calories'], errors='coerce').fillna(0)
     dashboard_df['Steps'] = pd.to_numeric(dashboard_df['Steps'], errors='coerce').fillna(0)
     
-    # Drop rows where the Date is missing
-    dashboard_df = dashboard_df.dropna(subset=['Date'])
-    
-    dashboard_df = dashboard_df.sort_values(by="Date")
+    dashboard_df = dashboard_df.dropna(subset=['Date']).sort_values(by="Date")
     
     if not dashboard_df.empty:
-        # Top level metrics
         latest = dashboard_df.iloc[-1]
         col1, col2, col3 = st.columns(3)
         
-        col1.metric("Latest Weight", f"{int(latest['Weight (lbs)'])} lbs")
-        
-        cal_delta = int(latest['Calories consumed (tgt 1633)'] - TARGET_CALORIES)
-        col2.metric("Latest Calories", f"{int(latest['Calories consumed (tgt 1633)'])} kcal", delta=f"{cal_delta} from target", delta_color="inverse")
-        
+        col1.metric("Latest Weight", f"{int(latest['Weight'])} lbs")
+        cal_delta = int(latest['Calories'] - TARGET_CALORIES)
+        col2.metric("Latest Calories", f"{int(latest['Calories'])} kcal", delta=f"{cal_delta} from target", delta_color="inverse")
         col3.metric("Latest Steps", f"{int(latest['Steps'])}")
         
         st.markdown("---")
         
-        # Visualizations
         st.subheader("Trends")
         tab1, tab2, tab3 = st.tabs(["Weight Trend", "Calorie Intake", "Steps"])
         
-        with tab1:
-            st.line_chart(data=dashboard_df.set_index('Date')['Weight (lbs)'])
-            
-        with tab2:
-            st.bar_chart(data=dashboard_df.set_index('Date')['Calories consumed (tgt 1633)'])
-            
-        with tab3:
-            st.bar_chart(data=dashboard_df.set_index('Date')['Steps'])
+        with tab1: st.line_chart(data=dashboard_df.set_index('Date')['Weight'])
+        with tab2: st.bar_chart(data=dashboard_df.set_index('Date')['Calories'])
+        with tab3: st.bar_chart(data=dashboard_df.set_index('Date')['Steps'])
 
         st.markdown("---")
         st.subheader("Google Sheet Data")
-        # Format dates nicely for display
         display_df = dashboard_df.copy()
         display_df['Date'] = display_df['Date'].dt.strftime('%d/%m/%Y')
         st.dataframe(display_df.sort_values(by="Date", ascending=False), use_container_width=True)
     else:
         st.info("No valid dates found in the sheet. Make sure your dates are formatted as DD/MM/YYYY.")
 else:
-    st.info("No data found in the Google Sheet. Please ensure your sheet has headers and use the sidebar to log your first entry!")
+    st.info("No data found in the Google Sheet.")
