@@ -3,142 +3,42 @@ import pandas as pd
 import gspread
 from google.oauth2.service_account import Credentials
 import json
+import streamlit.components.v1 as components
 
 st.set_page_config(page_title="Hardy House Command", layout="wide", initial_sidebar_state="collapsed")
 
 # ── Inject global CSS + fonts ──────────────────────────────────────────────────
-# WARNING: Do not indent the text inside this block. Leading spaces will cause Markdown to render it as a code block.
+# Cleaned CSS without '/* */' comments to prevent Streamlit Markdown escaping
 st.markdown("""
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;600&display=swap" rel="stylesheet">
 <style>
-/* ── Hide Streamlit chrome ── */
 #MainMenu, footer, header { visibility: hidden; }
 .block-container { padding: 0 !important; max-width: 100% !important; }
 section[data-testid="stSidebar"] { display: none; }
-
-/* ── Background ── */
-.stApp {
-    background: #050810;
-    background-image:
-        linear-gradient(rgba(0,200,255,0.025) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(0,200,255,0.025) 1px, transparent 1px);
-    background-size: 60px 60px;
-    animation: gridDrift 30s linear infinite;
-}
+.stApp { background: #050810; background-image: linear-gradient(rgba(0,200,255,0.025) 1px, transparent 1px), linear-gradient(90deg, rgba(0,200,255,0.025) 1px, transparent 1px); background-size: 60px 60px; animation: gridDrift 30s linear infinite; }
 @keyframes gridDrift { to { background-position: 60px 60px; } }
-
-/* ── Scanlines ── */
-.stApp::after {
-    content: '';
-    position: fixed; inset: 0; pointer-events: none; z-index: 9998;
-    background: repeating-linear-gradient(0deg, transparent, transparent 2px,
-        rgba(0,0,0,0.04) 2px, rgba(0,0,0,0.04) 4px);
-}
-
-/* ── Orbs ── */
-.stApp::before {
-    content: '';
-    position: fixed; inset: 0; pointer-events: none; z-index: 0;
-    background:
-        radial-gradient(600px circle at 0% 0%, rgba(0,200,255,0.07), transparent 60%),
-        radial-gradient(500px circle at 100% 100%, rgba(255,107,0,0.07), transparent 60%),
-        radial-gradient(300px circle at 50% 50%, rgba(0,255,136,0.04), transparent 60%);
-}
-
-/* ── Streamlit tab overrides ── */
-div[data-baseweb="tab-list"] {
-    background: rgba(0,0,0,0.5) !important;
-    border-radius: 12px !important;
-    padding: 6px !important;
-    border: 1px solid rgba(0,200,255,0.15) !important;
-    gap: 4px !important;
-}
-div[data-baseweb="tab-list"] button {
-    background: transparent !important;
-    border-radius: 8px !important;
-    border: none !important;
-    color: rgba(180,210,240,0.5) !important;
-    font-family: 'Rajdhani', sans-serif !important;
-    font-size: 0.78rem !important;
-    font-weight: 600 !important;
-    letter-spacing: 1px !important;
-    text-transform: uppercase !important;
-    transition: all 0.25s !important;
-}
-div[data-baseweb="tab-list"] button:hover {
-    color: #00c8ff !important;
-    background: rgba(0,200,255,0.07) !important;
-}
-div[data-baseweb="tab-list"] button[aria-selected="true"] {
-    background: rgba(0,200,255,0.12) !important;
-    color: #00c8ff !important;
-    box-shadow: 0 0 16px rgba(0,200,255,0.25), inset 0 0 0 1px rgba(0,200,255,0.4) !important;
-}
-div[data-baseweb="tab-list"] button p {
-    color: inherit !important;
-    font-family: inherit !important;
-    font-size: inherit !important;
-    font-weight: inherit !important;
-    letter-spacing: inherit !important;
-    text-transform: inherit !important;
-}
+.stApp::after { content: ''; position: fixed; inset: 0; pointer-events: none; z-index: 9998; background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.04) 2px, rgba(0,0,0,0.04) 4px); }
+.stApp::before { content: ''; position: fixed; inset: 0; pointer-events: none; z-index: 0; background: radial-gradient(600px circle at 0% 0%, rgba(0,200,255,0.07), transparent 60%), radial-gradient(500px circle at 100% 100%, rgba(255,107,0,0.07), transparent 60%), radial-gradient(300px circle at 50% 50%, rgba(0,255,136,0.04), transparent 60%); }
+div[data-baseweb="tab-list"] { background: rgba(0,0,0,0.5) !important; border-radius: 12px !important; padding: 6px !important; border: 1px solid rgba(0,200,255,0.15) !important; gap: 4px !important; }
+div[data-baseweb="tab-list"] button { background: transparent !important; border-radius: 8px !important; border: none !important; color: rgba(180,210,240,0.5) !important; font-family: 'Rajdhani', sans-serif !important; font-size: 0.78rem !important; font-weight: 600 !important; letter-spacing: 1px !important; text-transform: uppercase !important; transition: all 0.25s !important; }
+div[data-baseweb="tab-list"] button:hover { color: #00c8ff !important; background: rgba(0,200,255,0.07) !important; }
+div[data-baseweb="tab-list"] button[aria-selected="true"] { background: rgba(0,200,255,0.12) !important; color: #00c8ff !important; box-shadow: 0 0 16px rgba(0,200,255,0.25), inset 0 0 0 1px rgba(0,200,255,0.4) !important; }
+div[data-baseweb="tab-list"] button p { color: inherit !important; font-family: inherit !important; font-size: inherit !important; font-weight: inherit !important; letter-spacing: inherit !important; text-transform: inherit !important; }
 div[data-baseweb="tab-highlight"] { display: none !important; }
-div[data-testid="stTabsContent"] {
-    background: transparent !important;
-    border: none !important;
-    padding: 0 !important;
-}
+div[data-testid="stTabsContent"] { background: transparent !important; border: none !important; padding: 0 !important; }
 div[data-testid="stTabsContent"] > div { background: transparent !important; }
-
-/* ── Stat card ── */
-.hh-card {
-    background: rgba(8,14,30,0.85);
-    border: 1px solid rgba(0,200,255,0.15);
-    border-radius: 16px;
-    padding: 22px 18px;
-    text-align: center;
-    position: relative;
-    overflow: hidden;
-    backdrop-filter: blur(20px);
-    transition: border-color 0.3s, box-shadow 0.3s, transform 0.3s;
-    margin-bottom: 4px;
-}
-.hh-card::before {
-    content: '';
-    position: absolute; top: 0; left: 0; right: 0; height: 2px;
-    background: linear-gradient(90deg, transparent, var(--accent, #00c8ff), transparent);
-    opacity: 0; transition: opacity 0.3s;
-}
-.hh-card::after {
-    content: '';
-    position: absolute; top: 0; right: 0;
-    width: 24px; height: 24px;
-    border-top: 2px solid var(--accent, #00c8ff);
-    border-right: 2px solid var(--accent, #00c8ff);
-    border-radius: 0 16px 0 0; opacity: 0.35;
-}
-.hh-card:hover {
-    border-color: rgba(0,200,255,0.45);
-    box-shadow: 0 0 24px rgba(0,200,255,0.2);
-    transform: translateY(-3px);
-}
+.hh-card { background: rgba(8,14,30,0.85); border: 1px solid rgba(0,200,255,0.15); border-radius: 16px; padding: 22px 18px; text-align: center; position: relative; overflow: hidden; backdrop-filter: blur(20px); transition: border-color 0.3s, box-shadow 0.3s, transform 0.3s; margin-bottom: 4px; }
+.hh-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: linear-gradient(90deg, transparent, var(--accent, #00c8ff), transparent); opacity: 0; transition: opacity 0.3s; }
+.hh-card::after { content: ''; position: absolute; top: 0; right: 0; width: 24px; height: 24px; border-top: 2px solid var(--accent, #00c8ff); border-right: 2px solid var(--accent, #00c8ff); border-radius: 0 16px 0 0; opacity: 0.35; }
+.hh-card:hover { border-color: rgba(0,200,255,0.45); box-shadow: 0 0 24px rgba(0,200,255,0.2); transform: translateY(-3px); }
 .hh-card:hover::before { opacity: 1; }
 .hh-card.orange { --accent: #ff6b00; }
 .hh-card.orange:hover { border-color: rgba(255,107,0,0.45); box-shadow: 0 0 24px rgba(255,107,0,0.2); }
 .hh-card.green  { --accent: #00ff88; }
 .hh-card.green:hover  { border-color: rgba(0,255,136,0.45); box-shadow: 0 0 24px rgba(0,255,136,0.2); }
-
-.hh-label {
-    font-family: 'Rajdhani', sans-serif;
-    font-size: 0.62rem; letter-spacing: 3px; text-transform: uppercase;
-    color: rgba(180,210,240,0.5); margin-bottom: 8px;
-}
-.hh-val {
-    font-family: 'Orbitron', monospace;
-    font-size: 1.9rem; font-weight: 700; color: white; line-height: 1;
-    text-shadow: 0 0 20px rgba(255,255,255,0.25);
-}
+.hh-label { font-family: 'Rajdhani', sans-serif; font-size: 0.62rem; letter-spacing: 3px; text-transform: uppercase; color: rgba(180,210,240,0.5); margin-bottom: 8px; }
+.hh-val { font-family: 'Orbitron', monospace; font-size: 1.9rem; font-weight: 700; color: white; line-height: 1; text-shadow: 0 0 20px rgba(255,255,255,0.25); }
 .hh-val.cyan   { color: #00c8ff; text-shadow: 0 0 20px rgba(0,200,255,0.5); }
 .hh-val.orange { color: #ff6b00; text-shadow: 0 0 20px rgba(255,107,0,0.5); }
 .hh-val.green  { color: #00ff88; text-shadow: 0 0 20px rgba(0,255,136,0.5); }
@@ -146,97 +46,22 @@ div[data-testid="stTabsContent"] > div { background: transparent !important; }
 .hh-delta { font-size: 0.8rem; margin-top: 6px; font-family: 'Rajdhani', sans-serif; font-weight: 600; }
 .delta-good { color: #00ff88; }
 .delta-bad  { color: #ff3355; }
-
-/* ── Chart wrapper ── */
-.hh-chart-wrap {
-    background: rgba(8,14,30,0.85);
-    border: 1px solid rgba(0,200,255,0.13);
-    border-radius: 20px;
-    padding: 24px;
-    backdrop-filter: blur(20px);
-    position: relative; overflow: hidden;
-    margin-bottom: 6px;
-}
-.hh-chart-wrap::before {
-    content: '';
-    position: absolute; top: 0; left: 0; right: 0; height: 1px;
-    background: linear-gradient(90deg, transparent, #00c8ff 30%, #ff6b00 70%, transparent);
-    opacity: 0.35;
-}
-.hh-chart-title {
-    font-family: 'Orbitron', monospace;
-    font-size: 0.78rem; letter-spacing: 3px; text-transform: uppercase;
-    color: #00c8ff; margin-bottom: 16px;
-    display: flex; align-items: center; gap: 10px;
-}
-.hh-chart-title::before {
-    content: ''; width: 4px; height: 14px;
-    background: #00c8ff; box-shadow: 0 0 10px rgba(0,200,255,0.6);
-    border-radius: 2px; flex-shrink: 0;
-}
-
-/* ── Section heading ── */
-.hh-section {
-    font-family: 'Orbitron', monospace;
-    font-size: 1.1rem; font-weight: 700; color: white;
-    letter-spacing: 3px; margin: 24px 0 18px;
-    display: flex; align-items: center; gap: 14px;
-}
-.hh-section::after {
-    content: ''; flex: 1; height: 1px;
-    background: linear-gradient(90deg, rgba(0,200,255,0.5), transparent);
-}
-
-/* ── Header ── */
-.hh-header {
-    text-align: center;
-    padding: 40px 24px 28px;
-    position: relative;
-}
-.hh-header::after {
-    content: '';
-    position: absolute; bottom: 0; left: 50%; transform: translateX(-50%);
-    width: 360px; height: 1px;
-    background: linear-gradient(90deg, transparent, #00c8ff, transparent);
-    box-shadow: 0 0 20px rgba(0,200,255,0.4);
-}
-.hh-header-label {
-    font-family: 'Rajdhani', sans-serif;
-    font-size: 0.65rem; letter-spacing: 8px; text-transform: uppercase;
-    color: #00c8ff; margin-bottom: 8px;
-    animation: fadeUp 0.8s ease forwards;
-}
-.hh-header h1 {
-    font-family: 'Orbitron', monospace !important;
-    font-size: clamp(1.8rem, 4vw, 3rem) !important;
-    font-weight: 900 !important; color: white !important;
-    letter-spacing: 4px !important;
-    text-shadow: 0 0 30px rgba(0,200,255,0.5), 0 0 60px rgba(0,200,255,0.2) !important;
-    animation: fadeUp 0.8s 0.2s ease both;
-}
+.hh-chart-wrap { background: rgba(8,14,30,0.85); border: 1px solid rgba(0,200,255,0.13); border-radius: 20px; padding: 24px; backdrop-filter: blur(20px); position: relative; overflow: hidden; margin-bottom: 6px; }
+.hh-chart-wrap::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px; background: linear-gradient(90deg, transparent, #00c8ff 30%, #ff6b00 70%, transparent); opacity: 0.35; }
+.hh-chart-title { font-family: 'Orbitron', monospace; font-size: 0.78rem; letter-spacing: 3px; text-transform: uppercase; color: #00c8ff; margin-bottom: 16px; display: flex; align-items: center; gap: 10px; }
+.hh-chart-title::before { content: ''; width: 4px; height: 14px; background: #00c8ff; box-shadow: 0 0 10px rgba(0,200,255,0.6); border-radius: 2px; flex-shrink: 0; }
+.hh-section { font-family: 'Orbitron', monospace; font-size: 1.1rem; font-weight: 700; color: white; letter-spacing: 3px; margin: 24px 0 18px; display: flex; align-items: center; gap: 14px; }
+.hh-section::after { content: ''; flex: 1; height: 1px; background: linear-gradient(90deg, rgba(0,200,255,0.5), transparent); }
+.hh-header { text-align: center; padding: 40px 24px 28px; position: relative; }
+.hh-header::after { content: ''; position: absolute; bottom: 0; left: 50%; transform: translateX(-50%); width: 360px; height: 1px; background: linear-gradient(90deg, transparent, #00c8ff, transparent); box-shadow: 0 0 20px rgba(0,200,255,0.4); }
+.hh-header-label { font-family: 'Rajdhani', sans-serif; font-size: 0.65rem; letter-spacing: 8px; text-transform: uppercase; color: #00c8ff; margin-bottom: 8px; animation: fadeUp 0.8s ease forwards; }
+.hh-header h1 { font-family: 'Orbitron', monospace !important; font-size: clamp(1.8rem, 4vw, 3rem) !important; font-weight: 900 !important; color: white !important; letter-spacing: 4px !important; text-shadow: 0 0 30px rgba(0,200,255,0.5), 0 0 60px rgba(0,200,255,0.2) !important; animation: fadeUp 0.8s 0.2s ease both; }
 .hh-header h1 span { color: #00c8ff; }
-.hh-header-sub {
-    margin-top: 8px;
-    font-family: 'Rajdhani', sans-serif;
-    font-size: 0.8rem; letter-spacing: 4px; color: rgba(180,210,240,0.45);
-    text-transform: uppercase;
-    animation: fadeUp 0.8s 0.4s ease both;
-}
-.hh-live {
-    margin-top: 12px;
-    font-family: 'Orbitron', monospace;
-    font-size: 0.7rem; color: rgba(0,200,255,0.7); letter-spacing: 2px;
-    animation: fadeUp 0.8s 0.6s ease both;
-}
-.pulse-dot {
-    display: inline-block; width: 7px; height: 7px; border-radius: 50%;
-    background: #00ff88; box-shadow: 0 0 8px #00ff88; margin-right: 6px;
-    animation: pulseDot 1.5s ease-in-out infinite;
-}
+.hh-header-sub { margin-top: 8px; font-family: 'Rajdhani', sans-serif; font-size: 0.8rem; letter-spacing: 4px; color: rgba(180,210,240,0.45); text-transform: uppercase; animation: fadeUp 0.8s 0.4s ease both; }
+.hh-live { margin-top: 12px; font-family: 'Orbitron', monospace; font-size: 0.7rem; color: rgba(0,200,255,0.7); letter-spacing: 2px; animation: fadeUp 0.8s 0.6s ease both; }
+.pulse-dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: #00ff88; box-shadow: 0 0 8px #00ff88; margin-right: 6px; animation: pulseDot 1.5s ease-in-out infinite; }
 @keyframes pulseDot { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.4;transform:scale(0.6)} }
 @keyframes fadeUp { from{opacity:0;transform:translateY(16px)} to{opacity:1;transform:translateY(0)} }
-
-/* ── Progress bars ── */
 .hh-prog-label { display:flex; justify-content:space-between; margin-bottom:5px; }
 .hh-prog-ltext { font-family:'Rajdhani',sans-serif; font-size:0.65rem; letter-spacing:2px; text-transform:uppercase; color:rgba(180,210,240,0.45); }
 .hh-prog-val   { font-family:'Orbitron',monospace; font-size:0.75rem; color:#00c8ff; }
@@ -245,18 +70,10 @@ div[data-testid="stTabsContent"] > div { background: transparent !important; }
 .hh-prog-fill.cyan   { background: linear-gradient(90deg,rgba(0,200,255,0.3),#00c8ff); }
 .hh-prog-fill.orange { background: linear-gradient(90deg,rgba(255,107,0,0.3),#ff6b00); }
 .hh-prog-fill.green  { background: linear-gradient(90deg,rgba(0,255,136,0.3),#00ff88); }
-
-/* ── BP big number ── */
-.hh-bp-big {
-    font-family:'Orbitron',monospace; font-size:3.2rem; font-weight:900; line-height:1;
-}
+.hh-bp-big { font-family:'Orbitron',monospace; font-size:3.2rem; font-weight:900; line-height:1; }
 .hh-bp-unit { font-size:0.65rem; letter-spacing:3px; color:rgba(180,210,240,0.45); margin-top:6px; }
 .hh-bp-status { font-size:0.8rem; margin-top:6px; font-family:'Rajdhani',sans-serif; font-weight:600; }
-
-/* ── Counter animation ── */
 .hh-counter { display:inline-block; }
-
-/* padding around main content */
 .hh-wrap { padding: 0 24px 60px; }
 </style>
 """, unsafe_allow_html=True)
@@ -472,15 +289,12 @@ new Chart(ctx, {{
   options:{{...defaults}}
 }});
 """
-        import streamlit.components.v1 as components
         components.html(chart_html("7-DAY CALORIE TREND", chart_body), height=410, scrolling=False)
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # TAB 2 — LIFE
 # ═══════════════════════════════════════════════════════════════════════════════
 with tab2:
-    import streamlit.components.v1 as components
-
     total_loss_lbs = gval(last, 6)
     total_loss_st  = str(last.iloc[7])
     to_target_lbs  = gval(last, 8)
@@ -538,7 +352,6 @@ setTimeout(function(){{
 # TAB 3 — CALORIES
 # ═══════════════════════════════════════════════════════════════════════════════
 with tab3:
-    import streamlit.components.v1 as components
     cals_data = gcol(1)
     net_data  = gcol(2)
     cal_colors  = ["rgba(255,51,85,0.45)" if (v or 0) > 1633 else "rgba(255,107,0,0.4)" for v in cals_data]
@@ -570,7 +383,6 @@ new Chart(ctx, {{
 # TAB 4 — WEIGHT
 # ═══════════════════════════════════════════════════════════════════════════════
 with tab4:
-    import streamlit.components.v1 as components
     weight_data = gcol(3)
     # 7-day rolling avg
     def rolling_avg(arr, w=7):
@@ -602,7 +414,6 @@ new Chart(ctx, {{
 # TAB 5 — GAIN/LOSS
 # ═══════════════════════════════════════════════════════════════════════════════
 with tab5:
-    import streamlit.components.v1 as components
     gl_data = gcol(5)
     cum = []
     running = 0
@@ -629,7 +440,6 @@ new Chart(ctx, {{
 # TAB 6 — VELOCITY
 # ═══════════════════════════════════════════════════════════════════════════════
 with tab6:
-    import streamlit.components.v1 as components
     w = gcol(3)
     vel = [None] + [round(-(w[i] - w[i-1]), 4) if (w[i] is not None and w[i-1] is not None) else None for i in range(1,len(w))]
     vel_colors  = ["rgba(0,255,136,0.5)" if (v or 0) > 0 else "rgba(255,51,85,0.5)" for v in vel]
@@ -663,7 +473,6 @@ new Chart(ctx, {{
 # TAB 7 — STEPS
 # ═══════════════════════════════════════════════════════════════════════════════
 with tab7:
-    import streamlit.components.v1 as components
     steps_data  = gcol(12)
     active_data = gcol(15)
     s_colors  = ["rgba(0,255,136,0.45)" if (v or 0) >= 10000 else "rgba(0,200,255,0.35)" for v in steps_data]
@@ -701,7 +510,6 @@ new Chart(ctx, {{
 # TAB 8 — MACROS
 # ═══════════════════════════════════════════════════════════════════════════════
 with tab8:
-    import streamlit.components.v1 as components
     chart_body = f"""
 new Chart(ctx, {{
   type:'line',
@@ -722,8 +530,6 @@ new Chart(ctx, {{
 # TAB 9 — AVERAGES
 # ═══════════════════════════════════════════════════════════════════════════════
 with tab9:
-    import streamlit.components.v1 as components
-
     def safe_avg(lst):
         vals = [v for v in lst if v is not None and v > 0]
         return round(sum(vals)/len(vals), 2) if vals else 0
@@ -778,8 +584,6 @@ new Chart(ctx, {{
 # TAB 10 — BLOOD PRESSURE
 # ═══════════════════════════════════════════════════════════════════════════════
 with tab10:
-    import streamlit.components.v1 as components
-
     sys_all = gcol(21)
     dia_all = gcol(22)
     last_sys = next((v for v in reversed(sys_all) if v), 0)
