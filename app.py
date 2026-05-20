@@ -7,6 +7,7 @@ import json
 st.set_page_config(page_title="Hardy House Command", layout="wide", initial_sidebar_state="collapsed")
 
 # ── Inject global CSS + fonts ──────────────────────────────────────────────────
+# WARNING: Do not indent the text inside this block. Leading spaces will cause Markdown to render it as a code block.
 st.markdown("""
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;600&display=swap" rel="stylesheet">
@@ -434,10 +435,10 @@ with tab1:
             <script>{counter_js('r-steps', steps, 0)}</script>
             """, unsafe_allow_html=True)
 
-        protein = gval(y, 15)
-        carbs   = gval(y, 16)
-        fat     = gval(y, 17)
-        alc_raw = str(y.iloc[18]).replace(',','').replace('%','').strip()
+        protein = gval(y, 16)
+        carbs   = gval(y, 17)
+        fat     = gval(y, 18)
+        alc_raw = str(y.iloc[19]).replace(',','').replace('%','').strip()
         alc     = float(alc_raw) if alc_raw else 0.0
         alc_display = f"{alc:.0f} kcal" if alc > 0 else "None"
 
@@ -664,7 +665,7 @@ new Chart(ctx, {{
 with tab7:
     import streamlit.components.v1 as components
     steps_data  = gcol(12)
-    active_data = gcol(14)
+    active_data = gcol(15)
     s_colors  = ["rgba(0,255,136,0.45)" if (v or 0) >= 10000 else "rgba(0,200,255,0.35)" for v in steps_data]
     s_borders = ["#00ff88" if (v or 0) >= 10000 else "#00c8ff" for v in steps_data]
 
@@ -707,9 +708,9 @@ new Chart(ctx, {{
   data:{{
     labels:{json.dumps(dates)},
     datasets:[
-      {{ label:'Protein %', data:{json.dumps(gcol(15))}, ...neon(RED,2.5),   fill:false }},
-      {{ label:'Net Carbs %', data:{json.dumps(gcol(16))}, ...neon(CYAN,2.5), fill:false }},
-      {{ label:'Fat %',     data:{json.dumps(gcol(17))}, ...neon(ORANGE,2.5),fill:false }}
+      {{ label:'Protein %', data:{json.dumps(gcol(16))}, ...neon(RED,2.5),   fill:false }},
+      {{ label:'Net Carbs %', data:{json.dumps(gcol(17))}, ...neon(CYAN,2.5), fill:false }},
+      {{ label:'Fat %',     data:{json.dumps(gcol(18))}, ...neon(ORANGE,2.5),fill:false }}
     ]
   }},
   options:{{...defaults}}
@@ -729,9 +730,9 @@ with tab9:
 
     avg_cals    = safe_avg(gcol(1))
     avg_steps   = safe_avg(gcol(12))
-    avg_protein = safe_avg(gcol(15))
-    avg_carbs   = safe_avg(gcol(16))
-    avg_fat     = safe_avg(gcol(17))
+    avg_protein = safe_avg(gcol(16))
+    avg_carbs   = safe_avg(gcol(17))
+    avg_fat     = safe_avg(gcol(18))
 
     w_all = gcol(3)
     w_start = next((v for v in w_all if v), 0)
@@ -779,8 +780,8 @@ new Chart(ctx, {{
 with tab10:
     import streamlit.components.v1 as components
 
-    sys_all = gcol(20)
-    dia_all = gcol(21)
+    sys_all = gcol(21)
+    dia_all = gcol(22)
     last_sys = next((v for v in reversed(sys_all) if v), 0)
     last_dia = next((v for v in reversed(dia_all) if v), 0)
 
