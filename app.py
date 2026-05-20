@@ -4,11 +4,11 @@ import gspread
 from google.oauth2.service_account import Credentials
 import json
 import streamlit.components.v1 as components
+import re
 
 st.set_page_config(page_title="Hardy House Command", layout="wide", initial_sidebar_state="collapsed")
 
 # ── Inject global CSS + fonts ──────────────────────────────────────────────────
-# Cleaned CSS without '/* */' comments to prevent Streamlit Markdown escaping
 st.markdown("""
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;600&display=swap" rel="stylesheet">
@@ -78,6 +78,11 @@ div[data-testid="stTabsContent"] > div { background: transparent !important; }
 </style>
 """, unsafe_allow_html=True)
 
+# ── Data Safety Helper ────────────────────────────────────────────────────────
+def is_valid(val):
+    """Checks if a cell is genuinely populated, avoiding Pandas 'nan' trap."""
+    s = str(val).strip().lower()
+    return s not in ['', 'nan', 'none', '<na>']
 
 # ── Google Sheets loader ───────────────────────────────────────────────────────
 @st.cache_data(ttl=60)
@@ -91,7 +96,26 @@ def load_data():
         client = gspread.authorize(creds)
         ws = client.open_by_url(st.secrets["spreadsheet_url"]).worksheet("Main sheet")
         data = ws.get_all_values()
-        df = pd.DataFrame(data[1:], columns=data[0] if data else None)
+        
+        if not data or len(data) < 2:
+            return pd.DataFrame()
+
+        # Load purely by index to avoid duplicate header conflicts
+        df = pd.DataFrame(data[1:])
+        
+        # TRUNCATION ENGINE: Kill empty future rows.
+        # Find the last row where Cals (1), Weight (3), Gain (5), or Steps (12) has data
+        mask = pd.Series(False, index=df.index)
+        for col_idx in [1, 3, 5, 12]:
+            if col_idx < len(df.columns):
+                mask = mask | df.iloc[:, col_idx].apply(is_valid)
+                
+        if mask.any():
+            last_valid_idx = mask[mask].index[-1]
+            df = df.loc[:last_valid_idx].copy()
+        else:
+            df = pd.DataFrame()
+
         return df
     except Exception as e:
         st.error(f"Could not load data: {e}")
@@ -100,34 +124,47 @@ def load_data():
 df = load_data()
 
 if df.empty:
-    st.error("⚠️ No data loaded. Check your secrets and sheet connection.")
+    st.error("⚠️ No active data loaded. Check your secrets and sheet connection.")
     st.stop()
 
-# ── Helpers ───────────────────────────────────────────────────────────────────
+# ── Value Extractors ───────────────────────────────────────────────────────────
 def gcol(idx):
-    """Return a column as a cleaned numeric list (NaN → None for JSON)."""
-    s = pd.to_numeric(
-        df.iloc[:, idx].astype(str).str.replace('%','',regex=False).str.replace(',','',regex=False),
-        errors='coerce'
-    )
+    """Return an entire column as a cleaned numeric array, replacing blanks with None."""
+    if idx >= len(df.columns): return [None] * len(df)
+    s = df.iloc[:, idx].astype(str)
+    s = s.str.replace('%', '', regex=False).str.replace(',', '', regex=False).str.strip()
+    s = s.replace(['', 'nan', 'NaN', 'None', 'none', '<NA>'], pd.NA)
+    s = pd.to_numeric(s, errors='coerce')
     return [None if pd.isna(v) else round(float(v), 4) for v in s]
 
 def gval(row_series, idx):
-    """Safe scalar from a row."""
+    """Safely extract a single scalar number from a row, ignoring letters/symbols."""
+    if idx >= len(row_series): return 0.0
     try:
-        v = str(row_series.iloc[idx]).replace(',','').replace('%','')
+        v = str(row_series.iloc[idx]).strip()
+        if not is_valid(v): return 0.0
+        v = re.sub(r'[^\d\.-]', '', v)
+        if not v or v == '-' or v == '.': return 0.0
         return float(v)
     except:
         return 0.0
 
+def get_str(row_series, idx):
+    """Extract a safe string for text-based values like Stone/Lbs text."""
+    if idx >= len(row_series): return ""
+    try:
+        s = str(row_series.iloc[idx]).strip()
+        return "" if not is_valid(s) else s
+    except:
+        return ""
+
 dates_raw = df.iloc[:, 0].astype(str).tolist()
-# Shorten dates for chart labels
 def short_date(d):
     parts = d.split('/')
     return f"{parts[0]}/{parts[1]}" if len(parts) >= 2 else d
 dates = [short_date(d) for d in dates_raw]
 
-n = len(df)
+n = len(df) # Since we truncated, this is accurately your days on the diet!
 last = df.iloc[-1]
 last_date = dates_raw[-1] if dates_raw else "–"
 
@@ -217,11 +254,13 @@ tab1,tab2,tab3,tab4,tab5,tab6,tab7,tab8,tab9,tab10 = st.tabs([
 # TAB 1 — REVIEW
 # ═══════════════════════════════════════════════════════════════════════════════
 with tab1:
-    completed = df[df.iloc[:, 12].astype(str).str.strip() != ""]
-    if completed.empty:
+    # Ensure we get a row where Steps (12) were actually filled out
+    completed_rows = df[df.iloc[:, 12].apply(is_valid)]
+    
+    if completed_rows.empty:
         st.warning("No completed day data yet.")
     else:
-        y = completed.iloc[-1]
+        y = completed_rows.iloc[-1]
         cals  = gval(y, 1)
         steps = gval(y, 12)
         cal_diff  = cals - 1633
@@ -255,8 +294,8 @@ with tab1:
         protein = gval(y, 16)
         carbs   = gval(y, 17)
         fat     = gval(y, 18)
-        alc_raw = str(y.iloc[19]).replace(',','').replace('%','').strip()
-        alc     = float(alc_raw) if alc_raw else 0.0
+        alc_raw = str(y.iloc[19]).replace(',','').replace('%','').strip() if 19 < len(y) else ""
+        alc     = float(alc_raw) if alc_raw and is_valid(alc_raw) else 0.0
         alc_display = f"{alc:.0f} kcal" if alc > 0 else "None"
 
         m1,m2,m3,m4 = st.columns(4)
@@ -295,18 +334,24 @@ new Chart(ctx, {{
 # TAB 2 — LIFE
 # ═══════════════════════════════════════════════════════════════════════════════
 with tab2:
-    total_loss_lbs = gval(last, 6)
-    total_loss_st  = str(last.iloc[7])
-    to_target_lbs  = gval(last, 8)
-    to_target_st   = str(last.iloc[9])
-    bmi_cur        = gval(last, 10)
-    bmi_target     = gval(last, 11)
-    start_weight   = gcol(3)[0] or 1
-    cur_weight_val = gcol(3)[-1] or 1
+    # Ensure Life targets the row where Total Loss (6) is actually entered
+    life_rows = df[df.iloc[:, 6].apply(is_valid)]
+    last_life = life_rows.iloc[-1] if not life_rows.empty else last
+
+    total_loss_lbs = gval(last_life, 6)
+    total_loss_st  = get_str(last_life, 7)
+    to_target_lbs  = gval(last_life, 8)
+    to_target_st   = get_str(last_life, 9)
+    bmi_cur        = gval(last_life, 10)
+    bmi_target     = gval(last_life, 11)
 
     target_loss_lbs = total_loss_lbs + to_target_lbs
     loss_pct  = min(100, round((total_loss_lbs / target_loss_lbs * 100) if target_loss_lbs else 0, 1))
-    start_bmi = gcol(10)[0] or 1
+    
+    # Safely get first BMI recorded
+    bmi_col = gcol(10)
+    start_bmi = next((v for v in bmi_col if v is not None and v > 0), 1)
+    
     bmi_range = start_bmi - bmi_target if (start_bmi - bmi_target) != 0 else 1
     bmi_pct   = min(100, max(0, round((start_bmi - bmi_cur) / bmi_range * 100, 1)))
     days_pct  = min(100, round(n / 180 * 100, 1))
@@ -541,9 +586,12 @@ with tab9:
     avg_fat     = safe_avg(gcol(18))
 
     w_all = gcol(3)
-    w_start = next((v for v in w_all if v), 0)
-    w_end   = next((v for v in reversed(w_all) if v), 0)
-    weeks_elapsed = n / 7 if n > 0 else 1
+    w_start = next((v for v in w_all if v is not None and v > 0), 0)
+    w_end   = next((v for v in reversed(w_all) if v is not None and v > 0), 0)
+    
+    # Calculate strictly off active weight entries
+    valid_days = len([v for v in w_all if v is not None and v > 0])
+    weeks_elapsed = valid_days / 7 if valid_days > 0 else 1
     avg_weekly = round((w_start - w_end) / weeks_elapsed, 2)
 
     st.markdown('<div class="hh-section">HISTORICAL AVERAGES</div>', unsafe_allow_html=True)
@@ -586,13 +634,20 @@ new Chart(ctx, {{
 with tab10:
     sys_all = gcol(21)
     dia_all = gcol(22)
-    last_sys = next((v for v in reversed(sys_all) if v), 0)
-    last_dia = next((v for v in reversed(dia_all) if v), 0)
+    last_sys = next((v for v in reversed(sys_all) if v is not None and v > 0), 0)
+    last_dia = next((v for v in reversed(dia_all) if v is not None and v > 0), 0)
 
-    sys_status = ("✓ NORMAL" if last_sys < 120 else "⚠ ELEVATED" if last_sys < 130 else "⚠ HIGH")
-    dia_status = ("✓ NORMAL" if last_dia < 80 else "⚠ HIGH")
-    sys_col = "#00ff88" if last_sys < 120 else ("#ffd32a" if last_sys < 130 else "#ff3355")
-    dia_col = "#00ff88" if last_dia < 80 else "#ff3355"
+    if last_sys == 0:
+        sys_status, sys_col = "NO DATA", "#cccccc"
+    else:
+        sys_status = "✓ NORMAL" if last_sys < 120 else "⚠ ELEVATED" if last_sys < 130 else "⚠ HIGH"
+        sys_col = "#00ff88" if last_sys < 120 else ("#ffd32a" if last_sys < 130 else "#ff3355")
+
+    if last_dia == 0:
+        dia_status, dia_col = "NO DATA", "#cccccc"
+    else:
+        dia_status = "✓ NORMAL" if last_dia < 80 else "⚠ HIGH"
+        dia_col = "#00ff88" if last_dia < 80 else "#ff3355"
 
     st.markdown('<div class="hh-section">BLOOD PRESSURE MONITORING</div>', unsafe_allow_html=True)
     bc1,bc2 = st.columns(2)
