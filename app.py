@@ -723,11 +723,11 @@ if not df.empty:
     with tab8:
         fig = go.Figure()
         macro_cfg = [
-            (16, "Protein",  "#ff453a"),
-            (17, "Carbs",    "#5ac8fa"),
-            (18, "Fat",      "#ffd60a"),
+            (16, "Protein", "#ff453a", "rgba(255,69,58,0.07)"),
+            (17, "Carbs",   "#5ac8fa", "rgba(90,200,250,0.07)"),
+            (18, "Fat",     "#ffd60a", "rgba(255,214,10,0.07)"),
         ]
-        for idx, name, color in macro_cfg:
+        for idx, name, color, fill in macro_cfg:
             series = get_num(idx)
             fig.add_trace(go.Scatter(
                 x=df.iloc[:, 0], y=series,
@@ -735,7 +735,7 @@ if not df.empty:
                 mode='lines',
                 line=dict(color=color, width=2.5),
                 fill='tozeroy',
-                fillcolor=color.replace(')', ',0.07)').replace('rgb', 'rgba') if color.startswith('rgb') else color + '12',
+                fillcolor=fill,
             ))
         st.plotly_chart(apply_theme(fig, "Macro Breakdown", "% split over time — protein / carbs / fat"), use_container_width=True)
 
