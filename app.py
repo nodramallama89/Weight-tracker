@@ -3,6 +3,7 @@ import pandas as pd
 import gspread
 import plotly.graph_objects as go
 from google.oauth2.service_account import Credentials
+import streamlit.components.v1 as components
 import time
 
 st.set_page_config(page_title="Hardy House Command", layout="wide", initial_sidebar_state="collapsed")
@@ -247,17 +248,35 @@ df = load_data()
 def get_num(idx):
     return pd.to_numeric(df.iloc[:, idx].astype(str).str.replace('%', '').str.replace(',', ''), errors='coerce')
 
-def card(label, value, delta_val=None, delta_label="", color=None, size="normal"):
+def clean_float(val):
+    try:
+        return float(str(val).replace(',', '').replace('%', ''))
+    except:
+        return 0.0
+
+def card(label, display_val="", num_target=None, decimals=0, suffix="", delta_val=None, delta_label="", size="normal"):
+    """
+    If num_target is provided, the card will dynamically 'tick up' like an odometer using injected JS.
+    Otherwise, it statically displays display_val (perfect for text strings like Stones/Lbs).
+    """
     val_class = "val" if size == "normal" else "val-sm"
+    
+    if num_target is not None:
+        val_class += " count-up"
+        val_html = f"<div class='{val_class}' data-target='{num_target}' data-decimals='{decimals}' data-suffix='{suffix}'>0</div>"
+    else:
+        val_html = f"<div class='{val_class}'>{display_val}</div>"
+
     delta_html = ""
     if delta_val is not None:
         cls   = "delta-pos" if delta_val >= 0 else "delta-neg"
         arrow = "▲" if delta_val >= 0 else "▼"
         delta_html = f"<div class='delta {cls}'>{arrow} {abs(delta_val):,.0f} {delta_label}</div>"
+        
     return f"""
     <div class='card'>
       <div class='label'>{label}</div>
-      <div class='{val_class}'>{value}</div>
+      {val_html}
       {delta_html}
     </div>"""
 
@@ -300,8 +319,8 @@ if not df.empty:
         if not completed.empty:
             y = completed.iloc[-1]
             date_str = str(y.iloc[0])[:10] if pd.notna(y.iloc[0]) else "LATEST_DATA"
-            cals  = float(str(y.iloc[1]).replace(',', ''))
-            steps = float(str(y.iloc[12]).replace(',', ''))
+            cals  = clean_float(y.iloc[1])
+            steps = clean_float(y.iloc[12])
 
             st.markdown("<div class='section-header'>Yesterday's Debrief</div>", unsafe_allow_html=True)
             st.markdown(f"<div class='section-sub'>[{date_str}]</div>", unsafe_allow_html=True)
@@ -315,7 +334,7 @@ if not df.empty:
                 st.markdown(f"""
                   <div class='card'>
                     <div class='label'>Calories Consumed</div>
-                    <div class='val'>{cals:,.0f} <span style='font-size:1rem; opacity:0.6'>kcal</span></div>
+                    <div class='val count-up' data-target='{cals}' data-decimals='0' data-suffix=' kcal'>0</div>
                     <div class='delta {cal_pill_cls}'>{cal_arrow} {abs(cal_delta):,.0f} vs Target</div>
                   </div>""", unsafe_allow_html=True)
             with c2:
@@ -324,7 +343,7 @@ if not df.empty:
                 st.markdown(f"""
                   <div class='card'>
                     <div class='label'>Steps Taken</div>
-                    <div class='val'>{steps:,.0f}</div>
+                    <div class='val count-up' data-target='{steps}' data-decimals='0' data-suffix=''>0</div>
                     <div class='delta {step_pill_cls}'>{step_arrow} {abs(step_delta):,.0f} vs Target</div>
                   </div>""", unsafe_allow_html=True)
 
@@ -335,11 +354,11 @@ if not df.empty:
             macro_indices = [16, 17, 18, 19]
             m = st.columns(4)
             for i, (lbl, color, idx) in enumerate(zip(macro_labels, macro_colors, macro_indices)):
-                val_raw = str(y.iloc[idx]).replace('%', '')
+                val_raw = clean_float(y.iloc[idx])
                 m[i].markdown(f"""
                   <div class='card' style='border-bottom: 4px solid {color}; box-shadow: 0 10px 20px rgba(0,0,0,0.5), 0 5px 15px {color}33;'>
                     <div class='label'>{lbl}</div>
-                    <div class='val-sm'>{val_raw}%</div>
+                    <div class='val-sm count-up' data-target='{val_raw}' data-decimals='1' data-suffix='%'>0</div>
                   </div>""", unsafe_allow_html=True)
 
     # ══════════════════════════════════════════
@@ -354,22 +373,22 @@ if not df.empty:
           <div class='card' style='background:linear-gradient(135deg,rgba(10,132,255,0.25),rgba(0,0,0,0.6));
                border-color:rgba(10,132,255,0.7); margin-bottom:1.5rem; animation: breathingGlow 4s infinite, springUpFade 0.7s both;'>
             <div class='label' style='color:#5ac8fa; font-size:0.85rem; letter-spacing:0.3em;'>// ACTIVE_STREAK</div>
-            <div style='font-family:Syne,sans-serif; font-size:4.8rem; font-weight:800;
+            <div class='count-up' data-target='{len(df)}' data-decimals='0' style='font-family:Syne,sans-serif; font-size:4.8rem; font-weight:800;
                         color:#ffffff; margin:10px 0; line-height:1; 
-                        text-shadow: 0 0 20px #0a84ff, 0 0 40px #5ac8fa;'>{len(df)}</div>
+                        text-shadow: 0 0 20px #0a84ff, 0 0 40px #5ac8fa;'>0</div>
             <div style='font-family:Space Mono,monospace; font-size:0.85rem; color:#ffffff; font-weight:700;'>CONSECUTIVE DAYS LOGGED</div>
           </div>""", unsafe_allow_html=True)
 
         c1, c2, c3 = st.columns(3)
         with c1:
-            st.markdown(card("Total Loss", f"{l.iloc[6]} lbs"), unsafe_allow_html=True)
-            st.markdown(card("Total Loss", f"{l.iloc[7]} st"), unsafe_allow_html=True)
+            st.markdown(card("Total Loss", num_target=clean_float(l.iloc[6]), decimals=1, suffix=" lbs"), unsafe_allow_html=True)
+            st.markdown(card("Total Loss", display_val=f"{l.iloc[7]} st"), unsafe_allow_html=True)
         with c2:
-            st.markdown(card("To Target", f"{l.iloc[8]} lbs"), unsafe_allow_html=True)
-            st.markdown(card("To Target", f"{l.iloc[9]} st"), unsafe_allow_html=True)
+            st.markdown(card("To Target", num_target=clean_float(l.iloc[8]), decimals=1, suffix=" lbs"), unsafe_allow_html=True)
+            st.markdown(card("To Target", display_val=f"{l.iloc[9]} st"), unsafe_allow_html=True)
         with c3:
-            st.markdown(card("Current BMI", f"{l.iloc[10]}"), unsafe_allow_html=True)
-            st.markdown(card("To Target BMI", f"{l.iloc[11]}"), unsafe_allow_html=True)
+            st.markdown(card("Current BMI", num_target=clean_float(l.iloc[10]), decimals=1), unsafe_allow_html=True)
+            st.markdown(card("To Target BMI", num_target=clean_float(l.iloc[11]), decimals=1), unsafe_allow_html=True)
 
     # ══════════════════════════════════════════
     #  TAB 3 — Calories
@@ -408,7 +427,7 @@ if not df.empty:
         
         fig = go.Figure()
         
-        # 1. The Core Line (Thin, bright white/purple)
+        # 1. The Core Line
         fig.add_trace(go.Scatter(
             x=df.iloc[:len(w_series), 0], y=w_series,
             name="Weight", mode='lines+markers',
@@ -417,14 +436,14 @@ if not df.empty:
             zorder=3
         ))
         
-        # 2. The Outer Glow (Thick, highly transparent line)
+        # 2. Outer Glow
         fig.add_trace(go.Scatter(
             x=df.iloc[:len(w_series), 0], y=w_series,
             mode='lines', line=dict(color='rgba(191,90,242,0.5)', width=12),
             hoverinfo='skip', showlegend=False, zorder=2
         ))
         
-        # 3. The Ambient Aura (Even thicker, very transparent)
+        # 3. Ambient Aura
         fig.add_trace(go.Scatter(
             x=df.iloc[:len(w_series), 0], y=w_series,
             mode='lines', line=dict(color='rgba(191,90,242,0.2)', width=24),
@@ -506,14 +525,14 @@ if not df.empty:
         st.markdown("<div class='section-header'>Historical Data</div>", unsafe_allow_html=True)
         c1, c2, c3 = st.columns(3)
         with c1:
-            st.markdown(card("Avg Cals / Day", f"{get_num(1).mean():,.0f}"), unsafe_allow_html=True)
-            st.markdown(card("Avg Protein", f"{get_num(16).mean():.0f}%"), unsafe_allow_html=True)
+            st.markdown(card("Avg Cals / Day", num_target=get_num(1).mean(), decimals=0), unsafe_allow_html=True)
+            st.markdown(card("Avg Protein", num_target=get_num(16).mean(), decimals=0, suffix="%"), unsafe_allow_html=True)
         with c2:
-            st.markdown(card("Avg Steps / Day", f"{get_num(12).mean():,.0f}"), unsafe_allow_html=True)
-            st.markdown(card("Avg Carbs", f"{get_num(17).mean():.0f}%"), unsafe_allow_html=True)
+            st.markdown(card("Avg Steps / Day", num_target=get_num(12).mean(), decimals=0), unsafe_allow_html=True)
+            st.markdown(card("Avg Carbs", num_target=get_num(17).mean(), decimals=0, suffix="%"), unsafe_allow_html=True)
         with c3:
-            st.markdown(card("Avg Loss / Week", f"{avg_loss:.2f} lbs"), unsafe_allow_html=True)
-            st.markdown(card("Avg Fat", f"{get_num(18).mean():.0f}%"), unsafe_allow_html=True)
+            st.markdown(card("Avg Loss / Week", num_target=avg_loss, decimals=2, suffix=" lbs"), unsafe_allow_html=True)
+            st.markdown(card("Avg Fat", num_target=get_num(18).mean(), decimals=0, suffix="%"), unsafe_allow_html=True)
 
     # ══════════════════════════════════════════
     #  TAB 9 — Blood Pressure
@@ -534,6 +553,53 @@ if not df.empty:
 
         fig.update_layout(yaxis=dict(range=[60, 180]), xaxis=dict(rangeslider=dict(visible=True, bgcolor='rgba(0,0,0,0.4)'), type="date"))
         st.plotly_chart(apply_theme(fig, "Blood Pressure Monitor", "VITAL SIGNS"), use_container_width=True)
+
+    # ─────────────────────────────────────────────
+    #  JavaScript Odometer Injector
+    # ─────────────────────────────────────────────
+    # This silent script hunts for any card with the "count-up" class and triggers the animation
+    js_code = r"""
+    <script>
+    const docs = window.parent.document;
+    const targets = docs.querySelectorAll('.count-up:not(.counted)');
+    targets.forEach(el => {
+        el.classList.add('counted');
+        const target = parseFloat(el.getAttribute('data-target')) || 0;
+        const decimals = parseInt(el.getAttribute('data-decimals')) || 0;
+        const suffix = el.getAttribute('data-suffix') || '';
+        const duration = 2000; // Animation speed in milliseconds
+        const start = performance.now();
+
+        function update(now) {
+            const elapsed = now - start;
+            const progress = Math.min(elapsed / duration, 1);
+            // Ease-out expo logic for that fast start, slow finish
+            const ease = progress === 1 ? 1 : 1 - Math.pow(2, -10 * progress);
+            const current = target * ease;
+            
+            let formatted = current.toFixed(decimals);
+            let parts = formatted.split(".");
+            // Add commas for thousands (e.g., 10,000 steps)
+            parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+            formatted = parts.join(".");
+            
+            let suffixHtml = suffix ? "<span style='font-size:0.65em; opacity:0.6; margin-left:4px;'>" + suffix + "</span>" : "";
+            el.innerHTML = formatted + suffixHtml;
+            
+            if (progress < 1) {
+                requestAnimationFrame(update);
+            } else {
+                let finalFormatted = target.toFixed(decimals);
+                let p = finalFormatted.split(".");
+                p[0] = p[0].replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+                el.innerHTML = p.join(".") + suffixHtml;
+            }
+        }
+        requestAnimationFrame(update);
+    });
+    </script>
+    """
+    components.html(js_code, height=0, width=0)
 
 else:
     st.error("SYSTEM FAILURE: Data link severed. Check credentials.")
