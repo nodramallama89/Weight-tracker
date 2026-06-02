@@ -154,7 +154,7 @@ div[data-baseweb="tab-list"] {
   border: 1px solid rgba(255,255,255,0.2) !important;
   box-shadow: 0 10px 30px rgba(0,0,0,0.6) !important;
   margin-bottom: 2rem !important;
-  flex-wrap: wrap !important; /* Allows tabs to flow neatly if on a smaller screen */
+  flex-wrap: wrap !important;
 }
 div[data-baseweb="tab"] { border-radius: 12px !important; transition: all 0.3s ease !important; }
 div[data-baseweb="tab"]:hover { background: rgba(255,255,255,0.15) !important; transform: translateY(-2px); }
@@ -187,6 +187,7 @@ div[data-baseweb="tab-highlight"] { display: none !important; }
 .card:nth-child(1) { animation-delay: 0.05s; }
 .card:nth-child(2) { animation-delay: 0.10s; }
 .card:nth-child(3) { animation-delay: 0.15s; }
+.card:nth-child(4) { animation-delay: 0.20s; }
 
 ::-webkit-scrollbar { width: 6px; height: 6px; }
 ::-webkit-scrollbar-track { background: rgba(0,0,0,0.1); }
@@ -305,7 +306,7 @@ if not df.empty:
     </div>
     """, unsafe_allow_html=True)
 
-    # ── Tab bar (Now with 12 Tabs) ──
+    # ── Tab bar (12 Tabs) ──
     tab1, tab2, tab3, tab4, tab5, tab6, tab7, tab8, tab9, tab10, tab11, tab12 = st.tabs([
         "🛡️ Review", "📊 Lifetime", "🔥 Calories", "💧 Hydration", "⚖️ Weight",
         "📉 Trend", "👟 Steps", "🥗 Macros", "📈 Averages", "❤️ BP", "🎯 Target", "🏆 Trophies"
@@ -418,7 +419,7 @@ if not df.empty:
         st.plotly_chart(apply_theme(fig, "Caloric Intake", "≤1,633 GREEN // >1,700 RED"), use_container_width=True)
 
     # ══════════════════════════════════════════
-    #  TAB 4 — Hydration (NEW!)
+    #  TAB 4 — Hydration
     # ══════════════════════════════════════════
     with tab4:
         hyd_series = get_num(24)
@@ -433,7 +434,7 @@ if not df.empty:
             ),
         ))
         
-        fig.add_hline(y=3500, line_dash="dash", line_color="#5ac8fa", annotation_text="2,000 ml TARGET", annotation_font_color="#5ac8fa")
+        fig.add_hline(y=3000, line_dash="dash", line_color="#5ac8fa", annotation_text="3,000 ml TARGET", annotation_font_color="#5ac8fa")
         
         fig.update_layout(xaxis=dict(rangeslider=dict(visible=True, bgcolor='rgba(0,0,0,0.4)', bordercolor='rgba(255,255,255,0.2)'), type="date"))
         st.plotly_chart(apply_theme(fig, "Daily Hydration", "MEASURED IN MILLILITERS"), use_container_width=True)
@@ -593,24 +594,51 @@ if not df.empty:
             st.markdown("</div>", unsafe_allow_html=True)
 
     # ══════════════════════════════════════════
-    #  TAB 12 — Trophy Room (NEW!)
+    #  TAB 12 — Trophy Room
     # ══════════════════════════════════════════
     with tab12:
         st.markdown("<div class='section-header'>The Trophy Room</div>", unsafe_allow_html=True)
         st.markdown("<div class='section-sub'>Unlock milestones through consistency</div>", unsafe_allow_html=True)
 
+        total_days = len(df)
         cals_in = get_num(1)
         steps_arr = get_num(12)
+        hyd_arr = get_num(24)
+        sys_arr = get_num(21)
+        dia_arr = get_num(22)
+        
         total_loss_lbs = clean_float(df.iloc[-1].iloc[6]) if not df.empty else 0
         min_weight = get_num(3).min()
 
         # Logic Calculations
         perfect_cals_days = ((cals_in > 0) & (cals_in <= 1633)).sum()
         perfect_steps_days = (steps_arr >= 10000).sum()
-        streak = len(df)
+        perfect_hyd_days = (hyd_arr >= 3000).sum()
+        ideal_bp_days = ((sys_arr > 0) & (sys_arr <= 120) & (dia_arr > 0) & (dia_arr <= 80)).sum()
+        streak = total_days
 
-        def badge(title, desc, condition, icon="🏆"):
-            if condition:
+        # Safe percentage calculation
+        def get_pct(days):
+            return (days / total_days * 100) if total_days > 0 else 0
+
+        # Define the badges dynamically
+        badges = [
+            {"title": "Iron Will", "desc": f"{perfect_cals_days} Days ({get_pct(perfect_cals_days):.1f}%) ≤ 1,633 kcal", "unlocked": perfect_cals_days > 0, "icon": "🔥"},
+            {"title": "Marathoner", "desc": f"{perfect_steps_days} Days ({get_pct(perfect_steps_days):.1f}%) ≥ 10k Steps", "unlocked": perfect_steps_days > 0, "icon": "👟"},
+            {"title": "Aqua Lung", "desc": f"{perfect_hyd_days} Days ({get_pct(perfect_hyd_days):.1f}%) ≥ 3L Water", "unlocked": perfect_hyd_days > 0, "icon": "💧"},
+            {"title": "Zen Heart", "desc": f"{ideal_bp_days} Days ({get_pct(ideal_bp_days):.1f}%) Ideal BP", "unlocked": ideal_bp_days > 0, "icon": "❤️"},
+            {"title": "Habit Builder", "desc": "7 Day Logging Streak", "unlocked": streak >= 7, "icon": "📅"},
+            {"title": "Dedication", "desc": "30 Day Logging Streak", "unlocked": streak >= 30, "icon": "🛡️"},
+            {"title": "First Blood", "desc": "Drop 5 lbs total", "unlocked": total_loss_lbs >= 5, "icon": "📉"},
+            {"title": "Double Digits", "desc": "Drop 10 lbs total", "unlocked": total_loss_lbs >= 10, "icon": "📉"},
+            {"title": "The 15 Club", "desc": "Drop 15 lbs total", "unlocked": total_loss_lbs >= 15, "icon": "📉"},
+            {"title": "Twenty Down", "desc": "Drop 20 lbs total", "unlocked": total_loss_lbs >= 20, "icon": "📉"},
+            {"title": "Quarter Century", "desc": "Drop 25 lbs total", "unlocked": total_loss_lbs >= 25, "icon": "📉"},
+            {"title": "Sub-200 Club", "desc": "Drop below 200 lbs", "unlocked": min_weight < 200, "icon": "🎯"}
+        ]
+
+        def render_badge(b):
+            if b["unlocked"]:
                 glow = "box-shadow: 0 0 25px rgba(48,209,88,0.3); border-color: rgba(48,209,88,0.6);"
                 val_color = "#30d158"
                 status = "UNLOCKED"
@@ -620,23 +648,21 @@ if not df.empty:
                 status = "LOCKED"
                 
             return f"""
-            <div class='card' style='{glow} transition: all 0.3s ease;'>
-                <div style='font-size:3rem; margin-bottom:12px; text-shadow: 0 5px 15px rgba(0,0,0,0.5);'>{icon}</div>
-                <div class='label' style='color:{val_color}; margin-bottom:6px; letter-spacing:0.2em;'>{status}</div>
-                <div class='val-sm' style='font-size:1.3rem; margin-bottom:4px;'>{title}</div>
-                <div style='font-family:Space Mono,monospace; font-size:0.75rem; color:rgba(255,255,255,0.7);'>{desc}</div>
+            <div class='card' style='{glow} transition: all 0.3s ease; height: 180px; display: flex; flex-direction: column; justify-content: center;'>
+                <div style='font-size:2.5rem; margin-bottom:8px; text-shadow: 0 5px 15px rgba(0,0,0,0.5);'>{b['icon']}</div>
+                <div class='label' style='color:{val_color}; margin-bottom:4px; letter-spacing:0.15em;'>{status}</div>
+                <div class='val-sm' style='font-size:1.1rem; margin-bottom:2px;'>{b['title']}</div>
+                <div style='font-family:Space Mono,monospace; font-size:0.7rem; color:rgba(255,255,255,0.7);'>{b['desc']}</div>
             </div>"""
 
-        c1, c2, c3 = st.columns(3)
-        with c1:
-            st.markdown(badge("Iron Will", f"{perfect_cals_days} Days at/under 1,633 kcal", perfect_cals_days > 0, "🔥"), unsafe_allow_html=True)
-            st.markdown(badge("10lb Milestone", "Drop 10 lbs total", total_loss_lbs >= 10, "📉"), unsafe_allow_html=True)
-        with c2:
-            st.markdown(badge("Marathoner", f"{perfect_steps_days} Days hitting 10k Steps", perfect_steps_days > 0, "👟"), unsafe_allow_html=True)
-            st.markdown(badge("20lb Milestone", "Drop 20 lbs total", total_loss_lbs >= 20, "📉"), unsafe_allow_html=True)
-        with c3:
-            st.markdown(badge("Dedication", f"{streak} Day Logging Streak", streak >= 30, "📅"), unsafe_allow_html=True)
-            st.markdown(badge("Sub-200 Club", "Drop below 200 lbs", min_weight < 200, "🎯"), unsafe_allow_html=True)
+        # Build out the grid 4 items wide
+        for i in range(0, len(badges), 4):
+            cols = st.columns(4)
+            for j in range(4):
+                if i + j < len(badges):
+                    with cols[j]:
+                        st.markdown(render_badge(badges[i + j]), unsafe_allow_html=True)
+
 
     # ─────────────────────────────────────────────
     #  JavaScript Odometer Injector (Tab-Aware)
