@@ -15,7 +15,7 @@ if 'booted' not in st.session_state:
     st.session_state.booted = True
 
 # ─────────────────────────────────────────────
-#  PREMIUM CSS — Animations & Liquid Glass
+#  PREMIUM CSS — macOS Dark Mode & Liquid Glass
 # ─────────────────────────────────────────────
 st.markdown("""
 <style>
@@ -24,38 +24,30 @@ st.markdown("""
 
 /* ── Root tokens ── */
 :root {
-  --glass-bg:        rgba(255,255,255,0.04);
-  --glass-bg-hover:  rgba(255,255,255,0.09);
-  --glass-border:    rgba(255,255,255,0.12);
-  --glass-border-hi: rgba(255,255,255,0.25);
-  --glass-shadow:    0 8px 32px rgba(0,0,0,0.5), 0 1px 0 rgba(255,255,255,0.06) inset;
-  --glass-shadow-lg: 0 25px 65px rgba(0,0,0,0.8), 0 1px 0 rgba(255,255,255,0.15) inset;
+  --glass-bg:        rgba(20, 20, 25, 0.45);
+  --glass-bg-hover:  rgba(30, 30, 35, 0.65);
+  --glass-border:    rgba(255,255,255,0.15);
+  --glass-border-hi: rgba(255,255,255,0.3);
+  --glass-shadow:    0 8px 32px rgba(0,0,0,0.5), 0 1px 0 rgba(255,255,255,0.1) inset;
+  --glass-shadow-lg: 0 20px 50px rgba(0,0,0,0.8), 0 1px 0 rgba(255,255,255,0.2) inset;
   --blur:            blur(24px) saturate(180%);
   --blur-sm:         blur(12px) saturate(160%);
 
-  --accent-blue:   #0a84ff;
-  --accent-green:  #30d158;
-  --accent-red:    #ff453a;
-  --accent-orange: #ff9f0a;
-  --accent-purple: #bf5af2;
-  --accent-teal:   #5ac8fa;
-  --accent-yellow: #ffd60a;
-
-  --text-primary:   rgba(255,255,255,0.95);
-  --text-secondary: rgba(255,255,255,0.55);
+  --text-primary:   #ffffff;
+  --text-secondary: rgba(255,255,255,0.9);
   
   --font-display: 'Syne', sans-serif;
   --font-body:    'Instrument Sans', sans-serif;
   --font-mono:    'Space Mono', monospace;
   
-  --radius-xl: 22px;
+  --radius-xl: 24px;
   --radius-lg: 16px;
 }
 
 /* ── Base reset ── */
 *, *::before, *::after { box-sizing: border-box; }
 
-/* ── Background & Sci-Fi Scanline ── */
+/* ── Background ── */
 .stApp {
   background-image: url('https://raw.githubusercontent.com/nodramallama89/Weight-tracker/main/BG.jpg');
   background-size: cover;
@@ -68,29 +60,10 @@ st.markdown("""
   content: '';
   position: fixed;
   inset: 0;
-  background: radial-gradient(circle at 50% 0%, rgba(10,132,255,0.15) 0%, transparent 60%),
-              linear-gradient(135deg, rgba(0,0,0,0.4) 0%, rgba(0,5,15,0.7) 100%);
+  background: radial-gradient(circle at 50% 0%, rgba(10,132,255,0.1) 0%, transparent 70%),
+              linear-gradient(135deg, rgba(0,0,0,0.5) 0%, rgba(0,5,15,0.85) 100%);
   pointer-events: none;
   z-index: 0;
-}
-
-/* The Scanner Line */
-.stApp::after {
-  content: "";
-  position: fixed;
-  top: -10px; left: 0; width: 100vw; height: 3px;
-  background: rgba(10, 132, 255, 0.4);
-  box-shadow: 0 0 30px 2px rgba(10, 132, 255, 0.6);
-  animation: scanline 8s linear infinite;
-  pointer-events: none;
-  z-index: 9999;
-}
-
-@keyframes scanline {
-  0% { top: -10px; opacity: 0; }
-  10% { opacity: 1; }
-  90% { opacity: 1; }
-  100% { top: 100vh; opacity: 0; }
 }
 
 #MainMenu, footer, header { visibility: hidden; }
@@ -126,20 +99,20 @@ st.markdown("""
   backdrop-filter: var(--blur);
   -webkit-backdrop-filter: var(--blur);
   border-radius: var(--radius-xl);
-  padding: 22px 20px 18px;
+  padding: 24px 20px 20px;
   box-shadow: var(--glass-shadow);
   border: 1px solid var(--glass-border);
-  border-top-color: rgba(255,255,255,0.2);
+  border-top-color: rgba(255,255,255,0.25);
   text-align: center;
   margin-bottom: 12px;
   position: relative;
   overflow: hidden;
   transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-  animation: fadeSlideUp 0.6s cubic-bezier(.23,1,.32,1) both;
+  animation: springUpFade 0.7s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
 .card:hover {
-  transform: translateY(-8px) scale(1.02);
+  transform: translateY(-6px) scale(1.02);
   box-shadow: var(--glass-shadow-lg);
   background: var(--glass-bg-hover);
   border-color: var(--glass-border-hi);
@@ -152,57 +125,60 @@ st.markdown("""
   top: 0; left: -100%;
   width: 50%;
   height: 100%;
-  background: linear-gradient(105deg, transparent 20%, rgba(255,255,255,0.08) 50%, transparent 80%);
+  background: linear-gradient(105deg, transparent 20%, rgba(255,255,255,0.12) 50%, transparent 80%);
   animation: shimmer 3s infinite 0.5s;
   pointer-events: none;
 }
 
-/* ── Card Typography ── */
-.val { font-family: var(--font-display); font-size: 2.2rem; font-weight: 700; margin: 6px 0 2px; line-height: 1; text-shadow: 0 0 10px rgba(255,255,255,0.1); }
-.val-sm { font-family: var(--font-display); font-size: 1.65rem; font-weight: 700; margin: 6px 0 2px; line-height: 1; }
-.label { font-family: var(--font-mono); font-size: 0.65rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.15em; color: var(--text-secondary); }
+/* ── Card Typography (HIGH CONTRAST) ── */
+.val { font-family: var(--font-display); font-size: 2.3rem; font-weight: 700; margin: 6px 0 4px; line-height: 1; color: #ffffff; text-shadow: 0 2px 10px rgba(0,0,0,0.5); }
+.val-sm { font-family: var(--font-display); font-size: 1.7rem; font-weight: 700; margin: 6px 0 4px; line-height: 1; color: #ffffff; }
+.label { font-family: var(--font-mono); font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.15em; color: #ffffff; opacity: 0.95; }
 
-.delta { font-family: var(--font-body); font-size: 0.78rem; font-weight: 600; margin-top: 8px; padding: 4px 12px; border-radius: 50px; display: inline-block; box-shadow: 0 2px 10px rgba(0,0,0,0.2); }
-.delta-pos { background: rgba(48, 209, 88, 0.15); color: var(--accent-green); border: 1px solid rgba(48, 209, 88, 0.3); text-shadow: 0 0 8px rgba(48, 209, 88, 0.4); }
-.delta-neg { background: rgba(255, 69, 58, 0.15); color: var(--accent-red); border: 1px solid rgba(255, 69, 58, 0.3); text-shadow: 0 0 8px rgba(255, 69, 58, 0.4); }
+.delta { font-family: var(--font-body); font-size: 0.8rem; font-weight: 700; margin-top: 10px; padding: 6px 14px; border-radius: 50px; display: inline-block; box-shadow: 0 4px 15px rgba(0,0,0,0.3); color: #ffffff; }
+.delta-pos { background: rgba(48, 209, 88, 0.25); border: 1px solid rgba(48, 209, 88, 0.5); text-shadow: 0 1px 3px rgba(0,0,0,0.8); }
+.delta-neg { background: rgba(255, 69, 58, 0.25); border: 1px solid rgba(255, 69, 58, 0.5); text-shadow: 0 1px 3px rgba(0,0,0,0.8); }
 
 /* ── Section header ── */
-.section-header { font-family: var(--font-display); font-size: 1.8rem; font-weight: 700; color: var(--text-primary); margin: 0 0 1.2rem; text-align: center; animation: fadeSlideUp 0.4s both; text-shadow: 0 0 15px rgba(255,255,255,0.2); }
-.section-sub { font-family: var(--font-mono); font-size: 0.8rem; color: var(--accent-teal); text-align: center; margin-top: -0.8rem; margin-bottom: 1.4rem; letter-spacing: 0.1em; text-transform: uppercase; }
+.section-header { font-family: var(--font-display); font-size: 1.8rem; font-weight: 700; color: var(--text-primary); margin: 0 0 1.2rem; text-align: center; animation: springUpFade 0.5s both; text-shadow: 0 2px 10px rgba(0,0,0,0.5); }
+.section-sub { font-family: var(--font-mono); font-size: 0.85rem; color: #5ac8fa; text-align: center; margin-top: -0.8rem; margin-bottom: 1.5rem; letter-spacing: 0.1em; text-transform: uppercase; font-weight: 700; }
 
-/* ── Tab bar ── */
+/* ── Tab bar (HIGH CONTRAST) ── */
 div[data-baseweb="tab-list"] {
-  background: rgba(0,0,0,0.2) !important;
+  background: rgba(0,0,0,0.3) !important;
   backdrop-filter: var(--blur-sm) !important;
-  border-radius: 16px !important;
-  padding: 6px !important;
-  border: 1px solid var(--glass-border) !important;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.5) !important;
+  border-radius: 18px !important;
+  padding: 8px !important;
+  border: 1px solid rgba(255,255,255,0.2) !important;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.6) !important;
   margin-bottom: 2rem !important;
 }
-div[data-baseweb="tab"] { border-radius: 11px !important; transition: all 0.3s ease !important; }
-div[data-baseweb="tab"]:hover { background: rgba(255,255,255,0.1) !important; transform: translateY(-2px); }
-div[data-baseweb="tab"][aria-selected="true"] { background: rgba(10,132,255,0.2) !important; box-shadow: 0 0 15px rgba(10,132,255,0.4), inset 0 0 0 1px rgba(10,132,255,0.5) !important; }
-div[data-baseweb="tab-list"] button [data-testid="stMarkdownContainer"] p { font-family: var(--font-body) !important; color: white !important; font-size: 0.9rem !important; font-weight: 600 !important; }
+div[data-baseweb="tab"] { border-radius: 12px !important; transition: all 0.3s ease !important; }
+div[data-baseweb="tab"]:hover { background: rgba(255,255,255,0.15) !important; transform: translateY(-2px); }
+div[data-baseweb="tab"][aria-selected="true"] { background: rgba(10,132,255,0.3) !important; box-shadow: 0 0 20px rgba(10,132,255,0.5), inset 0 0 0 1px rgba(10,132,255,0.6) !important; }
+div[data-baseweb="tab-list"] button [data-testid="stMarkdownContainer"] p { font-family: var(--font-body) !important; color: #ffffff !important; font-size: 0.95rem !important; font-weight: 700 !important; }
 div[data-baseweb="tab-highlight"] { display: none !important; }
 
 /* ── Chart wrapper ── */
 .stPlotlyChart {
-  background: rgba(0,0,0,0.3) !important;
+  background: rgba(15,15,20,0.4) !important;
   backdrop-filter: var(--blur) !important;
   border-radius: var(--radius-xl) !important;
-  padding: 12px !important;
-  border: 1px solid rgba(255,255,255,0.1) !important;
-  box-shadow: 0 15px 40px rgba(0,0,0,0.6) !important;
-  transition: all 0.4s ease !important;
-  animation: fadeSlideUp 0.8s cubic-bezier(.23,1,.32,1) 0.2s both !important;
+  padding: 16px !important;
+  border: 1px solid rgba(255,255,255,0.15) !important;
+  box-shadow: 0 15px 40px rgba(0,0,0,0.7) !important;
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) !important;
+  animation: springUpFade 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.2s both !important;
 }
-.stPlotlyChart:hover { box-shadow: 0 20px 50px rgba(0,0,0,0.8), 0 0 20px rgba(10,132,255,0.2) !important; border-color: rgba(255,255,255,0.2) !important; }
+.stPlotlyChart:hover { box-shadow: 0 25px 60px rgba(0,0,0,0.9), 0 0 20px rgba(10,132,255,0.2) !important; border-color: rgba(255,255,255,0.3) !important; transform: translateY(-4px) !important; }
 
 /* ── Animations ── */
-@keyframes fadeSlideUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes springUpFade { 
+  0% { opacity: 0; transform: translateY(40px) scale(0.95); filter: blur(4px); } 
+  100% { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); } 
+}
 @keyframes shimmer { 0% { left: -100%; } 100% { left: 200%; } }
-@keyframes breathingGlow { 0% { box-shadow: 0 0 20px rgba(10,132,255,0.2); } 50% { box-shadow: 0 0 50px rgba(10,132,255,0.6); } 100% { box-shadow: 0 0 20px rgba(10,132,255,0.2); } }
+@keyframes breathingGlow { 0% { box-shadow: 0 0 20px rgba(10,132,255,0.3); } 50% { box-shadow: 0 0 50px rgba(10,132,255,0.7); } 100% { box-shadow: 0 0 20px rgba(10,132,255,0.3); } }
 
 /* Staggered load */
 .card:nth-child(1) { animation-delay: 0.05s; }
@@ -217,29 +193,29 @@ div[data-baseweb="tab-highlight"] { display: none !important; }
 
 
 # ─────────────────────────────────────────────
-#  PLOTLY THEME (With Neon Crosshairs)
+#  PLOTLY THEME
 # ─────────────────────────────────────────────
 def apply_theme(fig, title="", subtitle=""):
-    full_title = f"<b>{title}</b>" + (f"<br><span style='font-size:12px;color:rgba(255,255,255,0.4);font-family:Space Mono'>{subtitle}</span>" if subtitle else "")
+    full_title = f"<b>{title}</b>" + (f"<br><span style='font-size:12px;color:rgba(255,255,255,0.6);font-family:Space Mono'>{subtitle}</span>" if subtitle else "")
     fig.update_layout(
-        title=dict(text=full_title, font=dict(family="Syne, sans-serif", color='white', size=20), x=0.03, xanchor='left', y=0.96),
+        title=dict(text=full_title, font=dict(family="Syne, sans-serif", color='#ffffff', size=20), x=0.03, xanchor='left', y=0.96),
         paper_bgcolor='rgba(0,0,0,0)',
         plot_bgcolor='rgba(0,0,0,0)',
-        font=dict(family="Instrument Sans, sans-serif", color='rgba(255,255,255,0.75)', size=12),
-        legend=dict(font=dict(color='white', size=11), bgcolor='rgba(0,0,0,0.5)', bordercolor='rgba(255,255,255,0.2)', borderwidth=1, x=0.01, y=0.99, orientation='h'),
+        font=dict(family="Instrument Sans, sans-serif", color='rgba(255,255,255,0.85)', size=12),
+        legend=dict(font=dict(color='#ffffff', size=11), bgcolor='rgba(0,0,0,0.6)', bordercolor='rgba(255,255,255,0.3)', borderwidth=1, x=0.01, y=0.99, orientation='h'),
         xaxis=dict(
-            color='rgba(255,255,255,0.5)', gridcolor='rgba(255,255,255,0.05)',
+            color='rgba(255,255,255,0.7)', gridcolor='rgba(255,255,255,0.08)',
             showspikes=True, spikemode="across", spikethickness=1, spikedash="solid", spikecolor="rgba(10,132,255,0.8)",
             showgrid=True, zeroline=False
         ),
         yaxis=dict(
-            color='rgba(255,255,255,0.5)', gridcolor='rgba(255,255,255,0.05)',
+            color='rgba(255,255,255,0.7)', gridcolor='rgba(255,255,255,0.08)',
             showspikes=True, spikemode="across", spikethickness=1, spikedash="solid", spikecolor="rgba(10,132,255,0.8)",
             zeroline=False
         ),
         margin=dict(l=20, r=20, t=70, b=20),
         hovermode='x unified',
-        hoverlabel=dict(bgcolor='rgba(10,15,30,0.95)', bordercolor='#0a84ff', font=dict(color='white', size=13, family='Space Mono, monospace')),
+        hoverlabel=dict(bgcolor='rgba(10,15,30,0.95)', bordercolor='#0a84ff', font=dict(color='#ffffff', size=13, family='Space Mono, monospace')),
     )
     return fig
 
@@ -273,7 +249,6 @@ def get_num(idx):
 
 def card(label, value, delta_val=None, delta_label="", color=None, size="normal"):
     val_class = "val" if size == "normal" else "val-sm"
-    val_color  = color or "var(--text-primary)"
     delta_html = ""
     if delta_val is not None:
         cls   = "delta-pos" if delta_val >= 0 else "delta-neg"
@@ -282,7 +257,7 @@ def card(label, value, delta_val=None, delta_label="", color=None, size="normal"
     return f"""
     <div class='card'>
       <div class='label'>{label}</div>
-      <div class='{val_class}' style='color:{val_color}'>{value}</div>
+      <div class='{val_class}'>{value}</div>
       {delta_html}
     </div>"""
 
@@ -293,8 +268,8 @@ if not df.empty:
 
     # ── Animated Header ──
     st.markdown("""
-    <div style='text-align:center; margin-bottom:0.2rem; animation: fadeSlideUp 0.4s ease both;'>
-      <span style='font-family:Space Mono,monospace; font-size:0.75rem; font-weight:700; letter-spacing:0.2em; color:rgba(255,255,255,0.5);'>
+    <div style='text-align:center; margin-bottom:0.2rem; animation: springUpFade 0.5s ease both;'>
+      <span style='font-family:Space Mono,monospace; font-size:0.75rem; font-weight:700; letter-spacing:0.2em; color:#ffffff; opacity: 0.8;'>
         <span style='display:inline-block; width:8px; height:8px; background-color:#30d158; border-radius:50%; margin-right:8px; box-shadow: 0 0 12px #30d158; animation: blink-caret 1s infinite;'></span>
         SYSTEM_ACTIVE
       </span>
@@ -304,8 +279,8 @@ if not df.empty:
     st.markdown("<div style='text-align:center;'><h1 class='typewriter-text'>Command Centre</h1></div>", unsafe_allow_html=True)
 
     st.markdown("""
-    <div style='text-align:center; margin-bottom:2.5rem; animation: fadeSlideUp 0.8s ease 0.5s both;'>
-      <span style='font-family:Space Mono,monospace; font-size:0.8rem; color:#5ac8fa; opacity: 0.7;'>
+    <div style='text-align:center; margin-bottom:2.5rem; animation: springUpFade 0.8s ease 0.5s both;'>
+      <span style='font-family:Space Mono,monospace; font-size:0.85rem; color:#5ac8fa; font-weight: 700;'>
         [ DATA_SYNC: GOOGLE_SHEETS // TELEMETRY: NOMINAL ]
       </span>
     </div>
@@ -340,7 +315,7 @@ if not df.empty:
                 st.markdown(f"""
                   <div class='card'>
                     <div class='label'>Calories Consumed</div>
-                    <div class='val'>{cals:,.0f} kcal</div>
+                    <div class='val'>{cals:,.0f} <span style='font-size:1rem; opacity:0.6'>kcal</span></div>
                     <div class='delta {cal_pill_cls}'>{cal_arrow} {abs(cal_delta):,.0f} vs Target</div>
                   </div>""", unsafe_allow_html=True)
             with c2:
@@ -362,9 +337,9 @@ if not df.empty:
             for i, (lbl, color, idx) in enumerate(zip(macro_labels, macro_colors, macro_indices)):
                 val_raw = str(y.iloc[idx]).replace('%', '')
                 m[i].markdown(f"""
-                  <div class='card' style='border-bottom: 3px solid {color}'>
+                  <div class='card' style='border-bottom: 4px solid {color}; box-shadow: 0 10px 20px rgba(0,0,0,0.5), 0 5px 15px {color}33;'>
                     <div class='label'>{lbl}</div>
-                    <div class='val-sm' style='color:{color}; text-shadow: 0 0 10px {color}66;'>{val_raw}%</div>
+                    <div class='val-sm'>{val_raw}%</div>
                   </div>""", unsafe_allow_html=True)
 
     # ══════════════════════════════════════════
@@ -376,25 +351,25 @@ if not df.empty:
 
         # Breathing Glow Hero Card
         st.markdown(f"""
-          <div class='card' style='background:linear-gradient(135deg,rgba(10,132,255,0.2),rgba(0,0,0,0.5));
-               border-color:rgba(10,132,255,0.6); margin-bottom:1.5rem; animation: breathingGlow 4s infinite, fadeSlideUp 0.6s both;'>
-            <div class='label' style='color:#5ac8fa; font-size:0.8rem; letter-spacing:0.3em;'>// ACTIVE_STREAK</div>
-            <div style='font-family:Syne,sans-serif; font-size:4.5rem; font-weight:800;
+          <div class='card' style='background:linear-gradient(135deg,rgba(10,132,255,0.25),rgba(0,0,0,0.6));
+               border-color:rgba(10,132,255,0.7); margin-bottom:1.5rem; animation: breathingGlow 4s infinite, springUpFade 0.7s both;'>
+            <div class='label' style='color:#5ac8fa; font-size:0.85rem; letter-spacing:0.3em;'>// ACTIVE_STREAK</div>
+            <div style='font-family:Syne,sans-serif; font-size:4.8rem; font-weight:800;
                         color:#ffffff; margin:10px 0; line-height:1; 
                         text-shadow: 0 0 20px #0a84ff, 0 0 40px #5ac8fa;'>{len(df)}</div>
-            <div style='font-family:Space Mono,monospace; font-size:0.75rem; color:rgba(255,255,255,0.6);'>CONSECUTIVE DAYS LOGGED</div>
+            <div style='font-family:Space Mono,monospace; font-size:0.85rem; color:#ffffff; font-weight:700;'>CONSECUTIVE DAYS LOGGED</div>
           </div>""", unsafe_allow_html=True)
 
         c1, c2, c3 = st.columns(3)
         with c1:
-            st.markdown(card("Total Loss", f"{l.iloc[6]} lbs", color="#30d158"), unsafe_allow_html=True)
-            st.markdown(card("Total Loss", f"{l.iloc[7]} st",  color="#30d158"), unsafe_allow_html=True)
+            st.markdown(card("Total Loss", f"{l.iloc[6]} lbs"), unsafe_allow_html=True)
+            st.markdown(card("Total Loss", f"{l.iloc[7]} st"), unsafe_allow_html=True)
         with c2:
-            st.markdown(card("To Target", f"{l.iloc[8]} lbs", color="#ff9f0a"), unsafe_allow_html=True)
-            st.markdown(card("To Target", f"{l.iloc[9]} st",  color="#ff9f0a"), unsafe_allow_html=True)
+            st.markdown(card("To Target", f"{l.iloc[8]} lbs"), unsafe_allow_html=True)
+            st.markdown(card("To Target", f"{l.iloc[9]} st"), unsafe_allow_html=True)
         with c3:
-            st.markdown(card("Current BMI", f"{l.iloc[10]}",  color="#5ac8fa"), unsafe_allow_html=True)
-            st.markdown(card("To Target BMI", f"{l.iloc[11]}", color="#bf5af2"), unsafe_allow_html=True)
+            st.markdown(card("Current BMI", f"{l.iloc[10]}"), unsafe_allow_html=True)
+            st.markdown(card("To Target BMI", f"{l.iloc[11]}"), unsafe_allow_html=True)
 
     # ══════════════════════════════════════════
     #  TAB 3 — Calories
@@ -419,9 +394,9 @@ if not df.empty:
             x=df.iloc[:, 0], y=cal_series, name="Calories In",
             marker=dict(color=cal_series, colorscale=clean_cs, cmin=cal_min, cmax=cal_max, line=dict(width=0)), opacity=0.9,
         ))
-        fig.add_trace(go.Scatter(x=df.iloc[:, 0], y=get_num(2), name="Net Calories", mode='lines', line=dict(color='rgba(255,255,255,0.9)', width=2.5, dash='dot')))
+        fig.add_trace(go.Scatter(x=df.iloc[:, 0], y=get_num(2), name="Net Calories", mode='lines', line=dict(color='#ffffff', width=2.5, dash='dot')))
         fig.add_hline(y=1633, line_dash="dash", line_color="#30d158", annotation_text="Target 1,633", annotation_font_color="#30d158")
-        fig.update_layout(xaxis=dict(rangeslider=dict(visible=True, bgcolor='rgba(0,0,0,0.3)', bordercolor='rgba(255,255,255,0.1)'), type="date"))
+        fig.update_layout(xaxis=dict(rangeslider=dict(visible=True, bgcolor='rgba(0,0,0,0.4)', bordercolor='rgba(255,255,255,0.2)'), type="date"))
         st.plotly_chart(apply_theme(fig, "Caloric Intake", "≤1,633 GREEN // >1,700 RED"), use_container_width=True)
 
     # ══════════════════════════════════════════
@@ -445,14 +420,14 @@ if not df.empty:
         # 2. The Outer Glow (Thick, highly transparent line)
         fig.add_trace(go.Scatter(
             x=df.iloc[:len(w_series), 0], y=w_series,
-            mode='lines', line=dict(color='rgba(191,90,242,0.4)', width=12),
+            mode='lines', line=dict(color='rgba(191,90,242,0.5)', width=12),
             hoverinfo='skip', showlegend=False, zorder=2
         ))
         
         # 3. The Ambient Aura (Even thicker, very transparent)
         fig.add_trace(go.Scatter(
             x=df.iloc[:len(w_series), 0], y=w_series,
-            mode='lines', line=dict(color='rgba(191,90,242,0.15)', width=24),
+            mode='lines', line=dict(color='rgba(191,90,242,0.2)', width=24),
             hoverinfo='skip', showlegend=False, zorder=1
         ))
 
@@ -463,7 +438,7 @@ if not df.empty:
 
         fig.update_layout(
             yaxis=dict(range=[168, w_max]),
-            xaxis=dict(rangeslider=dict(visible=True, bgcolor='rgba(0,0,0,0.3)', bordercolor='rgba(255,255,255,0.1)'), type="date")
+            xaxis=dict(rangeslider=dict(visible=True, bgcolor='rgba(0,0,0,0.4)', bordercolor='rgba(255,255,255,0.2)'), type="date")
         )
         st.plotly_chart(apply_theme(fig, "Weight Trajectory", "DAILY ACTUALS // NEON HUD ACTIVATED"), use_container_width=True)
 
@@ -474,16 +449,16 @@ if not df.empty:
         trend = get_num(5)
         colors_trend = ['#30d158' if v < 0 else '#ff453a' for v in trend.fillna(0)]
         fig = go.Figure()
-        fig.add_hrect(y0=-5, y1=0, fillcolor='rgba(48,209,88,0.05)', layer="below", line_width=0)
-        fig.add_hrect(y0=0,  y1=5, fillcolor='rgba(255,69,58,0.05)', layer="below", line_width=0)
+        fig.add_hrect(y0=-5, y1=0, fillcolor='rgba(48,209,88,0.08)', layer="below", line_width=0)
+        fig.add_hrect(y0=0,  y1=5, fillcolor='rgba(255,69,58,0.08)', layer="below", line_width=0)
         fig.add_trace(go.Scatter(
             x=df.iloc[:, 0], y=trend, mode='lines+markers',
             line=dict(color='#ff9f0a', width=2),
             marker=dict(color=colors_trend, size=7, symbol='cross', line=dict(color='#ffffff', width=1)),
-            name="Net Trend", fill='tozeroy', fillcolor='rgba(255,159,10,0.1)',
+            name="Net Trend", fill='tozeroy', fillcolor='rgba(255,159,10,0.15)',
         ))
-        fig.add_hline(y=0, line_dash="solid", line_color="rgba(255,255,255,0.4)", line_width=2)
-        fig.update_layout(yaxis=dict(range=[-5, 5]), xaxis=dict(rangeslider=dict(visible=True, bgcolor='rgba(0,0,0,0.3)'), type="date"))
+        fig.add_hline(y=0, line_dash="solid", line_color="#ffffff", line_width=2)
+        fig.update_layout(yaxis=dict(range=[-5, 5]), xaxis=dict(rangeslider=dict(visible=True, bgcolor='rgba(0,0,0,0.4)'), type="date"))
         st.plotly_chart(apply_theme(fig, "Weight Variance", "RANGE ±5 LBS"), use_container_width=True)
 
     # ══════════════════════════════════════════
@@ -500,11 +475,11 @@ if not df.empty:
         fig = go.Figure()
         fig.add_trace(go.Bar(
             x=df.iloc[:, 0], y=steps_data, name="Steps",
-            marker=dict(color=step_colors, line=dict(width=1, color='rgba(255,255,255,0.2)')),
+            marker=dict(color=step_colors, line=dict(width=1, color='rgba(255,255,255,0.3)')),
         ))
         fig.add_hline(y=10000, line_dash="dash", line_color="#30d158", annotation_text="10K TARGET", annotation_font_color="#30d158")
         fig.add_hline(y=8000, line_dash="dot", line_color="#ff453a", annotation_text="8K FLOOR", annotation_font_color="#ff453a")
-        fig.update_layout(xaxis=dict(rangeslider=dict(visible=True, bgcolor='rgba(0,0,0,0.3)'), type="date"))
+        fig.update_layout(xaxis=dict(rangeslider=dict(visible=True, bgcolor='rgba(0,0,0,0.4)'), type="date"))
         st.plotly_chart(apply_theme(fig, "Daily Steps", "STATUS: TRACKING"), use_container_width=True)
 
     # ══════════════════════════════════════════
@@ -512,7 +487,7 @@ if not df.empty:
     # ══════════════════════════════════════════
     with tab7:
         fig = go.Figure()
-        macro_cfg = [(16, "Protein", "#ff453a", "rgba(255,69,58,0.1)"), (17, "Carbs", "#5ac8fa", "rgba(90,200,250,0.1)"), (18, "Fat", "#ffd60a", "rgba(255,214,10,0.1)")]
+        macro_cfg = [(16, "Protein", "#ff453a", "rgba(255,69,58,0.15)"), (17, "Carbs", "#5ac8fa", "rgba(90,200,250,0.15)"), (18, "Fat", "#ffd60a", "rgba(255,214,10,0.15)")]
         for idx, name, color, fill in macro_cfg:
             series = get_num(idx)
             fig.add_trace(go.Scatter(
@@ -520,7 +495,7 @@ if not df.empty:
                 line=dict(color=color, width=3, shape='spline'),
                 fill='tozeroy', fillcolor=fill,
             ))
-        fig.update_layout(xaxis=dict(rangeslider=dict(visible=True, bgcolor='rgba(0,0,0,0.3)'), type="date"))
+        fig.update_layout(xaxis=dict(rangeslider=dict(visible=True, bgcolor='rgba(0,0,0,0.4)'), type="date"))
         st.plotly_chart(apply_theme(fig, "Macro Composition", "SMOOTHED SPLINE PROJECTIONS"), use_container_width=True)
 
     # ══════════════════════════════════════════
@@ -531,14 +506,14 @@ if not df.empty:
         st.markdown("<div class='section-header'>Historical Data</div>", unsafe_allow_html=True)
         c1, c2, c3 = st.columns(3)
         with c1:
-            st.markdown(card("Avg Cals / Day", f"{get_num(1).mean():,.0f}", color="#ff9f0a"), unsafe_allow_html=True)
-            st.markdown(card("Avg Protein", f"{get_num(16).mean():.0f}%", color="#ff453a"), unsafe_allow_html=True)
+            st.markdown(card("Avg Cals / Day", f"{get_num(1).mean():,.0f}"), unsafe_allow_html=True)
+            st.markdown(card("Avg Protein", f"{get_num(16).mean():.0f}%"), unsafe_allow_html=True)
         with c2:
-            st.markdown(card("Avg Steps / Day", f"{get_num(12).mean():,.0f}", color="#30d158"), unsafe_allow_html=True)
-            st.markdown(card("Avg Carbs", f"{get_num(17).mean():.0f}%", color="#5ac8fa"), unsafe_allow_html=True)
+            st.markdown(card("Avg Steps / Day", f"{get_num(12).mean():,.0f}"), unsafe_allow_html=True)
+            st.markdown(card("Avg Carbs", f"{get_num(17).mean():.0f}%"), unsafe_allow_html=True)
         with c3:
-            st.markdown(card("Avg Loss / Week", f"{avg_loss:.2f} lbs", color="#0a84ff"), unsafe_allow_html=True)
-            st.markdown(card("Avg Fat", f"{get_num(18).mean():.0f}%", color="#ffd60a"), unsafe_allow_html=True)
+            st.markdown(card("Avg Loss / Week", f"{avg_loss:.2f} lbs"), unsafe_allow_html=True)
+            st.markdown(card("Avg Fat", f"{get_num(18).mean():.0f}%"), unsafe_allow_html=True)
 
     # ══════════════════════════════════════════
     #  TAB 9 — Blood Pressure
@@ -547,17 +522,17 @@ if not df.empty:
         sys_data = get_num(21)
         dia_data = get_num(22)
         fig = go.Figure()
-        fig.add_hrect(y0=60, y1=80, fillcolor='rgba(48,209,88,0.05)', layer="below", line_width=0)
-        fig.add_hrect(y0=80, y1=90, fillcolor='rgba(255,214,10,0.05)', layer="below", line_width=0)
-        fig.add_hrect(y0=90, y1=180, fillcolor='rgba(255,69,58,0.05)', layer="below", line_width=0)
+        fig.add_hrect(y0=60, y1=80, fillcolor='rgba(48,209,88,0.08)', layer="below", line_width=0)
+        fig.add_hrect(y0=80, y1=90, fillcolor='rgba(255,214,10,0.08)', layer="below", line_width=0)
+        fig.add_hrect(y0=90, y1=180, fillcolor='rgba(255,69,58,0.08)', layer="below", line_width=0)
         
-        fig.add_hline(y=120, line_dash="dash", line_color="rgba(48,209,88,0.6)", annotation_text="SYS IDEAL", annotation_font_color="#30d158")
-        fig.add_hline(y=80, line_dash="dash", line_color="rgba(90,200,250,0.6)", annotation_text="DIA IDEAL", annotation_font_color="#5ac8fa")
+        fig.add_hline(y=120, line_dash="dash", line_color="#30d158", annotation_text="SYS IDEAL", annotation_font_color="#30d158")
+        fig.add_hline(y=80, line_dash="dash", line_color="#5ac8fa", annotation_text="DIA IDEAL", annotation_font_color="#5ac8fa")
 
-        fig.add_trace(go.Scatter(x=df.iloc[:, 0], y=sys_data, name="Systolic", mode='lines+markers', connectgaps=True, line=dict(color='#ff453a', width=3), marker=dict(size=7, color='#ff453a', line=dict(color='white', width=1))))
-        fig.add_trace(go.Scatter(x=df.iloc[:, 0], y=dia_data, name="Diastolic", mode='lines+markers', connectgaps=True, line=dict(color='#5ac8fa', width=3), marker=dict(size=7, color='#5ac8fa', line=dict(color='white', width=1))))
+        fig.add_trace(go.Scatter(x=df.iloc[:, 0], y=sys_data, name="Systolic", mode='lines+markers', connectgaps=True, line=dict(color='#ff453a', width=3), marker=dict(size=8, color='#ff453a', line=dict(color='#ffffff', width=1.5))))
+        fig.add_trace(go.Scatter(x=df.iloc[:, 0], y=dia_data, name="Diastolic", mode='lines+markers', connectgaps=True, line=dict(color='#5ac8fa', width=3), marker=dict(size=8, color='#5ac8fa', line=dict(color='#ffffff', width=1.5))))
 
-        fig.update_layout(yaxis=dict(range=[60, 180]), xaxis=dict(rangeslider=dict(visible=True, bgcolor='rgba(0,0,0,0.3)'), type="date"))
+        fig.update_layout(yaxis=dict(range=[60, 180]), xaxis=dict(rangeslider=dict(visible=True, bgcolor='rgba(0,0,0,0.4)'), type="date"))
         st.plotly_chart(apply_theme(fig, "Blood Pressure Monitor", "VITAL SIGNS"), use_container_width=True)
 
 else:
