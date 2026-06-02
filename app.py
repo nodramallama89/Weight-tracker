@@ -255,10 +255,6 @@ def clean_float(val):
         return 0.0
 
 def card(label, display_val="", num_target=None, decimals=0, suffix="", delta_val=None, delta_label="", size="normal"):
-    """
-    If num_target is provided, the card will dynamically 'tick up' like an odometer using injected JS.
-    Otherwise, it statically displays display_val (perfect for text strings like Stones/Lbs).
-    """
     val_class = "val" if size == "normal" else "val-sm"
     
     if num_target is not None:
@@ -554,48 +550,73 @@ if not df.empty:
         fig.update_layout(yaxis=dict(range=[60, 180]), xaxis=dict(rangeslider=dict(visible=True, bgcolor='rgba(0,0,0,0.4)'), type="date"))
         st.plotly_chart(apply_theme(fig, "Blood Pressure Monitor", "VITAL SIGNS"), use_container_width=True)
 
+
     # ─────────────────────────────────────────────
-    #  JavaScript Odometer Injector
+    #  JavaScript Odometer Injector (Tab-Aware)
     # ─────────────────────────────────────────────
-    # This silent script hunts for any card with the "count-up" class and triggers the animation
+    # This script actively listens for tab clicks and retriggers the odometer animation
+    # for whichever numbers have just become visible on your screen.
     js_code = r"""
     <script>
     const docs = window.parent.document;
-    const targets = docs.querySelectorAll('.count-up:not(.counted)');
-    targets.forEach(el => {
-        el.classList.add('counted');
-        const target = parseFloat(el.getAttribute('data-target')) || 0;
-        const decimals = parseInt(el.getAttribute('data-decimals')) || 0;
-        const suffix = el.getAttribute('data-suffix') || '';
-        const duration = 2000; // Animation speed in milliseconds
-        const start = performance.now();
 
-        function update(now) {
-            const elapsed = now - start;
-            const progress = Math.min(elapsed / duration, 1);
-            // Ease-out expo logic for that fast start, slow finish
-            const ease = progress === 1 ? 1 : 1 - Math.pow(2, -10 * progress);
-            const current = target * ease;
+    function runOdometer() {
+        // Find all count-up elements that are currently visible on the screen
+        const targets = Array.from(docs.querySelectorAll('.count-up')).filter(el => el.offsetParent !== null);
+        
+        targets.forEach(el => {
+            // Cancel any ongoing animation for this element to prevent hyper-speed glitching
+            if (el.animFrame) cancelAnimationFrame(el.animFrame);
             
-            let formatted = current.toFixed(decimals);
-            let parts = formatted.split(".");
-            // Add commas for thousands (e.g., 10,000 steps)
-            parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-            formatted = parts.join(".");
-            
-            let suffixHtml = suffix ? "<span style='font-size:0.65em; opacity:0.6; margin-left:4px;'>" + suffix + "</span>" : "";
-            el.innerHTML = formatted + suffixHtml;
-            
-            if (progress < 1) {
-                requestAnimationFrame(update);
-            } else {
-                let finalFormatted = target.toFixed(decimals);
-                let p = finalFormatted.split(".");
-                p[0] = p[0].replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-                el.innerHTML = p.join(".") + suffixHtml;
+            const target = parseFloat(el.getAttribute('data-target')) || 0;
+            const decimals = parseInt(el.getAttribute('data-decimals')) || 0;
+            const suffix = el.getAttribute('data-suffix') || '';
+            const duration = 1200; // Snappy speed for tab switching
+            const start = performance.now();
+
+            function update(now) {
+                const elapsed = now - start;
+                const progress = Math.min(elapsed / duration, 1);
+                // Apple-style ease-out expo (fast start, smooth stop)
+                const ease = progress === 1 ? 1 : 1 - Math.pow(2, -10 * progress);
+                const current = target * ease;
+                
+                let formatted = current.toFixed(decimals);
+                let parts = formatted.split(".");
+                parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+                formatted = parts.join(".");
+                
+                let suffixHtml = suffix ? "<span style='font-size:0.65em; opacity:0.6; margin-left:4px;'>" + suffix + "</span>" : "";
+                el.innerHTML = formatted + suffixHtml;
+                
+                if (progress < 1) {
+                    el.animFrame = requestAnimationFrame(update);
+                } else {
+                    let finalFormatted = target.toFixed(decimals);
+                    let p = finalFormatted.split(".");
+                    p[0] = p[0].replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+                    el.innerHTML = p.join(".") + suffixHtml;
+                }
             }
+            el.animFrame = requestAnimationFrame(update);
+        });
+    }
+
+    // Run immediately for the initial load
+    runOdometer();
+
+    // Set up a global click listener to catch tab changes
+    docs.body.addEventListener('click', function(e) {
+        let target = e.target;
+        // Walk up the DOM tree to see if we clicked a tab button
+        while (target && target !== docs.body) {
+            if (target.getAttribute('role') === 'tab' || target.getAttribute('data-baseweb') === 'tab') {
+                // Give Streamlit a tiny fraction of a second to swap the visible panels, then animate!
+                setTimeout(runOdometer, 50);
+                break;
+            }
+            target = target.parentNode;
         }
-        requestAnimationFrame(update);
     });
     </script>
     """
