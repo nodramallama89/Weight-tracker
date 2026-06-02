@@ -5,6 +5,7 @@ import plotly.graph_objects as go
 from google.oauth2.service_account import Credentials
 import streamlit.components.v1 as components
 import time
+import re
 
 st.set_page_config(page_title="Hardy House Command", layout="wide", initial_sidebar_state="collapsed")
 
@@ -250,7 +251,10 @@ def get_num(idx):
 
 def clean_float(val):
     try:
-        return float(str(val).replace(',', '').replace('%', ''))
+        # Regex: Strip out anything that isn't a digit, decimal, or negative sign
+        cleaned = re.sub(r'[^\d\.-]', '', str(val))
+        if cleaned in ['', '-', '.']: return 0.0
+        return float(cleaned)
     except:
         return 0.0
 
@@ -301,10 +305,10 @@ if not df.empty:
     </div>
     """, unsafe_allow_html=True)
 
-    # ── Tab bar ──
-    tab1, tab2, tab3, tab4, tab5, tab6, tab7, tab8, tab9 = st.tabs([
+    # ── Tab bar (Now with 10 Tabs) ──
+    tab1, tab2, tab3, tab4, tab5, tab6, tab7, tab8, tab9, tab10 = st.tabs([
         "🛡️ Review", "📊 Lifetime", "🔥 Calories", "⚖️ Weight",
-        "📉 Trend", "👟 Steps", "🥗 Macros", "📈 Averages", "❤️ BP"
+        "📉 Trend", "👟 Steps", "🥗 Macros", "📈 Averages", "❤️ BP", "🎯 Target"
     ])
 
     # ══════════════════════════════════════════
@@ -358,7 +362,7 @@ if not df.empty:
                   </div>""", unsafe_allow_html=True)
 
     # ══════════════════════════════════════════
-    #  TAB 2 — Lifetime Stats
+    #  TAB 2 — Lifetime Stats (BUG FIXED)
     # ══════════════════════════════════════════
     with tab2:
         l = df.iloc[-1]
@@ -377,11 +381,12 @@ if not df.empty:
 
         c1, c2, c3 = st.columns(3)
         with c1:
+            # clean_float is now regex-powered, handling any rogue characters in the sheet!
             st.markdown(card("Total Loss", num_target=clean_float(l.iloc[6]), decimals=1, suffix=" lbs"), unsafe_allow_html=True)
-            st.markdown(card("Total Loss", display_val=f"{l.iloc[7]} st"), unsafe_allow_html=True)
+            st.markdown(card("Total Loss", display_val=f"{l.iloc[7]}"), unsafe_allow_html=True)
         with c2:
             st.markdown(card("To Target", num_target=clean_float(l.iloc[8]), decimals=1, suffix=" lbs"), unsafe_allow_html=True)
-            st.markdown(card("To Target", display_val=f"{l.iloc[9]} st"), unsafe_allow_html=True)
+            st.markdown(card("To Target", display_val=f"{l.iloc[9]}"), unsafe_allow_html=True)
         with c3:
             st.markdown(card("Current BMI", num_target=clean_float(l.iloc[10]), decimals=1), unsafe_allow_html=True)
             st.markdown(card("To Target BMI", num_target=clean_float(l.iloc[11]), decimals=1), unsafe_allow_html=True)
@@ -415,15 +420,13 @@ if not df.empty:
         st.plotly_chart(apply_theme(fig, "Caloric Intake", "≤1,633 GREEN // >1,700 RED"), use_container_width=True)
 
     # ══════════════════════════════════════════
-    #  TAB 4 — Weight (The Neon Upgrade)
+    #  TAB 4 — Weight
     # ══════════════════════════════════════════
     with tab4:
         w_series = get_num(3).dropna()
         w_max = float(w_series.max()) + 2 if not w_series.empty else 210
         
         fig = go.Figure()
-        
-        # 1. The Core Line
         fig.add_trace(go.Scatter(
             x=df.iloc[:len(w_series), 0], y=w_series,
             name="Weight", mode='lines+markers',
@@ -431,30 +434,12 @@ if not df.empty:
             marker=dict(color='#bf5af2', size=8, symbol='diamond', line=dict(color='#ffffff', width=1)),
             zorder=3
         ))
-        
-        # 2. Outer Glow
-        fig.add_trace(go.Scatter(
-            x=df.iloc[:len(w_series), 0], y=w_series,
-            mode='lines', line=dict(color='rgba(191,90,242,0.5)', width=12),
-            hoverinfo='skip', showlegend=False, zorder=2
-        ))
-        
-        # 3. Ambient Aura
-        fig.add_trace(go.Scatter(
-            x=df.iloc[:len(w_series), 0], y=w_series,
-            mode='lines', line=dict(color='rgba(191,90,242,0.2)', width=24),
-            hoverinfo='skip', showlegend=False, zorder=1
-        ))
+        fig.add_trace(go.Scatter(x=df.iloc[:len(w_series), 0], y=w_series, mode='lines', line=dict(color='rgba(191,90,242,0.5)', width=12), hoverinfo='skip', showlegend=False, zorder=2))
+        fig.add_trace(go.Scatter(x=df.iloc[:len(w_series), 0], y=w_series, mode='lines', line=dict(color='rgba(191,90,242,0.2)', width=24), hoverinfo='skip', showlegend=False, zorder=1))
 
-        # Target Goal Projection
-        fig.add_hline(y=170, line_dash="dash", line_color="#5ac8fa", 
-                      annotation_text="🎯 GOAL: 170 lbs", annotation_font_color="#5ac8fa", 
-                      annotation_position="top left")
+        fig.add_hline(y=170, line_dash="dash", line_color="#5ac8fa", annotation_text="🎯 GOAL: 170 lbs", annotation_font_color="#5ac8fa", annotation_position="top left")
 
-        fig.update_layout(
-            yaxis=dict(range=[168, w_max]),
-            xaxis=dict(rangeslider=dict(visible=True, bgcolor='rgba(0,0,0,0.4)', bordercolor='rgba(255,255,255,0.2)'), type="date")
-        )
+        fig.update_layout(yaxis=dict(range=[168, w_max]), xaxis=dict(rangeslider=dict(visible=True, bgcolor='rgba(0,0,0,0.4)', bordercolor='rgba(255,255,255,0.2)'), type="date"))
         st.plotly_chart(apply_theme(fig, "Weight Trajectory", "DAILY ACTUALS // NEON HUD ACTIVATED"), use_container_width=True)
 
     # ══════════════════════════════════════════
@@ -550,12 +535,60 @@ if not df.empty:
         fig.update_layout(yaxis=dict(range=[60, 180]), xaxis=dict(rangeslider=dict(visible=True, bgcolor='rgba(0,0,0,0.4)'), type="date"))
         st.plotly_chart(apply_theme(fig, "Blood Pressure Monitor", "VITAL SIGNS"), use_container_width=True)
 
+    # ══════════════════════════════════════════
+    #  TAB 10 — Target Gauge (NEW!)
+    # ══════════════════════════════════════════
+    with tab10:
+        st.markdown("<div class='section-header'>Mission Progress</div>", unsafe_allow_html=True)
+        st.markdown("<div class='section-sub'>Distance to 170 lbs</div>", unsafe_allow_html=True)
+        
+        w_series = get_num(3).dropna()
+        if len(w_series) > 1:
+            current_w = w_series.iloc[-1]
+            start_w = w_series.iloc[0]
+            goal_w = 170
+            
+            fig = go.Figure(go.Indicator(
+                mode = "gauge+number+delta",
+                value = current_w,
+                domain = {'x': [0, 1], 'y': [0, 1]},
+                title = {'text': "Current Weight (lbs)", 'font': {'color': 'rgba(255,255,255,0.7)', 'size': 18, 'family': 'Space Mono'}},
+                delta = {'reference': start_w, 'increasing': {'color': '#ff453a'}, 'decreasing': {'color': '#30d158'}},
+                gauge = {
+                    'axis': {'range': [goal_w - 5, start_w + 5], 'tickcolor': "white", 'tickfont': {'color': 'white'}},
+                    'bar': {'color': "#5ac8fa"},
+                    'bgcolor': "rgba(0,0,0,0.4)",
+                    'borderwidth': 2,
+                    'bordercolor': "rgba(255,255,255,0.2)",
+                    'steps': [
+                        {'range': [goal_w, goal_w + 10], 'color': "rgba(48,209,88,0.2)"},
+                        {'range': [goal_w + 10, start_w], 'color': "rgba(255,159,10,0.15)"}
+                    ],
+                    'threshold': {
+                        'line': {'color': "#bf5af2", 'width': 5},
+                        'thickness': 0.85,
+                        'value': goal_w
+                    }
+                }
+            ))
+            
+            fig.update_layout(
+                paper_bgcolor='rgba(0,0,0,0)', 
+                plot_bgcolor='rgba(0,0,0,0)',
+                font=dict(color='white', family='Syne'),
+                height=450,
+                margin=dict(t=60, b=40)
+            )
+            
+            # Using custom CSS just for this chart container to make it float
+            st.markdown("<div class='card' style='padding: 0; border: none; background: transparent; box-shadow: none;'>", unsafe_allow_html=True)
+            st.plotly_chart(fig, use_container_width=True)
+            st.markdown("</div>", unsafe_allow_html=True)
+
 
     # ─────────────────────────────────────────────
     #  JavaScript Odometer Injector (Tab-Aware)
     # ─────────────────────────────────────────────
-    # This script actively listens for tab clicks and retriggers the odometer animation
-    # for whichever numbers have just become visible on your screen.
     js_code = r"""
     <script>
     const docs = window.parent.document;
@@ -565,19 +598,17 @@ if not df.empty:
         const targets = Array.from(docs.querySelectorAll('.count-up')).filter(el => el.offsetParent !== null);
         
         targets.forEach(el => {
-            // Cancel any ongoing animation for this element to prevent hyper-speed glitching
             if (el.animFrame) cancelAnimationFrame(el.animFrame);
             
             const target = parseFloat(el.getAttribute('data-target')) || 0;
             const decimals = parseInt(el.getAttribute('data-decimals')) || 0;
             const suffix = el.getAttribute('data-suffix') || '';
-            const duration = 1200; // Snappy speed for tab switching
+            const duration = 1200; 
             const start = performance.now();
 
             function update(now) {
                 const elapsed = now - start;
                 const progress = Math.min(elapsed / duration, 1);
-                // Apple-style ease-out expo (fast start, smooth stop)
                 const ease = progress === 1 ? 1 : 1 - Math.pow(2, -10 * progress);
                 const current = target * ease;
                 
@@ -602,16 +633,12 @@ if not df.empty:
         });
     }
 
-    // Run immediately for the initial load
     runOdometer();
 
-    // Set up a global click listener to catch tab changes
     docs.body.addEventListener('click', function(e) {
         let target = e.target;
-        // Walk up the DOM tree to see if we clicked a tab button
         while (target && target !== docs.body) {
             if (target.getAttribute('role') === 'tab' || target.getAttribute('data-baseweb') === 'tab') {
-                // Give Streamlit a tiny fraction of a second to swap the visible panels, then animate!
                 setTimeout(runOdometer, 50);
                 break;
             }
