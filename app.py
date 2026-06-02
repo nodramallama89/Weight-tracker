@@ -2,7 +2,6 @@ import streamlit as st
 import pandas as pd
 import gspread
 import plotly.graph_objects as go
-from plotly.subplots import make_subplots
 from google.oauth2.service_account import Credentials
 
 st.set_page_config(page_title="Hardy House Command", layout="wide", initial_sidebar_state="collapsed")
@@ -278,63 +277,6 @@ div[data-baseweb="tab-highlight"] {
   box-shadow: var(--glass-shadow-lg) !important;
 }
 
-/* ── Pill badge ── */
-.pill {
-  display: inline-block;
-  padding: 4px 14px;
-  border-radius: 50px;
-  font-size: 0.72rem;
-  font-weight: 600;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-}
-
-.pill-blue   { background: rgba(10,132,255,0.18); color: #5aabff; border: 1px solid rgba(10,132,255,0.25); }
-.pill-green  { background: rgba(48,209,88,0.15);  color: #4be37a; border: 1px solid rgba(48,209,88,0.25); }
-.pill-orange { background: rgba(255,159,10,0.15); color: #ffb830; border: 1px solid rgba(255,159,10,0.25); }
-.pill-purple { background: rgba(191,90,242,0.15); color: #cf82f8; border: 1px solid rgba(191,90,242,0.25); }
-.pill-red    { background: rgba(255,69,58,0.15);  color: #ff6b63; border: 1px solid rgba(255,69,58,0.25); }
-
-/* ── Divider ── */
-.glass-divider {
-  height: 1px;
-  background: linear-gradient(90deg, transparent, var(--glass-border-hi), transparent);
-  margin: 1.5rem 0;
-  border: none;
-}
-
-/* ── Stat row (inline kpi strip) ── */
-.stat-strip {
-  background: var(--glass-bg);
-  backdrop-filter: var(--blur-sm);
-  -webkit-backdrop-filter: var(--blur-sm);
-  border: 1px solid var(--glass-border);
-  border-top-color: rgba(255,255,255,0.15);
-  border-radius: var(--radius-lg);
-  padding: 16px 24px;
-  display: flex;
-  justify-content: space-around;
-  align-items: center;
-  gap: 20px;
-  margin-bottom: 16px;
-  box-shadow: var(--glass-shadow);
-  animation: fadeSlideUp 0.5s cubic-bezier(.23,1,.32,1) both;
-}
-
-.stat-item {
-  text-align: center;
-  flex: 1;
-  position: relative;
-}
-
-.stat-item + .stat-item::before {
-  content: '';
-  position: absolute;
-  left: 0; top: 10%; bottom: 10%;
-  width: 1px;
-  background: var(--glass-border);
-}
-
 /* ── Keyframes ── */
 @keyframes fadeSlideUp {
   from { opacity: 0; transform: translateY(18px); }
@@ -345,20 +287,6 @@ div[data-baseweb="tab-highlight"] {
   0%   { left: -100%; }
   100% { left: 200%;  }
 }
-
-@keyframes pulseRing {
-  0%   { transform: scale(1);    opacity: 0.7; }
-  70%  { transform: scale(1.35); opacity: 0;   }
-  100% { transform: scale(1);    opacity: 0;   }
-}
-
-/* Staggered card animation delays */
-.card:nth-child(1)  { animation-delay: 0.00s; }
-.card:nth-child(2)  { animation-delay: 0.06s; }
-.card:nth-child(3)  { animation-delay: 0.12s; }
-.card:nth-child(4)  { animation-delay: 0.18s; }
-.card:nth-child(5)  { animation-delay: 0.24s; }
-.card:nth-child(6)  { animation-delay: 0.30s; }
 
 /* ── Scrollbar ── */
 ::-webkit-scrollbar { width: 5px; height: 5px; }
@@ -409,13 +337,6 @@ def apply_theme(fig, title="", subtitle=""):
             showgrid=True,
         ),
         yaxis=dict(
-            color='rgba(255,255,255,0.5)',
-            gridcolor='rgba(255,255,255,0.06)',
-            tickfont=dict(color='rgba(255,255,255,0.5)', size=11),
-            linecolor='rgba(255,255,255,0.1)',
-            zeroline=False,
-        ),
-        yaxis2=dict(
             color='rgba(255,255,255,0.5)',
             gridcolor='rgba(255,255,255,0.06)',
             tickfont=dict(color='rgba(255,255,255,0.5)', size=11),
@@ -478,21 +399,20 @@ def card(label, value, delta_val=None, delta_label="", color=None, size="normal"
       {delta_html}
     </div>"""
 
-def pill(text, color="blue"):
-    return f"<span class='pill pill-{color}'>{text}</span>"
-
-
 # ─────────────────────────────────────────────
 #  MAIN APP
 # ─────────────────────────────────────────────
 if not df.empty:
 
-    # ── Global header ──
+    # ── Global header with live pulse ──
     st.markdown("""
     <div style='text-align:center; margin-bottom:0.2rem; animation: fadeSlideUp 0.4s ease both;'>
       <span style='font-family:Instrument Sans,sans-serif; font-size:0.72rem; font-weight:600;
                    letter-spacing:0.18em; text-transform:uppercase;
-                   color:rgba(255,255,255,0.4);'>Hardy House</span>
+                   color:rgba(255,255,255,0.4);'>
+        <span style='display:inline-block; width:8px; height:8px; background-color:#30d158; border-radius:50%; margin-right:6px; box-shadow: 0 0 8px #30d158;'></span>
+        Hardy House
+      </span>
     </div>
     """, unsafe_allow_html=True)
 
@@ -507,10 +427,10 @@ if not df.empty:
     </div>
     """, unsafe_allow_html=True)
 
-    # ── Tab bar ──
-    tab1, tab2, tab3, tab4, tab5, tab6, tab7, tab8, tab9, tab10 = st.tabs([
+    # ── Tab bar (Reduced to 9 tabs, Velocity removed) ──
+    tab1, tab2, tab3, tab4, tab5, tab6, tab7, tab8, tab9 = st.tabs([
         "🛡️ Review", "📊 Lifetime", "🔥 Calories", "⚖️ Weight",
-        "📉 Trend", "🚀 Velocity", "👟 Steps", "🥗 Macros",
+        "📉 Trend", "👟 Steps", "🥗 Macros",
         "📈 Averages", "❤️ Blood Pressure"
     ])
 
@@ -533,7 +453,6 @@ if not df.empty:
             cal_delta  = cals  - 1633
             step_delta = steps - 10000
             with c1:
-                # Over target = red (bad), under target = green (good)
                 cal_arrow    = "▲" if cal_delta > 0 else "▼"
                 cal_pill_cls = "delta-neg" if cal_delta > 0 else "delta-pos"
                 st.markdown(f"""
@@ -582,14 +501,15 @@ if not df.empty:
         st.markdown("<div class='section-header'>Lifetime Stats</div>", unsafe_allow_html=True)
         st.markdown("<div class='section-sub'>Since day one</div>", unsafe_allow_html=True)
 
-        # Days on diet — hero card
+        # Days on diet — hero card with animated glow (Streak)
         st.markdown(f"""
-          <div class='card' style='background:linear-gradient(135deg,rgba(10,132,255,0.12),rgba(255,255,255,0.04));
-               border-color:rgba(10,132,255,0.25); margin-bottom:1.4rem;'>
-            <div class='label'>Days on Programme</div>
-            <div style='font-family:Syne,sans-serif; font-size:3.8rem; font-weight:800;
-                        letter-spacing:-0.04em; color:#5aabff; margin:6px 0 2px; line-height:1;'>{len(df)}</div>
-            <div style='font-size:0.72rem; color:rgba(255,255,255,0.35);'>consecutive days logged</div>
+          <div class='card' style='background:linear-gradient(135deg,rgba(10,132,255,0.15),rgba(255,255,255,0.05));
+               border-color:rgba(10,132,255,0.4); margin-bottom:1.4rem; box-shadow: 0 0 30px rgba(10,132,255,0.2);'>
+            <div class='label' style='color:white; opacity:0.8;'>🔥 Active Streak</div>
+            <div style='font-family:Syne,sans-serif; font-size:4.2rem; font-weight:800;
+                        letter-spacing:-0.04em; color:#ffffff; margin:6px 0 2px; line-height:1; 
+                        text-shadow: 0 0 15px rgba(10,132,255,0.8);'>{len(df)}</div>
+            <div style='font-size:0.75rem; color:rgba(255,255,255,0.6); font-weight:600; text-transform:uppercase;'>Days On Mission</div>
           </div>""", unsafe_allow_html=True)
 
         c1, c2, c3 = st.columns(3)
@@ -608,8 +528,6 @@ if not df.empty:
     # ══════════════════════════════════════════
     with tab3:
         cal_series = get_num(1)
-        # RAG: ≤1633 green, 1634–1700 amber gradient, >1700 red
-        # Normalise thresholds into 0–1 based on data range for colorscale
         cal_min = float(cal_series.min()) if cal_series.notna().any() else 0
         cal_max = float(cal_series.max()) if cal_series.notna().any() else 2000
         cal_range = cal_max - cal_min if cal_max != cal_min else 1
@@ -618,14 +536,14 @@ if not df.empty:
             return max(0.0, min(1.0, (v - cal_min) / cal_range))
 
         colorscale = [
-            [0.0,          '#1a5c34'],   # deep green (well under target)
-            [norm(1633),   '#30d158'],   # bright green at target
-            [norm(1634),   '#ff9f0a'],   # immediately amber above target
-            [norm(1700),   '#ff6b1a'],   # deeper amber at 1700
-            [norm(1701),   '#ff453a'],   # red above 1700
-            [1.0,          '#cc1100'],   # deep red at max
+            [0.0,         '#1a5c34'],
+            [norm(1633),  '#30d158'],
+            [norm(1634),  '#ff9f0a'],
+            [norm(1700),  '#ff6b1a'],
+            [norm(1701),  '#ff453a'],
+            [1.0,         '#cc1100'],
         ]
-        # Deduplicate in case thresholds are outside the data range
+        
         seen = set()
         clean_cs = []
         for pos, col in colorscale:
@@ -638,24 +556,20 @@ if not df.empty:
             x=df.iloc[:, 0], y=cal_series,
             name="Calories In",
             marker=dict(
-                color=cal_series,
-                colorscale=clean_cs,
-                cmin=cal_min,
-                cmax=cal_max,
-                line=dict(width=0),
-            ),
-            opacity=0.92,
+                color=cal_series, colorscale=clean_cs, cmin=cal_min, cmax=cal_max, line=dict(width=0),
+            ), opacity=0.92,
         ))
         fig.add_trace(go.Scatter(
             x=df.iloc[:, 0], y=get_num(2),
-            name="Net Calories",
-            mode='lines',
+            name="Net Calories", mode='lines',
             line=dict(color='rgba(255,255,255,0.9)', width=2.5, dash='dot'),
         ))
-        fig.add_hline(y=1633, line_dash="dash", line_color="rgba(48,209,88,0.55)",
-                      annotation_text="Target 1,633", annotation_font_color="rgba(48,209,88,0.85)")
-        fig.add_hline(y=1700, line_dash="dash", line_color="rgba(255,159,10,0.45)",
-                      annotation_text="Amber 1,700", annotation_font_color="rgba(255,159,10,0.75)")
+        fig.add_hline(y=1633, line_dash="dash", line_color="rgba(48,209,88,0.55)", annotation_text="Target 1,633", annotation_font_color="rgba(48,209,88,0.85)")
+        fig.add_hline(y=1700, line_dash="dash", line_color="rgba(255,159,10,0.45)", annotation_text="Amber 1,700", annotation_font_color="rgba(255,159,10,0.75)")
+        
+        # Add Range Slider for infinite scaling
+        fig.update_layout(xaxis=dict(rangeslider=dict(visible=True), type="date"))
+        
         st.plotly_chart(apply_theme(fig, "Caloric Intake", "≤1,633 green · 1,634–1,700 amber · >1,700 red"), use_container_width=True)
 
     # ══════════════════════════════════════════
@@ -663,93 +577,72 @@ if not df.empty:
     # ══════════════════════════════════════════
     with tab4:
         w_series = get_num(3).dropna()
-        w_floor  = 170  # y-axis minimum — just below target weight
-        rolling  = w_series.rolling(7, min_periods=1).mean()
+        # Ensure we don't crash if data is empty, set max dynamic bounds
+        w_max = float(w_series.max()) + 2 if not w_series.empty else 210
+        rolling = w_series.rolling(7, min_periods=1).mean()
+        
         fig = go.Figure()
+        
         # Faint raw line
         fig.add_trace(go.Scatter(
             x=df.iloc[:len(w_series), 0], y=w_series,
-            mode='lines',
-            line=dict(color='rgba(90,171,255,0.25)', width=1),
-            showlegend=False,
+            mode='lines', line=dict(color='rgba(90,171,255,0.25)', width=1), showlegend=False,
         ))
         # 7-day rolling average with fill down to the floor
         fig.add_trace(go.Scatter(
             x=df.iloc[:len(rolling), 0], y=rolling,
-            name="7-Day Average",
-            mode='lines',
+            name="7-Day Average", mode='lines',
             line=dict(color='#0a84ff', width=3),
-            fill='toself',
-            fillcolor='rgba(10,132,255,0.07)',
+            fill='toself', fillcolor='rgba(10,132,255,0.07)',
         ))
         # Daily weight dots
         fig.add_trace(go.Scatter(
             x=df.iloc[:len(w_series), 0], y=w_series,
-            name="Daily Weight",
-            mode='markers',
-            marker=dict(color='rgba(255,255,255,0.75)', size=4,
-                        line=dict(color='white', width=0.5)),
+            name="Daily Weight", mode='markers',
+            marker=dict(color='rgba(255,255,255,0.75)', size=4, line=dict(color='white', width=0.5)),
         ))
-        fig.update_layout(yaxis=dict(range=[w_floor, None]))
-        st.plotly_chart(apply_theme(fig, "Weight Trajectory", "lbs — y-axis from 170 lbs · 7-day rolling average"), use_container_width=True)
+
+        # Target line projection
+        fig.add_hline(y=170, line_dash="dash", line_color="rgba(191,90,242,0.8)", 
+                      annotation_text="🎯 Goal: 170 lbs", annotation_font_color="rgba(191,90,242,1)", 
+                      annotation_position="top left")
+
+        # Force Y-Axis to 168 (just below 170) to prevent bottoming out at 205
+        # Add Range Slider for zooming
+        fig.update_layout(
+            yaxis=dict(range=[168, w_max]),
+            xaxis=dict(rangeslider=dict(visible=True), type="date")
+        )
+        
+        st.plotly_chart(apply_theme(fig, "Weight Trajectory", "lbs — y-axis locked to target · 7-day rolling average"), use_container_width=True)
 
     # ══════════════════════════════════════════
     #  TAB 5 — Gain / Loss Trend
     # ══════════════════════════════════════════
     with tab5:
         trend = get_num(5)
-        colors_trend = ['rgba(48,209,88,0.85)' if v < 0 else 'rgba(255,69,58,0.85)'
-                        for v in trend.fillna(0)]
+        colors_trend = ['rgba(48,209,88,0.85)' if v < 0 else 'rgba(255,69,58,0.85)' for v in trend.fillna(0)]
         fig = go.Figure()
         fig.add_hrect(y0=-5, y1=0, fillcolor='rgba(48,209,88,0.04)', layer="below", line_width=0)
         fig.add_hrect(y0=0,  y1=5, fillcolor='rgba(255,69,58,0.04)', layer="below", line_width=0)
         fig.add_trace(go.Scatter(
-            x=df.iloc[:, 0], y=trend,
-            mode='lines+markers',
+            x=df.iloc[:, 0], y=trend, mode='lines+markers',
             line=dict(color='#ff9f0a', width=2.5),
-            marker=dict(color=colors_trend, size=5,
-                        line=dict(color='rgba(0,0,0,0.3)', width=0.5)),
-            name="Net Trend",
-            fill='tozeroy',
-            fillcolor='rgba(255,159,10,0.08)',
+            marker=dict(color=colors_trend, size=5, line=dict(color='rgba(0,0,0,0.3)', width=0.5)),
+            name="Net Trend", fill='tozeroy', fillcolor='rgba(255,159,10,0.08)',
         ))
         fig.add_hline(y=0, line_dash="solid", line_color="rgba(255,255,255,0.25)", line_width=1)
-        fig.update_layout(yaxis=dict(range=[-5, 5]))
+        
+        # Add Range Slider
+        fig.update_layout(yaxis=dict(range=[-5, 5]), xaxis=dict(rangeslider=dict(visible=True), type="date"))
         st.plotly_chart(apply_theme(fig, "Weight Loss Trend", "daily lb change · range ±5 lbs"), use_container_width=True)
 
-    # ══════════════════════════════════════════
-    #  TAB 6 — Velocity
-    # ══════════════════════════════════════════
-    with tab6:
-        velocity   = get_num(3).diff() * -1
-        bar_colors = ['rgba(48,209,88,0.80)' if x > 0 else 'rgba(255,69,58,0.80)'
-                      for x in velocity.fillna(0)]
-        fig = go.Figure()
-        fig.add_hrect(y0=0,  y1=5,  fillcolor='rgba(48,209,88,0.04)',  layer="below", line_width=0)
-        fig.add_hrect(y0=-5, y1=0,  fillcolor='rgba(255,69,58,0.04)',  layer="below", line_width=0)
-        fig.add_trace(go.Bar(
-            x=df.iloc[:, 0], y=velocity,
-            name="Daily Δ",
-            marker=dict(color=bar_colors, line=dict(width=0)),
-            opacity=0.9,
-        ))
-        fig.add_trace(go.Scatter(
-            x=df.iloc[:, 0],
-            y=velocity.rolling(7, min_periods=1).mean(),
-            name="7-Day Avg Velocity",
-            mode='lines',
-            line=dict(color='rgba(255,255,255,0.85)', width=2.5, dash='dot'),
-        ))
-        fig.add_hline(y=0, line_dash="solid", line_color="rgba(255,255,255,0.2)")
-        fig.update_layout(yaxis=dict(range=[-5, 5]))
-        st.plotly_chart(apply_theme(fig, "Loss Velocity", "lbs/day · range ±5 lbs · green = loss, red = gain"), use_container_width=True)
 
     # ══════════════════════════════════════════
-    #  TAB 7 — Steps
+    #  TAB 6 — Steps
     # ══════════════════════════════════════════
-    with tab7:
+    with tab6:
         steps_data  = get_num(12)
-        active_cals = get_num(15)
 
         def step_color(s):
             if s >= 10000: return 'rgba(26,209,152,0.82)'   # green
@@ -757,28 +650,26 @@ if not df.empty:
             else:           return 'rgba(255,69,58,0.82)'   # red
 
         step_colors = [step_color(s) for s in steps_data.fillna(0)]
-        fig = make_subplots(specs=[[{"secondary_y": True}]])
+        
+        # Reverted to standard go.Figure (no secondary y-axis)
+        fig = go.Figure()
         fig.add_trace(go.Bar(
-            x=df.iloc[:, 0], y=steps_data,
-            name="Steps",
+            x=df.iloc[:, 0], y=steps_data, name="Steps",
             marker=dict(color=step_colors, line=dict(width=0)),
-        ), secondary_y=False)
-        fig.add_hline(y=10000, line_dash="dash", line_color="rgba(26,209,152,0.45)",
-                      annotation_text="10,000 target", annotation_font_color="rgba(26,209,152,0.75)")
-        fig.add_hline(y=8000, line_dash="dash", line_color="rgba(255,69,58,0.35)",
-                      annotation_text="8,000 minimum", annotation_font_color="rgba(255,69,58,0.65)")
-        fig.add_trace(go.Scatter(
-            x=df.iloc[:, 0], y=active_cals,
-            name="Active Calories",
-            mode='lines',
-            line=dict(color='#ffd60a', width=2.5),
-        ), secondary_y=True)
-        st.plotly_chart(apply_theme(fig, "Daily Steps & Active Burn", "≤8k red · 8k–10k amber · ≥10k green"), use_container_width=True)
+        ))
+        
+        fig.add_hline(y=10000, line_dash="dash", line_color="rgba(26,209,152,0.45)", annotation_text="10,000 target", annotation_font_color="rgba(26,209,152,0.75)")
+        fig.add_hline(y=8000, line_dash="dash", line_color="rgba(255,69,58,0.35)", annotation_text="8,000 minimum", annotation_font_color="rgba(255,69,58,0.65)")
+        
+        # Add Range Slider
+        fig.update_layout(xaxis=dict(rangeslider=dict(visible=True), type="date"))
+        
+        st.plotly_chart(apply_theme(fig, "Daily Steps", "≤8k red · 8k–10k amber · ≥10k green"), use_container_width=True)
 
     # ══════════════════════════════════════════
-    #  TAB 8 — Macros
+    #  TAB 7 — Macros
     # ══════════════════════════════════════════
-    with tab8:
+    with tab7:
         fig = go.Figure()
         macro_cfg = [
             (16, "Protein", "#ff453a", "rgba(255,69,58,0.07)"),
@@ -788,19 +679,18 @@ if not df.empty:
         for idx, name, color, fill in macro_cfg:
             series = get_num(idx)
             fig.add_trace(go.Scatter(
-                x=df.iloc[:, 0], y=series,
-                name=name,
-                mode='lines',
+                x=df.iloc[:, 0], y=series, name=name, mode='lines',
                 line=dict(color=color, width=2.5),
-                fill='tozeroy',
-                fillcolor=fill,
+                fill='tozeroy', fillcolor=fill,
             ))
+            
+        fig.update_layout(xaxis=dict(rangeslider=dict(visible=True), type="date"))
         st.plotly_chart(apply_theme(fig, "Macro Breakdown", "% split over time — protein / carbs / fat"), use_container_width=True)
 
     # ══════════════════════════════════════════
-    #  TAB 9 — Averages
+    #  TAB 8 — Averages
     # ══════════════════════════════════════════
-    with tab9:
+    with tab8:
         avg_loss = (get_num(3).iloc[0] - get_num(3).iloc[-1]) / (len(df) / 7)
 
         st.markdown("<div class='section-header'>Historical Averages</div>", unsafe_allow_html=True)
@@ -818,14 +708,13 @@ if not df.empty:
             st.markdown(card("Avg Fat",              f"{get_num(18).mean():.0f}%",     color="#ffd60a"), unsafe_allow_html=True)
 
     # ══════════════════════════════════════════
-    #  TAB 10 — Blood Pressure
+    #  TAB 9 — Blood Pressure
     # ══════════════════════════════════════════
-    with tab10:
+    with tab9:
         sys_data = get_num(21)
         dia_data = get_num(22)
         fig = go.Figure()
 
-        # UK clinical range bands (y scoped to 60–180)
         # Diastolic zones
         fig.add_hrect(y0=60,  y1=80,  fillcolor='rgba(48,209,88,0.05)',  layer="below", line_width=0)
         fig.add_hrect(y0=80,  y1=90,  fillcolor='rgba(255,214,10,0.05)', layer="below", line_width=0)
@@ -833,44 +722,17 @@ if not df.empty:
 
         # Systolic reference lines
         fig.add_hline(y=90,  line_dash="dot",  line_color="rgba(48,209,88,0.30)",  line_width=1)
-        fig.add_hline(y=120, line_dash="dash", line_color="rgba(48,209,88,0.40)",
-                      annotation_text="Ideal systolic ≤120",
-                      annotation_font_color="rgba(48,209,88,0.70)",
-                      annotation_position="top right")
-        fig.add_hline(y=140, line_dash="dash", line_color="rgba(255,159,10,0.45)",
-                      annotation_text="High systolic ≥140",
-                      annotation_font_color="rgba(255,159,10,0.75)",
-                      annotation_position="top right")
+        fig.add_hline(y=120, line_dash="dash", line_color="rgba(48,209,88,0.40)", annotation_text="Ideal systolic ≤120", annotation_font_color="rgba(48,209,88,0.70)", annotation_position="top right")
+        fig.add_hline(y=140, line_dash="dash", line_color="rgba(255,159,10,0.45)", annotation_text="High systolic ≥140", annotation_font_color="rgba(255,159,10,0.75)", annotation_position="top right")
 
         # Diastolic reference line
-        fig.add_hline(y=80, line_dash="dash", line_color="rgba(90,200,250,0.40)",
-                      annotation_text="Ideal diastolic ≤80",
-                      annotation_font_color="rgba(90,200,250,0.70)",
-                      annotation_position="bottom right")
+        fig.add_hline(y=80, line_dash="dash", line_color="rgba(90,200,250,0.40)", annotation_text="Ideal diastolic ≤80", annotation_font_color="rgba(90,200,250,0.70)", annotation_position="bottom right")
 
-        # Systolic line
-        fig.add_trace(go.Scatter(
-            x=df.iloc[:, 0], y=sys_data,
-            name="Systolic",
-            mode='lines+markers',
-            connectgaps=True,
-            line=dict(color='#ff453a', width=3),
-            marker=dict(size=6, color='#ff453a',
-                        line=dict(color='rgba(255,255,255,0.4)', width=1.5)),
-        ))
+        # Lines
+        fig.add_trace(go.Scatter(x=df.iloc[:, 0], y=sys_data, name="Systolic", mode='lines+markers', connectgaps=True, line=dict(color='#ff453a', width=3), marker=dict(size=6, color='#ff453a', line=dict(color='rgba(255,255,255,0.4)', width=1.5))))
+        fig.add_trace(go.Scatter(x=df.iloc[:, 0], y=dia_data, name="Diastolic", mode='lines+markers', connectgaps=True, line=dict(color='#5ac8fa', width=3), marker=dict(size=6, color='#5ac8fa', line=dict(color='rgba(255,255,255,0.4)', width=1.5))))
 
-        # Diastolic line
-        fig.add_trace(go.Scatter(
-            x=df.iloc[:, 0], y=dia_data,
-            name="Diastolic",
-            mode='lines+markers',
-            connectgaps=True,
-            line=dict(color='#5ac8fa', width=3),
-            marker=dict(size=6, color='#5ac8fa',
-                        line=dict(color='rgba(255,255,255,0.4)', width=1.5)),
-        ))
-
-        fig.update_layout(yaxis=dict(range=[60, 180]))
+        fig.update_layout(yaxis=dict(range=[60, 180]), xaxis=dict(rangeslider=dict(visible=True), type="date"))
         st.plotly_chart(apply_theme(fig, "Blood Pressure Monitor", "systolic (red) / diastolic (blue) — mmHg"), use_container_width=True)
 
 else:
