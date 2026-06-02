@@ -530,16 +530,27 @@ if not df.empty:
 
             # Primary KPIs
             c1, c2 = st.columns(2)
-            cal_delta = cals - 1633
+            cal_delta  = cals  - 1633
             step_delta = steps - 10000
             with c1:
-                col  = "#ff453a" if cal_delta > 0 else "#30d158"
-                st.markdown(card("Calories Consumed", f"{cals:,.0f} kcal",
-                                 delta_val=cal_delta, delta_label="vs 1,633"), unsafe_allow_html=True)
+                # Over target = red (bad), under target = green (good)
+                cal_arrow    = "▲" if cal_delta > 0 else "▼"
+                cal_pill_cls = "delta-neg" if cal_delta > 0 else "delta-pos"
+                st.markdown(f"""
+                  <div class='card'>
+                    <div class='label'>Calories Consumed</div>
+                    <div class='val'>{cals:,.0f} kcal</div>
+                    <div class='delta {cal_pill_cls}'>{cal_arrow} {abs(cal_delta):,.0f} vs 1,633</div>
+                  </div>""", unsafe_allow_html=True)
             with c2:
-                col  = "#30d158" if step_delta >= 0 else "#ff453a"
-                st.markdown(card("Steps Taken", f"{steps:,.0f}",
-                                 delta_val=step_delta, delta_label="vs 10k"), unsafe_allow_html=True)
+                step_arrow    = "▲" if step_delta >= 0 else "▼"
+                step_pill_cls = "delta-pos" if step_delta >= 0 else "delta-neg"
+                st.markdown(f"""
+                  <div class='card'>
+                    <div class='label'>Steps Taken</div>
+                    <div class='val'>{steps:,.0f}</div>
+                    <div class='delta {step_pill_cls}'>{step_arrow} {abs(step_delta):,.0f} vs 10k</div>
+                  </div>""", unsafe_allow_html=True)
 
             st.markdown("<hr class='glass-divider'>", unsafe_allow_html=True)
 
@@ -590,22 +601,50 @@ if not df.empty:
             st.markdown(card("To Target", f"{l.iloc[9]} st",  color="#ff9f0a"), unsafe_allow_html=True)
         with c3:
             st.markdown(card("Current BMI", f"{l.iloc[10]}",  color="#5ac8fa"), unsafe_allow_html=True)
-            st.markdown(card("Target BMI",  f"{l.iloc[11]}",  color="#bf5af2"), unsafe_allow_html=True)
+            st.markdown(card("To Target BMI", f"{l.iloc[11]}", color="#bf5af2"), unsafe_allow_html=True)
 
     # ══════════════════════════════════════════
     #  TAB 3 — Calories
     # ══════════════════════════════════════════
     with tab3:
+        cal_series = get_num(1)
+        # RAG: ≤1633 green, 1634–1700 amber gradient, >1700 red
+        # Normalise thresholds into 0–1 based on data range for colorscale
+        cal_min = float(cal_series.min()) if cal_series.notna().any() else 0
+        cal_max = float(cal_series.max()) if cal_series.notna().any() else 2000
+        cal_range = cal_max - cal_min if cal_max != cal_min else 1
+
+        def norm(v):
+            return max(0.0, min(1.0, (v - cal_min) / cal_range))
+
+        colorscale = [
+            [0.0,          '#1a5c34'],   # deep green (well under target)
+            [norm(1633),   '#30d158'],   # bright green at target
+            [norm(1634),   '#ff9f0a'],   # immediately amber above target
+            [norm(1700),   '#ff6b1a'],   # deeper amber at 1700
+            [norm(1701),   '#ff453a'],   # red above 1700
+            [1.0,          '#cc1100'],   # deep red at max
+        ]
+        # Deduplicate in case thresholds are outside the data range
+        seen = set()
+        clean_cs = []
+        for pos, col in colorscale:
+            if pos not in seen:
+                seen.add(pos)
+                clean_cs.append([pos, col])
+
         fig = go.Figure()
         fig.add_trace(go.Bar(
-            x=df.iloc[:, 0], y=get_num(1),
+            x=df.iloc[:, 0], y=cal_series,
             name="Calories In",
             marker=dict(
-                color=get_num(1),
-                colorscale=[[0,'#1a3a2a'],[0.5,'#ff9f0a'],[1,'#ff453a']],
+                color=cal_series,
+                colorscale=clean_cs,
+                cmin=cal_min,
+                cmax=cal_max,
                 line=dict(width=0),
             ),
-            opacity=0.9,
+            opacity=0.92,
         ))
         fig.add_trace(go.Scatter(
             x=df.iloc[:, 0], y=get_num(2),
@@ -613,70 +652,81 @@ if not df.empty:
             mode='lines',
             line=dict(color='rgba(255,255,255,0.9)', width=2.5, dash='dot'),
         ))
-        fig.add_hline(y=1633, line_dash="dash", line_color="rgba(48,209,88,0.5)",
-                      annotation_text="Target 1,633", annotation_font_color="rgba(48,209,88,0.8)")
-        st.plotly_chart(apply_theme(fig, "Caloric Intake", "Daily intake vs target"), use_container_width=True)
+        fig.add_hline(y=1633, line_dash="dash", line_color="rgba(48,209,88,0.55)",
+                      annotation_text="Target 1,633", annotation_font_color="rgba(48,209,88,0.85)")
+        fig.add_hline(y=1700, line_dash="dash", line_color="rgba(255,159,10,0.45)",
+                      annotation_text="Amber 1,700", annotation_font_color="rgba(255,159,10,0.75)")
+        st.plotly_chart(apply_theme(fig, "Caloric Intake", "≤1,633 green · 1,634–1,700 amber · >1,700 red"), use_container_width=True)
 
     # ══════════════════════════════════════════
     #  TAB 4 — Weight
     # ══════════════════════════════════════════
     with tab4:
         w_series = get_num(3).dropna()
+        w_floor  = 170  # y-axis minimum — just below target weight
+        rolling  = w_series.rolling(7, min_periods=1).mean()
         fig = go.Figure()
+        # Faint raw line
         fig.add_trace(go.Scatter(
             x=df.iloc[:len(w_series), 0], y=w_series,
             mode='lines',
-            line=dict(color='rgba(90,171,255,0.2)', width=1),
+            line=dict(color='rgba(90,171,255,0.25)', width=1),
             showlegend=False,
         ))
-        # Rolling 7-day avg
-        rolling = w_series.rolling(7, min_periods=1).mean()
+        # 7-day rolling average with fill down to the floor
         fig.add_trace(go.Scatter(
             x=df.iloc[:len(rolling), 0], y=rolling,
             name="7-Day Average",
             mode='lines',
             line=dict(color='#0a84ff', width=3),
-            fill='tozeroy',
-            fillcolor='rgba(10,132,255,0.06)',
+            fill='toself',
+            fillcolor='rgba(10,132,255,0.07)',
         ))
+        # Daily weight dots
         fig.add_trace(go.Scatter(
             x=df.iloc[:len(w_series), 0], y=w_series,
             name="Daily Weight",
             mode='markers',
-            marker=dict(color='rgba(255,255,255,0.7)', size=4, line=dict(color='white', width=0.5)),
+            marker=dict(color='rgba(255,255,255,0.75)', size=4,
+                        line=dict(color='white', width=0.5)),
         ))
-        st.plotly_chart(apply_theme(fig, "Weight Trajectory", "lbs — with 7-day rolling average"), use_container_width=True)
+        fig.update_layout(yaxis=dict(range=[w_floor, None]))
+        st.plotly_chart(apply_theme(fig, "Weight Trajectory", "lbs — y-axis from 170 lbs · 7-day rolling average"), use_container_width=True)
 
     # ══════════════════════════════════════════
     #  TAB 5 — Gain / Loss Trend
     # ══════════════════════════════════════════
     with tab5:
         trend = get_num(5)
-        colors_trend = ['rgba(48,209,88,0.85)' if v < 0 else 'rgba(255,69,58,0.85)' for v in trend]
+        colors_trend = ['rgba(48,209,88,0.85)' if v < 0 else 'rgba(255,69,58,0.85)'
+                        for v in trend.fillna(0)]
         fig = go.Figure()
-        fig.add_hrect(y0=-999, y1=0, fillcolor='rgba(48,209,88,0.04)', layer="below", line_width=0)
+        fig.add_hrect(y0=-5, y1=0, fillcolor='rgba(48,209,88,0.04)', layer="below", line_width=0)
+        fig.add_hrect(y0=0,  y1=5, fillcolor='rgba(255,69,58,0.04)', layer="below", line_width=0)
         fig.add_trace(go.Scatter(
             x=df.iloc[:, 0], y=trend,
             mode='lines+markers',
             line=dict(color='#ff9f0a', width=2.5),
-            marker=dict(color=colors_trend, size=5, line=dict(color='rgba(0,0,0,0.3)', width=0.5)),
+            marker=dict(color=colors_trend, size=5,
+                        line=dict(color='rgba(0,0,0,0.3)', width=0.5)),
             name="Net Trend",
             fill='tozeroy',
             fillcolor='rgba(255,159,10,0.08)',
         ))
-        fig.add_hline(y=0, line_dash="solid", line_color="rgba(255,255,255,0.2)", line_width=1)
-        st.plotly_chart(apply_theme(fig, "Weight Loss Trend", "cumulative gain / loss in lbs"), use_container_width=True)
+        fig.add_hline(y=0, line_dash="solid", line_color="rgba(255,255,255,0.25)", line_width=1)
+        fig.update_layout(yaxis=dict(range=[-5, 5]))
+        st.plotly_chart(apply_theme(fig, "Weight Loss Trend", "daily lb change · range ±5 lbs"), use_container_width=True)
 
     # ══════════════════════════════════════════
     #  TAB 6 — Velocity
     # ══════════════════════════════════════════
     with tab6:
-        velocity = get_num(3).diff() * -1
+        velocity   = get_num(3).diff() * -1
         bar_colors = ['rgba(48,209,88,0.80)' if x > 0 else 'rgba(255,69,58,0.80)'
                       for x in velocity.fillna(0)]
         fig = go.Figure()
-        fig.add_hrect(y0=0, y1=999,  fillcolor='rgba(48,209,88,0.04)',  layer="below", line_width=0)
-        fig.add_hrect(y0=-999, y1=0, fillcolor='rgba(255,69,58,0.04)',  layer="below", line_width=0)
+        fig.add_hrect(y0=0,  y1=5,  fillcolor='rgba(48,209,88,0.04)',  layer="below", line_width=0)
+        fig.add_hrect(y0=-5, y1=0,  fillcolor='rgba(255,69,58,0.04)',  layer="below", line_width=0)
         fig.add_trace(go.Bar(
             x=df.iloc[:, 0], y=velocity,
             name="Daily Δ",
@@ -691,7 +741,8 @@ if not df.empty:
             line=dict(color='rgba(255,255,255,0.85)', width=2.5, dash='dot'),
         ))
         fig.add_hline(y=0, line_dash="solid", line_color="rgba(255,255,255,0.2)")
-        st.plotly_chart(apply_theme(fig, "Loss Velocity", "lbs/day — green = loss, red = gain"), use_container_width=True)
+        fig.update_layout(yaxis=dict(range=[-5, 5]))
+        st.plotly_chart(apply_theme(fig, "Loss Velocity", "lbs/day · range ±5 lbs · green = loss, red = gain"), use_container_width=True)
 
     # ══════════════════════════════════════════
     #  TAB 7 — Steps
@@ -699,23 +750,30 @@ if not df.empty:
     with tab7:
         steps_data  = get_num(12)
         active_cals = get_num(15)
-        step_colors = ['rgba(26,209,152,0.80)' if s >= 10000 else 'rgba(255,159,10,0.75)'
-                       for s in steps_data.fillna(0)]
+
+        def step_color(s):
+            if s >= 10000: return 'rgba(26,209,152,0.82)'   # green
+            elif s >= 8001: return 'rgba(255,159,10,0.82)'  # amber
+            else:           return 'rgba(255,69,58,0.82)'   # red
+
+        step_colors = [step_color(s) for s in steps_data.fillna(0)]
         fig = make_subplots(specs=[[{"secondary_y": True}]])
         fig.add_trace(go.Bar(
             x=df.iloc[:, 0], y=steps_data,
             name="Steps",
             marker=dict(color=step_colors, line=dict(width=0)),
         ), secondary_y=False)
-        fig.add_hline(y=10000, line_dash="dash", line_color="rgba(26,209,152,0.4)",
-                      annotation_text="10k target", annotation_font_color="rgba(26,209,152,0.7)")
+        fig.add_hline(y=10000, line_dash="dash", line_color="rgba(26,209,152,0.45)",
+                      annotation_text="10,000 target", annotation_font_color="rgba(26,209,152,0.75)")
+        fig.add_hline(y=8000, line_dash="dash", line_color="rgba(255,69,58,0.35)",
+                      annotation_text="8,000 minimum", annotation_font_color="rgba(255,69,58,0.65)")
         fig.add_trace(go.Scatter(
             x=df.iloc[:, 0], y=active_cals,
             name="Active Calories",
             mode='lines',
             line=dict(color='#ffd60a', width=2.5),
         ), secondary_y=True)
-        st.plotly_chart(apply_theme(fig, "Daily Steps & Active Burn", "green bars = 10k+ goal met"), use_container_width=True)
+        st.plotly_chart(apply_theme(fig, "Daily Steps & Active Burn", "≤8k red · 8k–10k amber · ≥10k green"), use_container_width=True)
 
     # ══════════════════════════════════════════
     #  TAB 8 — Macros
@@ -767,40 +825,53 @@ if not df.empty:
         dia_data = get_num(22)
         fig = go.Figure()
 
-        # Clinical range bands
-        fig.add_hrect(y0=0,   y1=80,  fillcolor='rgba(48,209,88,0.06)',  layer="below", line_width=0, annotation_text="Normal Diastolic",  annotation_font_color="rgba(48,209,88,0.4)",  annotation_position="left")
+        # UK clinical range bands (y scoped to 60–180)
+        # Diastolic zones
+        fig.add_hrect(y0=60,  y1=80,  fillcolor='rgba(48,209,88,0.05)',  layer="below", line_width=0)
         fig.add_hrect(y0=80,  y1=90,  fillcolor='rgba(255,214,10,0.05)', layer="below", line_width=0)
-        fig.add_hrect(y0=120, y1=140, fillcolor='rgba(255,159,10,0.05)', layer="below", line_width=0, annotation_text="Elevated Systolic",  annotation_font_color="rgba(255,159,10,0.4)", annotation_position="right")
-        fig.add_hrect(y0=140, y1=999, fillcolor='rgba(255,69,58,0.05)',  layer="below", line_width=0, annotation_text="Stage 2 Hypertension", annotation_font_color="rgba(255,69,58,0.4)", annotation_position="right")
+        fig.add_hrect(y0=90,  y1=180, fillcolor='rgba(255,69,58,0.04)',  layer="below", line_width=0)
 
+        # Systolic reference lines
+        fig.add_hline(y=90,  line_dash="dot",  line_color="rgba(48,209,88,0.30)",  line_width=1)
+        fig.add_hline(y=120, line_dash="dash", line_color="rgba(48,209,88,0.40)",
+                      annotation_text="Ideal systolic ≤120",
+                      annotation_font_color="rgba(48,209,88,0.70)",
+                      annotation_position="top right")
+        fig.add_hline(y=140, line_dash="dash", line_color="rgba(255,159,10,0.45)",
+                      annotation_text="High systolic ≥140",
+                      annotation_font_color="rgba(255,159,10,0.75)",
+                      annotation_position="top right")
+
+        # Diastolic reference line
+        fig.add_hline(y=80, line_dash="dash", line_color="rgba(90,200,250,0.40)",
+                      annotation_text="Ideal diastolic ≤80",
+                      annotation_font_color="rgba(90,200,250,0.70)",
+                      annotation_position="bottom right")
+
+        # Systolic line
         fig.add_trace(go.Scatter(
             x=df.iloc[:, 0], y=sys_data,
             name="Systolic",
             mode='lines+markers',
             connectgaps=True,
             line=dict(color='#ff453a', width=3),
-            marker=dict(size=5, color='#ff453a'),
-            fill='tozeroy',
-            fillcolor='rgba(255,69,58,0.05)',
+            marker=dict(size=6, color='#ff453a',
+                        line=dict(color='rgba(255,255,255,0.4)', width=1.5)),
         ))
+
+        # Diastolic line
         fig.add_trace(go.Scatter(
             x=df.iloc[:, 0], y=dia_data,
             name="Diastolic",
             mode='lines+markers',
             connectgaps=True,
             line=dict(color='#5ac8fa', width=3),
-            marker=dict(size=5, color='#5ac8fa'),
-            fill='tozeroy',
-            fillcolor='rgba(90,200,250,0.05)',
+            marker=dict(size=6, color='#5ac8fa',
+                        line=dict(color='rgba(255,255,255,0.4)', width=1.5)),
         ))
 
-        # Target lines
-        fig.add_hline(y=120, line_dash="dash", line_color="rgba(255,159,10,0.35)",
-                      annotation_text="Systolic target 120", annotation_font_color="rgba(255,159,10,0.6)")
-        fig.add_hline(y=80,  line_dash="dash", line_color="rgba(48,209,88,0.35)",
-                      annotation_text="Diastolic target 80", annotation_font_color="rgba(48,209,88,0.6)")
-
-        st.plotly_chart(apply_theme(fig, "Blood Pressure Monitor", "systolic / diastolic — mmHg"), use_container_width=True)
+        fig.update_layout(yaxis=dict(range=[60, 180]))
+        st.plotly_chart(apply_theme(fig, "Blood Pressure Monitor", "systolic (red) / diastolic (blue) — mmHg"), use_container_width=True)
 
 else:
     st.markdown("""
