@@ -154,6 +154,7 @@ div[data-baseweb="tab-list"] {
   border: 1px solid rgba(255,255,255,0.2) !important;
   box-shadow: 0 10px 30px rgba(0,0,0,0.6) !important;
   margin-bottom: 2rem !important;
+  flex-wrap: wrap !important; /* Allows tabs to flow neatly if on a smaller screen */
 }
 div[data-baseweb="tab"] { border-radius: 12px !important; transition: all 0.3s ease !important; }
 div[data-baseweb="tab"]:hover { background: rgba(255,255,255,0.15) !important; transform: translateY(-2px); }
@@ -251,7 +252,6 @@ def get_num(idx):
 
 def clean_float(val):
     try:
-        # Regex: Strip out anything that isn't a digit, decimal, or negative sign
         cleaned = re.sub(r'[^\d\.-]', '', str(val))
         if cleaned in ['', '-', '.']: return 0.0
         return float(cleaned)
@@ -305,10 +305,10 @@ if not df.empty:
     </div>
     """, unsafe_allow_html=True)
 
-    # ── Tab bar (Now with 10 Tabs) ──
-    tab1, tab2, tab3, tab4, tab5, tab6, tab7, tab8, tab9, tab10 = st.tabs([
-        "🛡️ Review", "📊 Lifetime", "🔥 Calories", "⚖️ Weight",
-        "📉 Trend", "👟 Steps", "🥗 Macros", "📈 Averages", "❤️ BP", "🎯 Target"
+    # ── Tab bar (Now with 12 Tabs) ──
+    tab1, tab2, tab3, tab4, tab5, tab6, tab7, tab8, tab9, tab10, tab11, tab12 = st.tabs([
+        "🛡️ Review", "📊 Lifetime", "🔥 Calories", "💧 Hydration", "⚖️ Weight",
+        "📉 Trend", "👟 Steps", "🥗 Macros", "📈 Averages", "❤️ BP", "🎯 Target", "🏆 Trophies"
     ])
 
     # ══════════════════════════════════════════
@@ -362,13 +362,12 @@ if not df.empty:
                   </div>""", unsafe_allow_html=True)
 
     # ══════════════════════════════════════════
-    #  TAB 2 — Lifetime Stats (BUG FIXED)
+    #  TAB 2 — Lifetime Stats
     # ══════════════════════════════════════════
     with tab2:
         l = df.iloc[-1]
         st.markdown("<div class='section-header'>Lifetime Stats</div>", unsafe_allow_html=True)
 
-        # Breathing Glow Hero Card
         st.markdown(f"""
           <div class='card' style='background:linear-gradient(135deg,rgba(10,132,255,0.25),rgba(0,0,0,0.6));
                border-color:rgba(10,132,255,0.7); margin-bottom:1.5rem; animation: breathingGlow 4s infinite, springUpFade 0.7s both;'>
@@ -381,7 +380,6 @@ if not df.empty:
 
         c1, c2, c3 = st.columns(3)
         with c1:
-            # clean_float is now regex-powered, handling any rogue characters in the sheet!
             st.markdown(card("Total Loss", num_target=clean_float(l.iloc[6]), decimals=1, suffix=" lbs"), unsafe_allow_html=True)
             st.markdown(card("Total Loss", display_val=f"{l.iloc[7]}"), unsafe_allow_html=True)
         with c2:
@@ -420,9 +418,30 @@ if not df.empty:
         st.plotly_chart(apply_theme(fig, "Caloric Intake", "≤1,633 GREEN // >1,700 RED"), use_container_width=True)
 
     # ══════════════════════════════════════════
-    #  TAB 4 — Weight
+    #  TAB 4 — Hydration (NEW!)
     # ══════════════════════════════════════════
     with tab4:
+        hyd_series = get_num(24)
+        
+        fig = go.Figure()
+        fig.add_trace(go.Bar(
+            x=df.iloc[:, 0], y=hyd_series, name="Hydration (ml)",
+            marker=dict(
+                color=hyd_series, 
+                colorscale=[[0, '#0a84ff'], [1, '#5ac8fa']], 
+                line=dict(width=1, color='rgba(255,255,255,0.3)')
+            ),
+        ))
+        
+        fig.add_hline(y=3500, line_dash="dash", line_color="#5ac8fa", annotation_text="2,000 ml TARGET", annotation_font_color="#5ac8fa")
+        
+        fig.update_layout(xaxis=dict(rangeslider=dict(visible=True, bgcolor='rgba(0,0,0,0.4)', bordercolor='rgba(255,255,255,0.2)'), type="date"))
+        st.plotly_chart(apply_theme(fig, "Daily Hydration", "MEASURED IN MILLILITERS"), use_container_width=True)
+
+    # ══════════════════════════════════════════
+    #  TAB 5 — Weight
+    # ══════════════════════════════════════════
+    with tab5:
         w_series = get_num(3).dropna()
         w_max = float(w_series.max()) + 2 if not w_series.empty else 210
         
@@ -443,9 +462,9 @@ if not df.empty:
         st.plotly_chart(apply_theme(fig, "Weight Trajectory", "DAILY ACTUALS // NEON HUD ACTIVATED"), use_container_width=True)
 
     # ══════════════════════════════════════════
-    #  TAB 5 — Gain / Loss Trend
+    #  TAB 6 — Gain / Loss Trend
     # ══════════════════════════════════════════
-    with tab5:
+    with tab6:
         trend = get_num(5)
         colors_trend = ['#30d158' if v < 0 else '#ff453a' for v in trend.fillna(0)]
         fig = go.Figure()
@@ -462,9 +481,9 @@ if not df.empty:
         st.plotly_chart(apply_theme(fig, "Weight Variance", "RANGE ±5 LBS"), use_container_width=True)
 
     # ══════════════════════════════════════════
-    #  TAB 6 — Steps
+    #  TAB 7 — Steps
     # ══════════════════════════════════════════
-    with tab6:
+    with tab7:
         steps_data  = get_num(12)
         def step_color(s):
             if s >= 10000: return '#30d158'
@@ -483,9 +502,9 @@ if not df.empty:
         st.plotly_chart(apply_theme(fig, "Daily Steps", "STATUS: TRACKING"), use_container_width=True)
 
     # ══════════════════════════════════════════
-    #  TAB 7 — Macros
+    #  TAB 8 — Macros
     # ══════════════════════════════════════════
-    with tab7:
+    with tab8:
         fig = go.Figure()
         macro_cfg = [(16, "Protein", "#ff453a", "rgba(255,69,58,0.15)"), (17, "Carbs", "#5ac8fa", "rgba(90,200,250,0.15)"), (18, "Fat", "#ffd60a", "rgba(255,214,10,0.15)")]
         for idx, name, color, fill in macro_cfg:
@@ -499,9 +518,9 @@ if not df.empty:
         st.plotly_chart(apply_theme(fig, "Macro Composition", "SMOOTHED SPLINE PROJECTIONS"), use_container_width=True)
 
     # ══════════════════════════════════════════
-    #  TAB 8 — Averages
+    #  TAB 9 — Averages
     # ══════════════════════════════════════════
-    with tab8:
+    with tab9:
         avg_loss = (get_num(3).iloc[0] - get_num(3).iloc[-1]) / (len(df) / 7)
         st.markdown("<div class='section-header'>Historical Data</div>", unsafe_allow_html=True)
         c1, c2, c3 = st.columns(3)
@@ -516,9 +535,9 @@ if not df.empty:
             st.markdown(card("Avg Fat", num_target=get_num(18).mean(), decimals=0, suffix="%"), unsafe_allow_html=True)
 
     # ══════════════════════════════════════════
-    #  TAB 9 — Blood Pressure
+    #  TAB 10 — Blood Pressure
     # ══════════════════════════════════════════
-    with tab9:
+    with tab10:
         sys_data = get_num(21)
         dia_data = get_num(22)
         fig = go.Figure()
@@ -536,9 +555,9 @@ if not df.empty:
         st.plotly_chart(apply_theme(fig, "Blood Pressure Monitor", "VITAL SIGNS"), use_container_width=True)
 
     # ══════════════════════════════════════════
-    #  TAB 10 — Target Gauge (NEW!)
+    #  TAB 11 — Target Gauge
     # ══════════════════════════════════════════
-    with tab10:
+    with tab11:
         st.markdown("<div class='section-header'>Mission Progress</div>", unsafe_allow_html=True)
         st.markdown("<div class='section-sub'>Distance to 170 lbs</div>", unsafe_allow_html=True)
         
@@ -564,27 +583,60 @@ if not df.empty:
                         {'range': [goal_w, goal_w + 10], 'color': "rgba(48,209,88,0.2)"},
                         {'range': [goal_w + 10, start_w], 'color': "rgba(255,159,10,0.15)"}
                     ],
-                    'threshold': {
-                        'line': {'color': "#bf5af2", 'width': 5},
-                        'thickness': 0.85,
-                        'value': goal_w
-                    }
+                    'threshold': {'line': {'color': "#bf5af2", 'width': 5}, 'thickness': 0.85, 'value': goal_w}
                 }
             ))
             
-            fig.update_layout(
-                paper_bgcolor='rgba(0,0,0,0)', 
-                plot_bgcolor='rgba(0,0,0,0)',
-                font=dict(color='white', family='Syne'),
-                height=450,
-                margin=dict(t=60, b=40)
-            )
-            
-            # Using custom CSS just for this chart container to make it float
+            fig.update_layout(paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', font=dict(color='white', family='Syne'), height=450, margin=dict(t=60, b=40))
             st.markdown("<div class='card' style='padding: 0; border: none; background: transparent; box-shadow: none;'>", unsafe_allow_html=True)
             st.plotly_chart(fig, use_container_width=True)
             st.markdown("</div>", unsafe_allow_html=True)
 
+    # ══════════════════════════════════════════
+    #  TAB 12 — Trophy Room (NEW!)
+    # ══════════════════════════════════════════
+    with tab12:
+        st.markdown("<div class='section-header'>The Trophy Room</div>", unsafe_allow_html=True)
+        st.markdown("<div class='section-sub'>Unlock milestones through consistency</div>", unsafe_allow_html=True)
+
+        cals_in = get_num(1)
+        steps_arr = get_num(12)
+        total_loss_lbs = clean_float(df.iloc[-1].iloc[6]) if not df.empty else 0
+        min_weight = get_num(3).min()
+
+        # Logic Calculations
+        perfect_cals_days = ((cals_in > 0) & (cals_in <= 1633)).sum()
+        perfect_steps_days = (steps_arr >= 10000).sum()
+        streak = len(df)
+
+        def badge(title, desc, condition, icon="🏆"):
+            if condition:
+                glow = "box-shadow: 0 0 25px rgba(48,209,88,0.3); border-color: rgba(48,209,88,0.6);"
+                val_color = "#30d158"
+                status = "UNLOCKED"
+            else:
+                glow = "opacity: 0.4; filter: grayscale(100%); background: rgba(0,0,0,0.6);"
+                val_color = "#ffffff"
+                status = "LOCKED"
+                
+            return f"""
+            <div class='card' style='{glow} transition: all 0.3s ease;'>
+                <div style='font-size:3rem; margin-bottom:12px; text-shadow: 0 5px 15px rgba(0,0,0,0.5);'>{icon}</div>
+                <div class='label' style='color:{val_color}; margin-bottom:6px; letter-spacing:0.2em;'>{status}</div>
+                <div class='val-sm' style='font-size:1.3rem; margin-bottom:4px;'>{title}</div>
+                <div style='font-family:Space Mono,monospace; font-size:0.75rem; color:rgba(255,255,255,0.7);'>{desc}</div>
+            </div>"""
+
+        c1, c2, c3 = st.columns(3)
+        with c1:
+            st.markdown(badge("Iron Will", f"{perfect_cals_days} Days at/under 1,633 kcal", perfect_cals_days > 0, "🔥"), unsafe_allow_html=True)
+            st.markdown(badge("10lb Milestone", "Drop 10 lbs total", total_loss_lbs >= 10, "📉"), unsafe_allow_html=True)
+        with c2:
+            st.markdown(badge("Marathoner", f"{perfect_steps_days} Days hitting 10k Steps", perfect_steps_days > 0, "👟"), unsafe_allow_html=True)
+            st.markdown(badge("20lb Milestone", "Drop 20 lbs total", total_loss_lbs >= 20, "📉"), unsafe_allow_html=True)
+        with c3:
+            st.markdown(badge("Dedication", f"{streak} Day Logging Streak", streak >= 30, "📅"), unsafe_allow_html=True)
+            st.markdown(badge("Sub-200 Club", "Drop below 200 lbs", min_weight < 200, "🎯"), unsafe_allow_html=True)
 
     # ─────────────────────────────────────────────
     #  JavaScript Odometer Injector (Tab-Aware)
@@ -594,7 +646,6 @@ if not df.empty:
     const docs = window.parent.document;
 
     function runOdometer() {
-        // Find all count-up elements that are currently visible on the screen
         const targets = Array.from(docs.querySelectorAll('.count-up')).filter(el => el.offsetParent !== null);
         
         targets.forEach(el => {
