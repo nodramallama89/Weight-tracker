@@ -603,38 +603,45 @@ if not df.empty:
         total_days = len(df)
         cals_in = get_num(1)
         steps_arr = get_num(12)
-        hyd_arr = get_num(24)
         sys_arr = get_num(21)
         dia_arr = get_num(22)
         
         total_loss_lbs = clean_float(df.iloc[-1].iloc[6]) if not df.empty else 0
         min_weight = get_num(3).min()
 
+        # Hydration Logic - Calculate only from 2026-05-27 onwards
+        hyd_df = df[df[0] >= pd.Timestamp("2026-05-27")]
+        hyd_arr_filtered = pd.to_numeric(hyd_df.iloc[:, 24], errors='coerce')
+        perfect_hyd_days = (hyd_arr_filtered >= 3000).sum()
+        hyd_days_tracked = len(hyd_df)
+
         # Logic Calculations
         perfect_cals_days = ((cals_in > 0) & (cals_in <= 1633)).sum()
         perfect_steps_days = (steps_arr >= 10000).sum()
-        perfect_hyd_days = (hyd_arr >= 3000).sum()
         ideal_bp_days = ((sys_arr > 0) & (sys_arr <= 120) & (dia_arr > 0) & (dia_arr <= 80)).sum()
-        streak = total_days
 
         # Safe percentage calculation
-        def get_pct(days):
-            return (days / total_days * 100) if total_days > 0 else 0
+        def get_pct(days, total):
+            return (days / total * 100) if total > 0 else 0
 
         # Define the badges dynamically
         badges = [
-            {"title": "Iron Will", "desc": f"{perfect_cals_days} Days ({get_pct(perfect_cals_days):.1f}%) ≤ 1,633 kcal", "unlocked": perfect_cals_days > 0, "icon": "🔥"},
-            {"title": "Marathoner", "desc": f"{perfect_steps_days} Days ({get_pct(perfect_steps_days):.1f}%) ≥ 10k Steps", "unlocked": perfect_steps_days > 0, "icon": "👟"},
-            {"title": "Aqua Lung", "desc": f"{perfect_hyd_days} Days ({get_pct(perfect_hyd_days):.1f}%) ≥ 3L Water", "unlocked": perfect_hyd_days > 0, "icon": "💧"},
-            {"title": "Zen Heart", "desc": f"{ideal_bp_days} Days ({get_pct(ideal_bp_days):.1f}%) Ideal BP", "unlocked": ideal_bp_days > 0, "icon": "❤️"},
-            {"title": "Habit Builder", "desc": "7 Day Logging Streak", "unlocked": streak >= 7, "icon": "📅"},
-            {"title": "Dedication", "desc": "30 Day Logging Streak", "unlocked": streak >= 30, "icon": "🛡️"},
+            {"title": "Iron Will", "desc": f"{perfect_cals_days} Days ({get_pct(perfect_cals_days, total_days):.1f}%) ≤ 1,633 kcal", "unlocked": perfect_cals_days > 0, "icon": "🔥"},
+            {"title": "Marathoner", "desc": f"{perfect_steps_days} Days ({get_pct(perfect_steps_days, total_days):.1f}%) ≥ 10k Steps", "unlocked": perfect_steps_days > 0, "icon": "👟"},
+            {"title": "Aqua Lung", "desc": f"{perfect_hyd_days} Days ({get_pct(perfect_hyd_days, hyd_days_tracked):.1f}%) ≥ 3L Water", "unlocked": perfect_hyd_days > 0, "icon": "💧"},
+            {"title": "Zen Heart", "desc": f"{ideal_bp_days} Days ({get_pct(ideal_bp_days, total_days):.1f}%) Ideal BP", "unlocked": ideal_bp_days > 0, "icon": "❤️"},
             {"title": "First Blood", "desc": "Drop 5 lbs total", "unlocked": total_loss_lbs >= 5, "icon": "📉"},
             {"title": "Double Digits", "desc": "Drop 10 lbs total", "unlocked": total_loss_lbs >= 10, "icon": "📉"},
             {"title": "The 15 Club", "desc": "Drop 15 lbs total", "unlocked": total_loss_lbs >= 15, "icon": "📉"},
             {"title": "Twenty Down", "desc": "Drop 20 lbs total", "unlocked": total_loss_lbs >= 20, "icon": "📉"},
             {"title": "Quarter Century", "desc": "Drop 25 lbs total", "unlocked": total_loss_lbs >= 25, "icon": "📉"},
-            {"title": "Sub-200 Club", "desc": "Drop below 200 lbs", "unlocked": min_weight < 200, "icon": "🎯"}
+            {"title": "Sub-200 Club", "desc": "Drop below 200 lbs", "unlocked": min_weight < 200, "icon": "🎯"},
+            {"title": "195 lb Milestone", "desc": "Drop below 195 lbs", "unlocked": min_weight < 195, "icon": "🎯"},
+            {"title": "190 lb Milestone", "desc": "Drop below 190 lbs", "unlocked": min_weight < 190, "icon": "🎯"},
+            {"title": "185 lb Milestone", "desc": "Drop below 185 lbs", "unlocked": min_weight < 185, "icon": "🎯"},
+            {"title": "180 lb Milestone", "desc": "Drop below 180 lbs", "unlocked": min_weight < 180, "icon": "🎯"},
+            {"title": "175 lb Milestone", "desc": "Drop below 175 lbs", "unlocked": min_weight < 175, "icon": "🎯"},
+            {"title": "Goal Achieved", "desc": "Hit 170 lbs target", "unlocked": min_weight <= 170, "icon": "🏆"}
         ]
 
         def render_badge(b):
