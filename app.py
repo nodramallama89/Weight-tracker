@@ -306,10 +306,10 @@ if not df.empty:
     </div>
     """, unsafe_allow_html=True)
 
-    # ── Tab bar (12 Tabs) ──
-    tab1, tab2, tab3, tab4, tab5, tab6, tab7, tab8, tab9, tab10, tab11, tab12 = st.tabs([
+    # ── Tab bar (Now 14 Tabs) ──
+    tab1, tab2, tab3, tab4, tab5, tab6, tab7, tab8, tab9, tab10, tab11, tab12, tab13, tab14 = st.tabs([
         "🛡️ Review", "📊 Lifetime", "🔥 Calories", "💧 Hydration", "⚖️ Weight",
-        "📉 Trend", "👟 Steps", "🥗 Macros", "📈 Averages", "❤️ BP", "🎯 Target", "🏆 Trophies"
+        "📉 Trend", "👟 Steps", "🥗 Macros", "📈 Averages", "❤️ BP", "🎯 Target", "🏆 Trophies", "🧠 Analytics", "📋 Sit Rep"
     ])
 
     # ══════════════════════════════════════════
@@ -609,22 +609,18 @@ if not df.empty:
         total_loss_lbs = clean_float(df.iloc[-1].iloc[6]) if not df.empty else 0
         min_weight = get_num(3).min()
 
-        # Hydration Logic - Calculate only from 2026-05-27 onwards
         hyd_df = df[df[0] >= pd.Timestamp("2026-05-27")]
         hyd_arr_filtered = pd.to_numeric(hyd_df.iloc[:, 24], errors='coerce')
         perfect_hyd_days = (hyd_arr_filtered >= 3000).sum()
         hyd_days_tracked = len(hyd_df)
 
-        # Logic Calculations
         perfect_cals_days = ((cals_in > 0) & (cals_in <= 1633)).sum()
         perfect_steps_days = (steps_arr >= 10000).sum()
         ideal_bp_days = ((sys_arr > 0) & (sys_arr <= 120) & (dia_arr > 0) & (dia_arr <= 80)).sum()
 
-        # Safe percentage calculation
         def get_pct(days, total):
             return (days / total * 100) if total > 0 else 0
 
-        # Define the badges dynamically
         badges = [
             {"title": "Iron Will", "desc": f"{perfect_cals_days} Days ({get_pct(perfect_cals_days, total_days):.1f}%) ≤ 1,633 kcal", "unlocked": perfect_cals_days > 0, "icon": "🔥"},
             {"title": "Marathoner", "desc": f"{perfect_steps_days} Days ({get_pct(perfect_steps_days, total_days):.1f}%) ≥ 10k Steps", "unlocked": perfect_steps_days > 0, "icon": "👟"},
@@ -662,13 +658,134 @@ if not df.empty:
                 <div style='font-family:Space Mono,monospace; font-size:0.7rem; color:rgba(255,255,255,0.7);'>{b['desc']}</div>
             </div>"""
 
-        # Build out the grid 4 items wide
         for i in range(0, len(badges), 4):
             cols = st.columns(4)
             for j in range(4):
                 if i + j < len(badges):
                     with cols[j]:
                         st.markdown(render_badge(badges[i + j]), unsafe_allow_html=True)
+
+
+    # ══════════════════════════════════════════
+    #  TAB 13 — Analytics Engine
+    # ══════════════════════════════════════════
+    with tab13:
+        st.markdown("<div class='section-header'>Data Insights</div>", unsafe_allow_html=True)
+        st.markdown("<div class='section-sub'>Cause and Effect Analysis</div>", unsafe_allow_html=True)
+
+        w_series = get_num(3)
+        cals_series = get_num(1)
+        steps_series = get_num(12)
+
+        # Shift weight by -1 to get the 'next day' weight for correlation
+        next_day_weight_diff = w_series.shift(-1) - w_series
+        valid_days_mask = next_day_weight_diff.notna()
+
+        # 1. Caloric Impact
+        good_cal_mask = (cals_series <= 1633) & valid_days_mask
+        bad_cal_mask = (cals_series > 1633) & valid_days_mask
+        
+        avg_change_good_cals = next_day_weight_diff[good_cal_mask].mean()
+        avg_change_bad_cals = next_day_weight_diff[bad_cal_mask].mean()
+        
+        # Protect against NaNs if there isn't enough data yet
+        avg_change_good_cals = avg_change_good_cals if pd.notna(avg_change_good_cals) else 0
+        avg_change_bad_cals = avg_change_bad_cals if pd.notna(avg_change_bad_cals) else 0
+        
+        cal_insight_color = "#30d158" if avg_change_good_cals < 0 else "#ff9f0a"
+        cal_str_good = f"{avg_change_good_cals:+.2f} lbs"
+        cal_str_bad = f"{avg_change_bad_cals:+.2f} lbs"
+
+        # 2. Step Impact
+        good_step_mask = (steps_series >= 10000) & valid_days_mask
+        if good_step_mask.sum() > 0:
+            success_rate = (next_day_weight_diff[good_step_mask] < 0).sum() / good_step_mask.sum() * 100
+        else:
+            success_rate = 0
+
+        # 3. Recovery / Consistency Warning
+        recent_steps = steps_series.tail(3)
+        if len(recent_steps) == 3 and all(recent_steps > 12000):
+            recovery_alert = "⚠️ <b>High Kinetic Volume Detected:</b> You have exceeded 12,000 steps for 3+ consecutive days. Ensure adequate recovery. Pushing numbers is great, but preserving the body is the primary objective."
+            recovery_color = "rgba(255, 159, 10, 0.2)"
+            recovery_border = "rgba(255, 159, 10, 0.7)"
+        else:
+            recovery_alert = "✅ <b>Pacing Optimal:</b> Step volume is well distributed. Keep maintaining the steady effort without over-straining."
+            recovery_color = "rgba(48, 209, 88, 0.1)"
+            recovery_border = "rgba(48, 209, 88, 0.4)"
+
+        st.markdown(f"""
+        <div class='card' style='text-align: left; padding: 30px; margin-bottom: 20px;'>
+            <div style='font-size: 2rem; margin-bottom: 10px;'>🔥</div>
+            <div class='val-sm' style='margin-bottom: 15px; color: #5ac8fa;'>Caloric Efficiency Engine</div>
+            <div style='font-family: var(--font-body); font-size: 1.1rem; color: rgba(255,255,255,0.9); line-height: 1.6;'>
+                When your daily intake stays <b>at or below your 1,633 target</b>, your following day's weight changes by an average of <span style='color: {cal_insight_color}; font-weight: bold;'>{cal_str_good}</span>. 
+                Conversely, when you exceed the calorie limit, your next day's weight changes by an average of <span style='color: #ff453a; font-weight: bold;'>{cal_str_bad}</span>.
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+
+        st.markdown(f"""
+        <div class='card' style='text-align: left; padding: 30px; margin-bottom: 20px;'>
+            <div style='font-size: 2rem; margin-bottom: 10px;'>👟</div>
+            <div class='val-sm' style='margin-bottom: 15px; color: #5ac8fa;'>Kinetic Success Rate</div>
+            <div style='font-family: var(--font-body); font-size: 1.1rem; color: rgba(255,255,255,0.9); line-height: 1.6;'>
+                Hitting your 10,000 step goal yields a <span style='color: #30d158; font-weight: bold; font-size: 1.2em;'>{success_rate:.0f}%</span> success rate for a weight drop on the scale the very next morning. Consistency here directly influences the trendline.
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+        
+        st.markdown(f"""
+        <div class='card' style='text-align: left; padding: 30px; background: {recovery_color}; border: 1px solid {recovery_border};'>
+            <div class='val-sm' style='margin-bottom: 10px;'>System Diagnostic</div>
+            <div style='font-family: var(--font-body); font-size: 1.1rem; color: rgba(255,255,255,0.9); line-height: 1.6;'>
+                {recovery_alert}
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+
+
+    # ══════════════════════════════════════════
+    #  TAB 14 — Weekly Sit Rep
+    # ══════════════════════════════════════════
+    with tab14:
+        st.markdown("<div class='section-header'>Weekly Sit Rep</div>", unsafe_allow_html=True)
+        st.markdown("<div class='section-sub'>Last 7 Days vs Previous 7 Days</div>", unsafe_allow_html=True)
+
+        if len(df) >= 14:
+            last_7 = df.iloc[-7:]
+            prev_7 = df.iloc[-14:-7]
+            
+            # Extract data
+            l7_cals = pd.to_numeric(last_7.iloc[:, 1], errors='coerce').mean()
+            p7_cals = pd.to_numeric(prev_7.iloc[:, 1], errors='coerce').mean()
+            
+            l7_steps = pd.to_numeric(last_7.iloc[:, 12], errors='coerce').mean()
+            p7_steps = pd.to_numeric(prev_7.iloc[:, 12], errors='coerce').mean()
+            
+            l7_w_start = pd.to_numeric(last_7.iloc[0, 3], errors='coerce')
+            l7_w_end = pd.to_numeric(last_7.iloc[-1, 3], errors='coerce')
+            l7_loss = l7_w_start - l7_w_end
+            
+            p7_w_start = pd.to_numeric(prev_7.iloc[0, 3], errors='coerce')
+            p7_w_end = pd.to_numeric(prev_7.iloc[-1, 3], errors='coerce')
+            p7_loss = p7_w_start - p7_w_end
+
+            # Deltas
+            cal_diff = l7_cals - p7_cals
+            step_diff = l7_steps - p7_steps
+            loss_diff = l7_loss - p7_loss
+
+            col1, col2, col3 = st.columns(3)
+            with col1:
+                st.markdown(card("Avg Cals (7 Days)", num_target=l7_cals, decimals=0, delta_val=-cal_diff, delta_label="vs Prev Week"), unsafe_allow_html=True)
+            with col2:
+                st.markdown(card("Avg Steps (7 Days)", num_target=l7_steps, decimals=0, delta_val=step_diff, delta_label="vs Prev Week"), unsafe_allow_html=True)
+            with col3:
+                st.markdown(card("Net Loss (7 Days)", display_val=f"{l7_loss:.1f} lbs", delta_val=loss_diff, delta_label="vs Prev Week"), unsafe_allow_html=True)
+
+        else:
+            st.info("System requires at least 14 days of telemetry to generate a comparative Sit Rep.")
 
 
     # ─────────────────────────────────────────────
