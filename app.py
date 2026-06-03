@@ -192,6 +192,15 @@ div[data-baseweb="tab-highlight"] { display: none !important; }
 ::-webkit-scrollbar { width: 6px; height: 6px; }
 ::-webkit-scrollbar-track { background: rgba(0,0,0,0.1); }
 ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.3); border-radius: 10px; }
+
+/* DataFrame Styling */
+[data-testid="stDataFrame"] {
+  background: var(--glass-bg);
+  backdrop-filter: var(--blur);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--glass-border);
+  padding: 10px;
+}
 </style>
 """, unsafe_allow_html=True)
 
@@ -270,7 +279,6 @@ def card(label, display_val="", num_target=None, decimals=0, suffix="", delta_va
 
     delta_html = ""
     if delta_val is not None:
-        # Invert logic allows us to dictate that an UP arrow (gain/increase) is RED, and DOWN is GREEN.
         if invert:
             cls   = "delta-neg" if delta_val >= 0 else "delta-pos"
         else:
@@ -311,10 +319,10 @@ if not df.empty:
     </div>
     """, unsafe_allow_html=True)
 
-    # ── Tab bar (14 Tabs) ──
-    tab1, tab2, tab3, tab4, tab5, tab6, tab7, tab8, tab9, tab10, tab11, tab12, tab13, tab14 = st.tabs([
+    # ── Tab bar (16 Tabs) ──
+    tab1, tab2, tab3, tab4, tab5, tab6, tab7, tab8, tab9, tab10, tab11, tab12, tab13, tab14, tab15, tab16 = st.tabs([
         "🛡️ Review", "📊 Lifetime", "🔥 Calories", "💧 Hydration", "⚖️ Weight",
-        "📉 Trend", "👟 Steps", "🥗 Macros", "📈 Averages", "❤️ BP", "🎯 Target", "🏆 Trophies", "🧠 Analytics", "📋 Sit Rep"
+        "📉 Trend", "👟 Steps", "🥗 Macros", "📈 Averages", "❤️ BP", "🎯 Target", "🏆 Trophies", "🧠 Analytics", "📋 Sit Rep", "🔮 Forecast", "🗄️ Data Log"
     ])
 
     # ══════════════════════════════════════════
@@ -778,7 +786,6 @@ if not df.empty:
         </div>
         """, unsafe_allow_html=True)
 
-
     # ══════════════════════════════════════════
     #  TAB 14 — Weekly Sit Rep
     # ══════════════════════════════════════════
@@ -825,6 +832,68 @@ if not df.empty:
         else:
             st.info("System requires at least 14 days of telemetry to generate a comparative Sit Rep.")
 
+    # ══════════════════════════════════════════
+    #  TAB 15 — Forecast Projection
+    # ══════════════════════════════════════════
+    with tab15:
+        st.markdown("<div class='section-header'>Forecasting Engine</div>", unsafe_allow_html=True)
+        st.markdown("<div class='section-sub'>Estimated Time of Arrival (ETA) to 170 lbs</div>", unsafe_allow_html=True)
+        
+        w_series = get_num(3).dropna()
+        if len(w_series) >= 14:
+            recent_14 = w_series.tail(14)
+            # Calculate linear rate
+            loss_rate_per_day = (recent_14.iloc[0] - recent_14.iloc[-1]) / len(recent_14)
+            current_w = w_series.iloc[-1]
+            
+            if loss_rate_per_day > 0 and current_w > 170:
+                days_to_goal = int((current_w - 170) / loss_rate_per_day)
+                eta_date = pd.Timestamp.now() + pd.Timedelta(days=days_to_goal)
+                
+                st.markdown(f"""
+                <div class='card' style='padding: 40px 20px; border: 1px solid rgba(10, 132, 255, 0.4); box-shadow: 0 0 30px rgba(10,132,255,0.2);'>
+                    <div style='font-size: 3rem; margin-bottom: 10px;'>🔮</div>
+                    <div class='val' style='font-size: 2.5rem; color: #5ac8fa;'>{eta_date.strftime('%B %d, %Y')}</div>
+                    <div class='label' style='margin-top: 15px; font-size: 0.9rem;'>Projected Goal Achievement Date</div>
+                    <div style='font-family: var(--font-body); font-size: 1rem; color: rgba(255,255,255,0.7); margin-top: 15px;'>
+                        Based on your 14-day velocity of dropping {loss_rate_per_day*7:.1f} lbs per week. 
+                    </div>
+                </div>
+                """, unsafe_allow_html=True)
+            elif current_w <= 170:
+                st.markdown("<div class='card'><div class='val' style='color:#30d158;'>TARGET ACHIEVED</div></div>", unsafe_allow_html=True)
+            else:
+                st.info("Velocity currently neutral or positive. Maintain a continuous deficit to generate an ETA.")
+        else:
+            st.info("Requires at least 14 days of logged weight data to calculate a reliable projection.")
+
+    # ══════════════════════════════════════════
+    #  TAB 16 — Raw Telemetry Log
+    # ══════════════════════════════════════════
+    with tab16:
+        st.markdown("<div class='section-header'>Raw Telemetry</div>", unsafe_allow_html=True)
+        st.markdown("<div class='section-sub'>Latest 30 Days Data Log</div>", unsafe_allow_html=True)
+        
+        # Format the dataframe for display
+        display_df = df.copy()
+        display_df[0] = display_df[0].dt.strftime('%Y-%m-%d')
+        display_df = display_df.iloc[::-1].head(30) # Newest first
+        display_df.columns = [str(i) for i in range(len(display_df.columns))] # temp columns to avoid issues
+        
+        # Pick the most important columns to show so it fits nicely
+        cols_to_show = {
+            '0': 'Date', '1': 'Cals In', '3': 'Weight (lbs)', '12': 'Steps', 
+            '16': 'Protein %', '17': 'Carbs %', '18': 'Fat %', '24': 'Water (ml)'
+        }
+        
+        clean_df = display_df[list(cols_to_show.keys())].rename(columns=cols_to_show)
+        
+        st.dataframe(
+            clean_df, 
+            use_container_width=True, 
+            hide_index=True,
+            height=400
+        )
 
     # ─────────────────────────────────────────────
     #  JavaScript Odometer Injector (Tab-Aware)
