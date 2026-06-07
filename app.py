@@ -259,7 +259,6 @@ df = load_data()
 # ─────────────────────────────────────────────
 if not df.empty:
     # GLOBAL SAFEGUARD: Pad the dataframe out to 26 columns to prevent index errors
-    # if the Google Sheet data cuts off before column Z.
     while len(df.columns) <= 25:
         df[len(df.columns)] = ""
 
@@ -296,11 +295,11 @@ def card(label, display_val="", num_target=None, decimals=0, suffix="", delta_va
         delta_html = f"<div class='delta {cls}'>{arrow} {abs(delta_val):,.1f} {delta_label}</div>"
         
     return f"""
-    <div class='card'>
-      <div class='label'>{label}</div>
-      {val_html}
-      {delta_html}
-    </div>"""
+<div class='card'>
+  <div class='label'>{label}</div>
+  {val_html}
+  {delta_html}
+</div>"""
 
 # ─────────────────────────────────────────────
 #  MAIN APP
@@ -309,23 +308,23 @@ if not df.empty:
 
     # ── Animated Header ──
     st.markdown("""
-    <div style='text-align:center; margin-bottom:0.2rem; animation: springUpFade 0.5s ease both;'>
-      <span style='font-family:Space Mono,monospace; font-size:0.75rem; font-weight:700; letter-spacing:0.2em; color:#ffffff; opacity: 0.8;'>
-        <span style='display:inline-block; width:8px; height:8px; background-color:#30d158; border-radius:50%; margin-right:8px; box-shadow: 0 0 12px #30d158; animation: blink-caret 1s infinite;'></span>
-        SYSTEM_ACTIVE
-      </span>
-    </div>
-    """, unsafe_allow_html=True)
+<div style='text-align:center; margin-bottom:0.2rem; animation: springUpFade 0.5s ease both;'>
+  <span style='font-family:Space Mono,monospace; font-size:0.75rem; font-weight:700; letter-spacing:0.2em; color:#ffffff; opacity: 0.8;'>
+    <span style='display:inline-block; width:8px; height:8px; background-color:#30d158; border-radius:50%; margin-right:8px; box-shadow: 0 0 12px #30d158; animation: blink-caret 1s infinite;'></span>
+    SYSTEM_ACTIVE
+  </span>
+</div>
+""", unsafe_allow_html=True)
 
     st.markdown("<div style='text-align:center;'><h1 class='typewriter-text'>Command Centre</h1></div>", unsafe_allow_html=True)
 
     st.markdown("""
-    <div style='text-align:center; margin-bottom:2.5rem; animation: springUpFade 0.8s ease 0.5s both;'>
-      <span style='font-family:Space Mono,monospace; font-size:0.85rem; color:#5ac8fa; font-weight: 700;'>
-        [ DATA_SYNC: GOOGLE_SHEETS // TELEMETRY: NOMINAL ]
-      </span>
-    </div>
-    """, unsafe_allow_html=True)
+<div style='text-align:center; margin-bottom:2.5rem; animation: springUpFade 0.8s ease 0.5s both;'>
+  <span style='font-family:Space Mono,monospace; font-size:0.85rem; color:#5ac8fa; font-weight: 700;'>
+    [ DATA_SYNC: GOOGLE_SHEETS // TELEMETRY: NOMINAL ]
+  </span>
+</div>
+""", unsafe_allow_html=True)
 
     # ── Tab bar (17 Tabs) ──
     tab1, tab2, tab3, tab4, tab5, tab6, tab7, tab8, tab9, tab10, tab11, tab12, tab13, tab14, tab15, tab16, tab17 = st.tabs([
@@ -354,20 +353,20 @@ if not df.empty:
                 cal_arrow    = "▲" if cal_delta > 0 else "▼"
                 cal_pill_cls = "delta-neg" if cal_delta > 0 else "delta-pos"
                 st.markdown(f"""
-                  <div class='card'>
-                    <div class='label'>Calories Consumed</div>
-                    <div class='val count-up' data-target='{cals}' data-decimals='0' data-suffix=' kcal'>0</div>
-                    <div class='delta {cal_pill_cls}'>{cal_arrow} {abs(cal_delta):,.0f} vs Target</div>
-                  </div>""", unsafe_allow_html=True)
+<div class='card'>
+  <div class='label'>Calories Consumed</div>
+  <div class='val count-up' data-target='{cals}' data-decimals='0' data-suffix=' kcal'>0</div>
+  <div class='delta {cal_pill_cls}'>{cal_arrow} {abs(cal_delta):,.0f} vs Target</div>
+</div>""", unsafe_allow_html=True)
             with c2:
                 step_arrow    = "▲" if step_delta >= 0 else "▼"
                 step_pill_cls = "delta-pos" if step_delta >= 0 else "delta-neg"
                 st.markdown(f"""
-                  <div class='card'>
-                    <div class='label'>Steps Taken</div>
-                    <div class='val count-up' data-target='{steps}' data-decimals='0' data-suffix=''>0</div>
-                    <div class='delta {step_pill_cls}'>{step_arrow} {abs(step_delta):,.0f} vs Target</div>
-                  </div>""", unsafe_allow_html=True)
+<div class='card'>
+  <div class='label'>Steps Taken</div>
+  <div class='val count-up' data-target='{steps}' data-decimals='0' data-suffix=''>0</div>
+  <div class='delta {step_pill_cls}'>{step_arrow} {abs(step_delta):,.0f} vs Target</div>
+</div>""", unsafe_allow_html=True)
 
             st.markdown("<div style='margin-top:20px'></div>", unsafe_allow_html=True)
 
@@ -378,10 +377,10 @@ if not df.empty:
             for i, (lbl, color, idx) in enumerate(zip(macro_labels, macro_colors, macro_indices)):
                 val_raw = clean_float(y.iloc[idx])
                 m[i].markdown(f"""
-                  <div class='card' style='border-bottom: 4px solid {color}; box-shadow: 0 10px 20px rgba(0,0,0,0.5), 0 5px 15px {color}33;'>
-                    <div class='label'>{lbl}</div>
-                    <div class='val-sm count-up' data-target='{val_raw}' data-decimals='1' data-suffix='%'>0</div>
-                  </div>""", unsafe_allow_html=True)
+<div class='card' style='border-bottom: 4px solid {color}; box-shadow: 0 10px 20px rgba(0,0,0,0.5), 0 5px 15px {color}33;'>
+  <div class='label'>{lbl}</div>
+  <div class='val-sm count-up' data-target='{val_raw}' data-decimals='1' data-suffix='%'>0</div>
+</div>""", unsafe_allow_html=True)
 
     # ══════════════════════════════════════════
     #  TAB 2 — Lifetime Stats
@@ -391,14 +390,14 @@ if not df.empty:
         st.markdown("<div class='section-header'>Lifetime Stats</div>", unsafe_allow_html=True)
 
         st.markdown(f"""
-          <div class='card' style='background:linear-gradient(135deg,rgba(10,132,255,0.25),rgba(0,0,0,0.6));
-               border-color:rgba(10,132,255,0.7); margin-bottom:1.5rem; animation: breathingGlow 4s infinite, springUpFade 0.7s both;'>
-            <div class='label' style='color:#5ac8fa; font-size:0.85rem; letter-spacing:0.3em;'>// ACTIVE_STREAK</div>
-            <div class='count-up' data-target='{len(df)}' data-decimals='0' style='font-family:Syne,sans-serif; font-size:4.8rem; font-weight:800;
-                        color:#ffffff; margin:10px 0; line-height:1; 
-                        text-shadow: 0 0 20px #0a84ff, 0 0 40px #5ac8fa;'>0</div>
-            <div style='font-family:Space Mono,monospace; font-size:0.85rem; color:#ffffff; font-weight:700;'>CONSECUTIVE DAYS LOGGED</div>
-          </div>""", unsafe_allow_html=True)
+<div class='card' style='background:linear-gradient(135deg,rgba(10,132,255,0.25),rgba(0,0,0,0.6));
+     border-color:rgba(10,132,255,0.7); margin-bottom:1.5rem; animation: breathingGlow 4s infinite, springUpFade 0.7s both;'>
+  <div class='label' style='color:#5ac8fa; font-size:0.85rem; letter-spacing:0.3em;'>// ACTIVE_STREAK</div>
+  <div class='count-up' data-target='{len(df)}' data-decimals='0' style='font-family:Syne,sans-serif; font-size:4.8rem; font-weight:800;
+              color:#ffffff; margin:10px 0; line-height:1; 
+              text-shadow: 0 0 20px #0a84ff, 0 0 40px #5ac8fa;'>0</div>
+  <div style='font-family:Space Mono,monospace; font-size:0.85rem; color:#ffffff; font-weight:700;'>CONSECUTIVE DAYS LOGGED</div>
+</div>""", unsafe_allow_html=True)
 
         c1, c2, c3 = st.columns(3)
         with c1:
@@ -672,12 +671,12 @@ if not df.empty:
                 status = "LOCKED"
                 
             return f"""
-            <div class='card' style='{glow} transition: all 0.3s ease; height: 180px; display: flex; flex-direction: column; justify-content: center;'>
-                <div style='font-size:2.5rem; margin-bottom:8px; text-shadow: 0 5px 15px rgba(0,0,0,0.5);'>{b['icon']}</div>
-                <div class='label' style='color:{val_color}; margin-bottom:4px; letter-spacing:0.15em;'>{status}</div>
-                <div class='val-sm' style='font-size:1.1rem; margin-bottom:2px;'>{b['title']}</div>
-                <div style='font-family:Space Mono,monospace; font-size:0.7rem; color:rgba(255,255,255,0.7);'>{b['desc']}</div>
-            </div>"""
+<div class='card' style='{glow} transition: all 0.3s ease; height: 180px; display: flex; flex-direction: column; justify-content: center;'>
+    <div style='font-size:2.5rem; margin-bottom:8px; text-shadow: 0 5px 15px rgba(0,0,0,0.5);'>{b['icon']}</div>
+    <div class='label' style='color:{val_color}; margin-bottom:4px; letter-spacing:0.15em;'>{status}</div>
+    <div class='val-sm' style='font-size:1.1rem; margin-bottom:2px;'>{b['title']}</div>
+    <div style='font-family:Space Mono,monospace; font-size:0.7rem; color:rgba(255,255,255,0.7);'>{b['desc']}</div>
+</div>"""
 
         for i in range(0, len(badges), 4):
             cols = st.columns(4)
@@ -744,55 +743,55 @@ if not df.empty:
             best_day, worst_day = "N/A", "N/A"
 
         st.markdown(f"""
-        <div class='card' style='text-align: left; padding: 30px; margin-bottom: 20px;'>
-            <div style='font-size: 2rem; margin-bottom: 10px;'>🔥</div>
-            <div class='val-sm' style='margin-bottom: 15px; color: #5ac8fa;'>Caloric Efficiency Engine</div>
-            <div style='font-family: var(--font-body); font-size: 1.1rem; color: rgba(255,255,255,0.9); line-height: 1.6;'>
-                When your daily intake stays <b>at or below your 1,633 target</b>, your following day's weight changes by an average of <span style='color: {cal_insight_color}; font-weight: bold;'>{cal_str_good}</span>. 
-                Conversely, when you exceed the calorie limit, your next day's weight changes by an average of <span style='color: #ff453a; font-weight: bold;'>{cal_str_bad}</span>.
-            </div>
-        </div>
-        """, unsafe_allow_html=True)
+<div class='card' style='text-align: left; padding: 30px; margin-bottom: 20px;'>
+    <div style='font-size: 2rem; margin-bottom: 10px;'>🔥</div>
+    <div class='val-sm' style='margin-bottom: 15px; color: #5ac8fa;'>Caloric Efficiency Engine</div>
+    <div style='font-family: var(--font-body); font-size: 1.1rem; color: rgba(255,255,255,0.9); line-height: 1.6;'>
+        When your daily intake stays <b>at or below your 1,633 target</b>, your following day's weight changes by an average of <span style='color: {cal_insight_color}; font-weight: bold;'>{cal_str_good}</span>. 
+        Conversely, when you exceed the calorie limit, your next day's weight changes by an average of <span style='color: #ff453a; font-weight: bold;'>{cal_str_bad}</span>.
+    </div>
+</div>
+""", unsafe_allow_html=True)
 
         st.markdown(f"""
-        <div class='card' style='text-align: left; padding: 30px; margin-bottom: 20px;'>
-            <div style='font-size: 2rem; margin-bottom: 10px;'>👟</div>
-            <div class='val-sm' style='margin-bottom: 15px; color: #5ac8fa;'>Kinetic Success Rate</div>
-            <div style='font-family: var(--font-body); font-size: 1.1rem; color: rgba(255,255,255,0.9); line-height: 1.6;'>
-                Hitting your 10,000 step goal yields a <span style='color: #30d158; font-weight: bold; font-size: 1.2em;'>{success_rate:.0f}%</span> success rate for a weight drop on the scale the very next morning. Consistency here directly influences the trendline.
-            </div>
-        </div>
-        """, unsafe_allow_html=True)
+<div class='card' style='text-align: left; padding: 30px; margin-bottom: 20px;'>
+    <div style='font-size: 2rem; margin-bottom: 10px;'>👟</div>
+    <div class='val-sm' style='margin-bottom: 15px; color: #5ac8fa;'>Kinetic Success Rate</div>
+    <div style='font-family: var(--font-body); font-size: 1.1rem; color: rgba(255,255,255,0.9); line-height: 1.6;'>
+        Hitting your 10,000 step goal yields a <span style='color: #30d158; font-weight: bold; font-size: 1.2em;'>{success_rate:.0f}%</span> success rate for a weight drop on the scale the very next morning. Consistency here directly influences the trendline.
+    </div>
+</div>
+""", unsafe_allow_html=True)
         
         st.markdown(f"""
-        <div class='card' style='text-align: left; padding: 30px; margin-bottom: 20px;'>
-            <div style='font-size: 2rem; margin-bottom: 10px;'>💧</div>
-            <div class='val-sm' style='margin-bottom: 15px; color: #5ac8fa;'>The Hydration Catalyst</div>
-            <div style='font-family: var(--font-body); font-size: 1.1rem; color: rgba(255,255,255,0.9); line-height: 1.6;'>
-                Drinking 3L or more of water gives you a <span style='color: #30d158; font-weight: bold;'>{hyd_success_good:.0f}%</span> chance of dropping weight the next day. On days you miss your water target, that drops to <span style='color: #ff9f0a; font-weight: bold;'>{hyd_success_bad:.0f}%</span>.
-            </div>
-        </div>
-        """, unsafe_allow_html=True)
+<div class='card' style='text-align: left; padding: 30px; margin-bottom: 20px;'>
+    <div style='font-size: 2rem; margin-bottom: 10px;'>💧</div>
+    <div class='val-sm' style='margin-bottom: 15px; color: #5ac8fa;'>The Hydration Catalyst</div>
+    <div style='font-family: var(--font-body); font-size: 1.1rem; color: rgba(255,255,255,0.9); line-height: 1.6;'>
+        Drinking 3L or more of water gives you a <span style='color: #30d158; font-weight: bold;'>{hyd_success_good:.0f}%</span> chance of dropping weight the next day. On days you miss your water target, that drops to <span style='color: #ff9f0a; font-weight: bold;'>{hyd_success_bad:.0f}%</span>.
+    </div>
+</div>
+""", unsafe_allow_html=True)
 
         st.markdown(f"""
-        <div class='card' style='text-align: left; padding: 30px; margin-bottom: 20px;'>
-            <div style='font-size: 2rem; margin-bottom: 10px;'>🥩</div>
-            <div class='val-sm' style='margin-bottom: 15px; color: #5ac8fa;'>Protein Power Correlation</div>
-            <div style='font-family: var(--font-body); font-size: 1.1rem; color: rgba(255,255,255,0.9); line-height: 1.6;'>
-                On days where protein makes up 30%+ of your macros, your next day's average scale shift is <span style='font-weight: bold;'>{avg_change_high_prot:+.2f} lbs</span>. On days under 30%, the shift averages <span style='font-weight: bold;'>{avg_change_low_prot:+.2f} lbs</span>.
-            </div>
-        </div>
-        """, unsafe_allow_html=True)
+<div class='card' style='text-align: left; padding: 30px; margin-bottom: 20px;'>
+    <div style='font-size: 2rem; margin-bottom: 10px;'>🥩</div>
+    <div class='val-sm' style='margin-bottom: 15px; color: #5ac8fa;'>Protein Power Correlation</div>
+    <div style='font-family: var(--font-body); font-size: 1.1rem; color: rgba(255,255,255,0.9); line-height: 1.6;'>
+        On days where protein makes up 30%+ of your macros, your next day's average scale shift is <span style='font-weight: bold;'>{avg_change_high_prot:+.2f} lbs</span>. On days under 30%, the shift averages <span style='font-weight: bold;'>{avg_change_low_prot:+.2f} lbs</span>.
+    </div>
+</div>
+""", unsafe_allow_html=True)
         
         st.markdown(f"""
-        <div class='card' style='text-align: left; padding: 30px; margin-bottom: 20px;'>
-            <div style='font-size: 2rem; margin-bottom: 10px;'>📅</div>
-            <div class='val-sm' style='margin-bottom: 15px; color: #5ac8fa;'>The Weekly Profiler</div>
-            <div style='font-family: var(--font-body); font-size: 1.1rem; color: rgba(255,255,255,0.9); line-height: 1.6;'>
-                Historically, <span style='color: #30d158; font-weight: bold;'>{best_day}s</span> are when you see the biggest drops on the scale. By contrast, <span style='color: #ff453a; font-weight: bold;'>{worst_day}s</span> tend to be your most resistant days.
-            </div>
-        </div>
-        """, unsafe_allow_html=True)
+<div class='card' style='text-align: left; padding: 30px; margin-bottom: 20px;'>
+    <div style='font-size: 2rem; margin-bottom: 10px;'>📅</div>
+    <div class='val-sm' style='margin-bottom: 15px; color: #5ac8fa;'>The Weekly Profiler</div>
+    <div style='font-family: var(--font-body); font-size: 1.1rem; color: rgba(255,255,255,0.9); line-height: 1.6;'>
+        Historically, <span style='color: #30d158; font-weight: bold;'>{best_day}s</span> are when you see the biggest drops on the scale. By contrast, <span style='color: #ff453a; font-weight: bold;'>{worst_day}s</span> tend to be your most resistant days.
+    </div>
+</div>
+""", unsafe_allow_html=True)
 
     # ══════════════════════════════════════════
     #  TAB 14 — Weekly Sit Rep
@@ -860,22 +859,22 @@ if not df.empty:
                 eta_str = (pd.Timestamp.now() + pd.Timedelta(days=eta_days)).strftime('%b %d') if eta_days else "N/A"
                 
                 cols[i].markdown(f"""
-                <div class='card'>
-                    <div class='label'>{name}</div>
-                    <div class='val-sm' style='color:#5ac8fa'>{loss_per_week:.1f} lbs/wk</div>
-                    <div style='font-size:0.8rem; margin-top:5px'>ETA: {eta_str}</div>
-                </div>
-                """, unsafe_allow_html=True)
+<div class='card'>
+    <div class='label'>{name}</div>
+    <div class='val-sm' style='color:#5ac8fa'>{loss_per_week:.1f} lbs/wk</div>
+    <div style='font-size:0.8rem; margin-top:5px'>ETA: {eta_str}</div>
+</div>
+""", unsafe_allow_html=True)
             else:
                 cols[i].markdown(f"<div class='card'><div class='label'>{name}</div><div class='val-sm'>Insufficient</div></div>", unsafe_allow_html=True)
 
         if current_w > 170:
             st.markdown(f"""
-            <div class='card' style='margin-top:20px; border: 1px solid #5ac8fa; padding:30px;'>
-                <div class='label'>Current Trajectory Insight</div>
-                <div style='font-size:1.2rem; margin-top:10px;'>Your current 14-day velocity is the most accurate reflection of your <b>immediate</b> progress. Compare it against your 60-day average to determine if your metabolism is adapting or if consistency is shifting.</div>
-            </div>
-            """, unsafe_allow_html=True)
+<div class='card' style='margin-top:20px; border: 1px solid #5ac8fa; padding:30px;'>
+    <div class='label'>Current Trajectory Insight</div>
+    <div style='font-size:1.2rem; margin-top:10px;'>Your current 14-day velocity is the most accurate reflection of your <b>immediate</b> progress. Compare it against your 60-day average to determine if your metabolism is adapting or if consistency is shifting.</div>
+</div>
+""", unsafe_allow_html=True)
 
     # ══════════════════════════════════════════
     #  TAB 16 — Raw Telemetry Log
@@ -985,95 +984,97 @@ if not df.empty:
         m_loss_glow = "box-shadow: 0 0 15px #ff0055;" if l7_loss > 0 else "opacity: 0.3;"
 
         # FFVII Menu UI
+        # CRITICAL FIX: The HTML code below must not have any leading spaces, otherwise 
+        # Streamlit thinks it is a markdown code block!
         st.markdown(f"""
-        <div style="background: linear-gradient(135deg, #000033 0%, #001188 100%); 
-                    border: 3px solid #silver; border-radius: 8px; padding: 25px; 
-                    font-family: 'Space Mono', monospace; color: white; 
-                    box-shadow: inset 0 0 20px rgba(0,0,0,0.8), 0 10px 30px rgba(0,0,0,0.8);
-                    text-transform: uppercase;">
+<div style="background: linear-gradient(135deg, #000033 0%, #001188 100%); 
+            border: 3px solid #C0C0C0; border-radius: 8px; padding: 25px; 
+            font-family: 'Space Mono', monospace; color: white; 
+            box-shadow: inset 0 0 20px rgba(0,0,0,0.8), 0 10px 30px rgba(0,0,0,0.8);
+            text-transform: uppercase;">
+    
+    <div style="display: flex; justify-content: space-between; border-bottom: 2px solid rgba(255,255,255,0.3); padding-bottom: 15px; margin-bottom: 20px;">
+        <div style="font-size: 2.2rem; font-weight: bold; letter-spacing: 2px;">HARDY</div>
+        <div style="text-align: right;">
+            <div style="font-size: 1rem; color: #5ac8fa;">LV</div>
+            <div style="font-size: 2.5rem; font-weight: bold; line-height: 1;">{current_level}</div>
+        </div>
+    </div>
+
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px;">
+        
+        <div>
+            <div style="margin-bottom: 15px;">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                    <span style="color: #5ac8fa;">HP</span>
+                    <span>{current_hp} / {max_hp}</span>
+                </div>
+                <div style="background: rgba(0,0,0,0.5); height: 12px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.2); overflow: hidden;">
+                    <div style="background: {hp_color}; width: {(current_hp/max_hp)*100}%; height: 100%; transition: width 1s;"></div>
+                </div>
+            </div>
             
-            <div style="display: flex; justify-content: space-between; border-bottom: 2px solid rgba(255,255,255,0.3); padding-bottom: 15px; margin-bottom: 20px;">
-                <div style="font-size: 2.2rem; font-weight: bold; letter-spacing: 2px;">HARDY</div>
-                <div style="text-align: right;">
-                    <div style="font-size: 1rem; color: #5ac8fa;">LV</div>
-                    <div style="font-size: 2.5rem; font-weight: bold; line-height: 1;">{current_level}</div>
+            <div style="margin-bottom: 20px;">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                    <span style="color: #5ac8fa;">MP</span>
+                    <span>{current_mp} / {max_mp}</span>
+                </div>
+                <div style="background: rgba(0,0,0,0.5); height: 12px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.2); overflow: hidden;">
+                    <div style="background: #00aaff; width: {(current_mp/max_mp)*100}%; height: 100%; transition: width 1s;"></div>
                 </div>
             </div>
 
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px;">
-                
-                <div>
-                    <div style="margin-bottom: 15px;">
-                        <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
-                            <span style="color: #5ac8fa;">HP</span>
-                            <span>{current_hp} / {max_hp}</span>
-                        </div>
-                        <div style="background: rgba(0,0,0,0.5); height: 12px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.2); overflow: hidden;">
-                            <div style="background: {hp_color}; width: {(current_hp/max_hp)*100}%; height: 100%; transition: width 1s;"></div>
-                        </div>
-                    </div>
-                    
-                    <div style="margin-bottom: 20px;">
-                        <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
-                            <span style="color: #5ac8fa;">MP</span>
-                            <span>{current_mp} / {max_mp}</span>
-                        </div>
-                        <div style="background: rgba(0,0,0,0.5); height: 12px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.2); overflow: hidden;">
-                            <div style="background: #00aaff; width: {(current_mp/max_mp)*100}%; height: 100%; transition: width 1s;"></div>
-                        </div>
-                    </div>
-
-                    <div style="margin-top: 30px;">
-                        <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
-                            <span style="color: #ff55aa; font-weight:bold;">LIMIT</span>
-                            <span style="font-size: 0.8rem;">{limit_text}</span>
-                        </div>
-                        <div style="background: rgba(0,0,0,0.5); height: 16px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.5); overflow: hidden;">
-                            <div style="background: {limit_color}; width: {limit_pct}%; height: 100%; transition: width 1s; box-shadow: 0 0 10px rgba(255,0,85,0.8);"></div>
-                        </div>
-                    </div>
+            <div style="margin-top: 30px;">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                    <span style="color: #ff55aa; font-weight:bold;">LIMIT</span>
+                    <span style="font-size: 0.8rem;">{limit_text}</span>
                 </div>
-
-                <div>
-                    <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
-                        <span style="color: #5ac8fa;">EXP</span>
-                        <span>{total_exp:,}</span>
-                    </div>
-                    <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
-                        <span style="color: #5ac8fa;">NEXT LEVEL</span>
-                        <span>{exp_needed - exp_progress:,}</span>
-                    </div>
-                    <div style="background: rgba(0,0,0,0.5); height: 8px; border-radius: 4px; margin-bottom: 30px; border: 1px solid rgba(255,255,255,0.2); overflow: hidden;">
-                        <div style="background: linear-gradient(90deg, #5ac8fa, #ffffff); width: {exp_pct}%; height: 100%;"></div>
-                    </div>
-
-                    <div style="display: flex; justify-content: space-between; margin-bottom: 30px; border-bottom: 1px dashed rgba(255,255,255,0.3); padding-bottom: 10px;">
-                        <span style="color: #5ac8fa;">GIL</span>
-                        <span style="font-size: 1.2rem;">{total_gil:,}</span>
-                    </div>
-
-                    <div>
-                        <span style="color: #5ac8fa; font-size: 0.9rem;">EQUIPMENT (7-DAY AVERAGES)</span>
-                        <div style="display: flex; align-items: center; margin-top: 15px;">
-                            <div style="width: 150px;">BUSTER SCALE</div>
-                            <div style="display: flex; gap: 10px; background: rgba(0,0,0,0.4); padding: 5px 15px; border-radius: 20px; border: 1px solid #555;">
-                                <div style="width: 20px; height: 20px; border-radius: 50%; background: radial-gradient(circle at 30% 30%, #55ffcc, #008855); {m_diet_glow}" title="Diet Materia"></div>
-                                <div style="width: 20px; height: 20px; border-radius: 50%; background: radial-gradient(circle at 30% 30%, #ff5588, #880022); {m_loss_glow}" title="Weight Materia"></div>
-                            </div>
-                        </div>
-                        <div style="display: flex; align-items: center; margin-top: 15px;">
-                            <div style="width: 150px;">SHINRA BAND</div>
-                            <div style="display: flex; gap: 10px; background: rgba(0,0,0,0.4); padding: 5px 15px; border-radius: 20px; border: 1px solid #555;">
-                                <div style="width: 20px; height: 20px; border-radius: 50%; background: radial-gradient(circle at 30% 30%, #ffff55, #888800); {m_step_glow}" title="Step Materia"></div>
-                                <div style="width: 20px; height: 20px; border-radius: 50%; background: radial-gradient(circle at 30% 30%, #55ccff, #005588); {m_water_glow}" title="Water Materia"></div>
-                            </div>
-                        </div>
-                    </div>
-
+                <div style="background: rgba(0,0,0,0.5); height: 16px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.5); overflow: hidden;">
+                    <div style="background: {limit_color}; width: {limit_pct}%; height: 100%; transition: width 1s; box-shadow: 0 0 10px rgba(255,0,85,0.8);"></div>
                 </div>
             </div>
         </div>
-        """, unsafe_allow_html=True)
+
+        <div>
+            <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                <span style="color: #5ac8fa;">EXP</span>
+                <span>{total_exp:,}</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                <span style="color: #5ac8fa;">NEXT LEVEL</span>
+                <span>{exp_needed - exp_progress:,}</span>
+            </div>
+            <div style="background: rgba(0,0,0,0.5); height: 8px; border-radius: 4px; margin-bottom: 30px; border: 1px solid rgba(255,255,255,0.2); overflow: hidden;">
+                <div style="background: linear-gradient(90deg, #5ac8fa, #ffffff); width: {exp_pct}%; height: 100%;"></div>
+            </div>
+
+            <div style="display: flex; justify-content: space-between; margin-bottom: 30px; border-bottom: 1px dashed rgba(255,255,255,0.3); padding-bottom: 10px;">
+                <span style="color: #5ac8fa;">GIL</span>
+                <span style="font-size: 1.2rem;">{total_gil:,}</span>
+            </div>
+
+            <div>
+                <span style="color: #5ac8fa; font-size: 0.9rem;">EQUIPMENT (7-DAY AVERAGES)</span>
+                <div style="display: flex; align-items: center; margin-top: 15px;">
+                    <div style="width: 150px;">BUSTER SCALE</div>
+                    <div style="display: flex; gap: 10px; background: rgba(0,0,0,0.4); padding: 5px 15px; border-radius: 20px; border: 1px solid #555;">
+                        <div style="width: 20px; height: 20px; border-radius: 50%; background: radial-gradient(circle at 30% 30%, #55ffcc, #008855); {m_diet_glow}" title="Diet Materia"></div>
+                        <div style="width: 20px; height: 20px; border-radius: 50%; background: radial-gradient(circle at 30% 30%, #ff5588, #880022); {m_loss_glow}" title="Weight Materia"></div>
+                    </div>
+                </div>
+                <div style="display: flex; align-items: center; margin-top: 15px;">
+                    <div style="width: 150px;">SHINRA BAND</div>
+                    <div style="display: flex; gap: 10px; background: rgba(0,0,0,0.4); padding: 5px 15px; border-radius: 20px; border: 1px solid #555;">
+                        <div style="width: 20px; height: 20px; border-radius: 50%; background: radial-gradient(circle at 30% 30%, #ffff55, #888800); {m_step_glow}" title="Step Materia"></div>
+                        <div style="width: 20px; height: 20px; border-radius: 50%; background: radial-gradient(circle at 30% 30%, #55ccff, #005588); {m_water_glow}" title="Water Materia"></div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+""", unsafe_allow_html=True)
 
 
     # ─────────────────────────────────────────────
