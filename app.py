@@ -255,9 +255,17 @@ def load_data():
 df = load_data()
 
 # ─────────────────────────────────────────────
-#  HELPERS
+#  HELPERS & SAFEGUARDS
 # ─────────────────────────────────────────────
+if not df.empty:
+    # GLOBAL SAFEGUARD: Pad the dataframe out to 26 columns to prevent index errors
+    # if the Google Sheet data cuts off before column Z.
+    while len(df.columns) <= 25:
+        df[len(df.columns)] = ""
+
 def get_num(idx):
+    if idx >= len(df.columns):
+        return pd.Series([0.0] * len(df))
     return pd.to_numeric(df.iloc[:, idx].astype(str).str.replace('%', '').str.replace(',', ''), errors='coerce')
 
 def clean_float(val):
@@ -874,11 +882,33 @@ if not df.empty:
     # ══════════════════════════════════════════
     with tab16:
         st.markdown("<div class='section-header'>Raw Telemetry</div>", unsafe_allow_html=True)
+        st.markdown("<div class='section-sub'>Latest 30 Days Data Log</div>", unsafe_allow_html=True)
+        
+        # Format the dataframe for display
         display_df = df.copy()
-        display_df[0] = display_df[0].dt.strftime('%Y-%m-%d')
-        display_df = display_df.iloc[::-1].head(30)
-        cols_to_show = {'0': 'Date', '1': 'Cals In', '3': 'Weight (lbs)', '12': 'Steps', '16': 'Prot %', '17': 'Carbs %', '24': 'Water (ml)'}
-        st.dataframe(display_df[list(cols_to_show.keys())].rename(columns=cols_to_show), use_container_width=True, hide_index=True, height=400)
+        
+        if not display_df.empty:
+            display_df[0] = display_df[0].dt.strftime('%Y-%m-%d')
+            display_df = display_df.iloc[::-1].head(30) # Newest first
+            display_df.columns = [str(i) for i in range(len(display_df.columns))] # temp columns to avoid issues
+            
+            # Pick the most important columns to show so it fits nicely
+            cols_to_show = {
+                '0': 'Date', '1': 'Cals In', '3': 'Weight (lbs)', '12': 'Steps', 
+                '16': 'Protein %', '17': 'Carbs %', '18': 'Fat %', '24': 'Water (ml)'
+            }
+            
+            # SAFE FILTER: Only grab columns that actually exist in the dataframe right now
+            valid_cols = {k: v for k, v in cols_to_show.items() if k in display_df.columns}
+            
+            clean_df = display_df[list(valid_cols.keys())].rename(columns=valid_cols)
+            
+            st.dataframe(
+                clean_df, 
+                use_container_width=True, 
+                hide_index=True,
+                height=400
+            )
 
     # ══════════════════════════════════════════
     #  TAB 17 — SOLDIER RPG Engine
@@ -947,7 +977,7 @@ if not df.empty:
         avg_cals = pd.to_numeric(l7.iloc[:, 1], errors='coerce').mean()
         avg_steps = pd.to_numeric(l7.iloc[:, 12], errors='coerce').mean()
         avg_water = pd.to_numeric(l7.iloc[:, 24], errors='coerce').mean()
-        l7_loss = pd.to_numeric(l7.iloc[0, 3], errors='coerce') - pd.to_numeric(l7.iloc[-1, 3], errors='coerce')
+        l7_loss = pd.to_numeric(l7.iloc[0, 3], errors='coerce') - pd.to_numeric(l7.iloc[-1, 3], errors='coerce') if not l7.empty else 0
 
         m_diet_glow = "box-shadow: 0 0 15px #00ffaa;" if avg_cals <= 1633 else "opacity: 0.3;"
         m_step_glow = "box-shadow: 0 0 15px #ffdd00;" if avg_steps >= 10000 else "opacity: 0.3;"
@@ -972,9 +1002,7 @@ if not df.empty:
 
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px;">
                 
-                <!-- Left Column: HP, MP, Limit -->
                 <div>
-                    <!-- HP -->
                     <div style="margin-bottom: 15px;">
                         <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
                             <span style="color: #5ac8fa;">HP</span>
@@ -985,7 +1013,6 @@ if not df.empty:
                         </div>
                     </div>
                     
-                    <!-- MP -->
                     <div style="margin-bottom: 20px;">
                         <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
                             <span style="color: #5ac8fa;">MP</span>
@@ -996,7 +1023,6 @@ if not df.empty:
                         </div>
                     </div>
 
-                    <!-- Limit Break -->
                     <div style="margin-top: 30px;">
                         <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
                             <span style="color: #ff55aa; font-weight:bold;">LIMIT</span>
@@ -1008,7 +1034,6 @@ if not df.empty:
                     </div>
                 </div>
 
-                <!-- Right Column: EXP, Gil, Materia -->
                 <div>
                     <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
                         <span style="color: #5ac8fa;">EXP</span>
