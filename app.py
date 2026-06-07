@@ -319,10 +319,10 @@ if not df.empty:
     </div>
     """, unsafe_allow_html=True)
 
-    # ── Tab bar (16 Tabs) ──
-    tab1, tab2, tab3, tab4, tab5, tab6, tab7, tab8, tab9, tab10, tab11, tab12, tab13, tab14, tab15, tab16 = st.tabs([
+    # ── Tab bar (17 Tabs) ──
+    tab1, tab2, tab3, tab4, tab5, tab6, tab7, tab8, tab9, tab10, tab11, tab12, tab13, tab14, tab15, tab16, tab17 = st.tabs([
         "🛡️ Review", "📊 Lifetime", "🔥 Calories", "💧 Hydration", "⚖️ Weight",
-        "📉 Trend", "👟 Steps", "🥗 Macros", "📈 Averages", "❤️ BP", "🎯 Target", "🏆 Trophies", "🧠 Analytics", "📋 Sit Rep", "🔮 Forecast", "🗄️ Data Log"
+        "📉 Trend", "👟 Steps", "🥗 Macros", "📈 Averages", "❤️ BP", "🎯 Target", "🏆 Trophies", "🧠 Analytics", "📋 Sit Rep", "🔮 Forecast", "🗄️ Data Log", "🗡️ SOLDIER"
     ])
 
     # ══════════════════════════════════════════
@@ -836,64 +836,220 @@ if not df.empty:
     #  TAB 15 — Forecast Projection
     # ══════════════════════════════════════════
     with tab15:
-        st.markdown("<div class='section-header'>Forecasting Engine</div>", unsafe_allow_html=True)
-        st.markdown("<div class='section-sub'>Estimated Time of Arrival (ETA) to 170 lbs</div>", unsafe_allow_html=True)
-        
+        st.markdown("<div class='section-header'>Velocity & Forecasting</div>", unsafe_allow_html=True)
         w_series = get_num(3).dropna()
-        if len(w_series) >= 14:
-            recent_14 = w_series.tail(14)
-            # Calculate linear rate
-            loss_rate_per_day = (recent_14.iloc[0] - recent_14.iloc[-1]) / len(recent_14)
-            current_w = w_series.iloc[-1]
-            
-            if loss_rate_per_day > 0 and current_w > 170:
-                days_to_goal = int((current_w - 170) / loss_rate_per_day)
-                eta_date = pd.Timestamp.now() + pd.Timedelta(days=days_to_goal)
+        current_w = w_series.iloc[-1]
+        
+        # Calculate velocity for different windows
+        windows = [("Lifetime", len(w_series)), ("60 Days", 60), ("30 Days", 30), ("14 Days", 14)]
+        
+        cols = st.columns(4)
+        for i, (name, days) in enumerate(windows):
+            data_win = w_series.tail(days)
+            if len(data_win) >= 7:
+                loss_per_week = (data_win.iloc[0] - data_win.iloc[-1]) / (len(data_win)/7)
+                eta_days = int((current_w - 170) / (loss_per_week/7)) if loss_per_week > 0 and current_w > 170 else None
+                eta_str = (pd.Timestamp.now() + pd.Timedelta(days=eta_days)).strftime('%b %d') if eta_days else "N/A"
                 
-                st.markdown(f"""
-                <div class='card' style='padding: 40px 20px; border: 1px solid rgba(10, 132, 255, 0.4); box-shadow: 0 0 30px rgba(10,132,255,0.2);'>
-                    <div style='font-size: 3rem; margin-bottom: 10px;'>🔮</div>
-                    <div class='val' style='font-size: 2.5rem; color: #5ac8fa;'>{eta_date.strftime('%B %d, %Y')}</div>
-                    <div class='label' style='margin-top: 15px; font-size: 0.9rem;'>Projected Goal Achievement Date</div>
-                    <div style='font-family: var(--font-body); font-size: 1rem; color: rgba(255,255,255,0.7); margin-top: 15px;'>
-                        Based on your 14-day velocity of dropping {loss_rate_per_day*7:.1f} lbs per week. 
-                    </div>
+                cols[i].markdown(f"""
+                <div class='card'>
+                    <div class='label'>{name}</div>
+                    <div class='val-sm' style='color:#5ac8fa'>{loss_per_week:.1f} lbs/wk</div>
+                    <div style='font-size:0.8rem; margin-top:5px'>ETA: {eta_str}</div>
                 </div>
                 """, unsafe_allow_html=True)
-            elif current_w <= 170:
-                st.markdown("<div class='card'><div class='val' style='color:#30d158;'>TARGET ACHIEVED</div></div>", unsafe_allow_html=True)
             else:
-                st.info("Velocity currently neutral or positive. Maintain a continuous deficit to generate an ETA.")
-        else:
-            st.info("Requires at least 14 days of logged weight data to calculate a reliable projection.")
+                cols[i].markdown(f"<div class='card'><div class='label'>{name}</div><div class='val-sm'>Insufficient</div></div>", unsafe_allow_html=True)
+
+        if current_w > 170:
+            st.markdown(f"""
+            <div class='card' style='margin-top:20px; border: 1px solid #5ac8fa; padding:30px;'>
+                <div class='label'>Current Trajectory Insight</div>
+                <div style='font-size:1.2rem; margin-top:10px;'>Your current 14-day velocity is the most accurate reflection of your <b>immediate</b> progress. Compare it against your 60-day average to determine if your metabolism is adapting or if consistency is shifting.</div>
+            </div>
+            """, unsafe_allow_html=True)
 
     # ══════════════════════════════════════════
     #  TAB 16 — Raw Telemetry Log
     # ══════════════════════════════════════════
     with tab16:
         st.markdown("<div class='section-header'>Raw Telemetry</div>", unsafe_allow_html=True)
-        st.markdown("<div class='section-sub'>Latest 30 Days Data Log</div>", unsafe_allow_html=True)
-        
-        # Format the dataframe for display
         display_df = df.copy()
         display_df[0] = display_df[0].dt.strftime('%Y-%m-%d')
-        display_df = display_df.iloc[::-1].head(30) # Newest first
-        display_df.columns = [str(i) for i in range(len(display_df.columns))] # temp columns to avoid issues
+        display_df = display_df.iloc[::-1].head(30)
+        cols_to_show = {'0': 'Date', '1': 'Cals In', '3': 'Weight (lbs)', '12': 'Steps', '16': 'Prot %', '17': 'Carbs %', '24': 'Water (ml)'}
+        st.dataframe(display_df[list(cols_to_show.keys())].rename(columns=cols_to_show), use_container_width=True, hide_index=True, height=400)
+
+    # ══════════════════════════════════════════
+    #  TAB 17 — SOLDIER RPG Engine
+    # ══════════════════════════════════════════
+    with tab17:
+        st.markdown("<div class='section-header'>SOLDIER Status</div>", unsafe_allow_html=True)
+        st.markdown("<div class='section-sub'>Final Fantasy VII Telemetry Engine</div>", unsafe_allow_html=True)
+
+        # Retrieve full data series for logic
+        cals_s = get_num(1).fillna(9999)
+        steps_s = get_num(12).fillna(0)
+        water_s = get_num(24).fillna(0)
+        weight_s = get_num(3).dropna()
+
+        # 1. Total EXP Calculation
+        total_exp = 0
+        total_exp += len(df) * 50  # 50 EXP for logging
+        total_exp += (cals_s <= 1633).sum() * 100 # 100 EXP for calories
+        total_exp += (steps_s >= 10000).sum() * 100 # 100 EXP for steps
+        total_exp += (water_s >= 3000).sum() * 50 # 50 EXP for water
         
-        # Pick the most important columns to show so it fits nicely
-        cols_to_show = {
-            '0': 'Date', '1': 'Cals In', '3': 'Weight (lbs)', '12': 'Steps', 
-            '16': 'Protein %', '17': 'Carbs %', '18': 'Fat %', '24': 'Water (ml)'
-        }
+        total_loss = (weight_s.iloc[0] - weight_s.iloc[-1]) if len(weight_s) > 0 else 0
+        if total_loss > 0:
+            total_exp += int(total_loss * 500) # Big EXP for actual weight loss
+
+        # Level Scaling Curve (FF style exponential)
+        current_level = int((total_exp / 150) ** 0.6) + 1
+        exp_for_current = int(150 * ((current_level - 1) ** (1/0.6)))
+        exp_for_next = int(150 * (current_level ** (1/0.6)))
         
-        clean_df = display_df[list(cols_to_show.keys())].rename(columns=cols_to_show)
-        
-        st.dataframe(
-            clean_df, 
-            use_container_width=True, 
-            hide_index=True,
-            height=400
-        )
+        # Calculate progress to next level
+        exp_progress = total_exp - exp_for_current
+        exp_needed = exp_for_next - exp_for_current
+        exp_pct = min(100, max(0, (exp_progress / exp_needed) * 100))
+
+        # 2. Daily HP and MP
+        today_steps = steps_s.iloc[-1] if not steps_s.empty else 0
+        today_water = water_s.iloc[-1] if not water_s.empty else 0
+
+        max_hp = 9999
+        current_hp = int(min(1.0, today_steps / 10000) * max_hp) if today_steps > 0 else 0
+        hp_color = "#00ffaa" if current_hp > 3000 else "#ffaa00"
+        if current_hp < 1000: hp_color = "#ff0055"
+
+        max_mp = 999
+        current_mp = int(min(1.0, today_water / 3000) * max_mp) if today_water > 0 else 0
+
+        # 3. Limit Break Gauge
+        limit_streak = 0
+        for val in cals_s[::-1]:
+            if val <= 1633 and val > 0:
+                limit_streak += 1
+            else:
+                break
+                
+        limit_pct = min(100, (limit_streak / 7) * 100)
+        is_limit_break = limit_streak >= 7
+        limit_color = "linear-gradient(90deg, #ff0055, #ffaa00)" if is_limit_break else "linear-gradient(90deg, #aa00ff, #ff00aa)"
+        limit_text = "LIMIT BREAK!" if is_limit_break else f"GAUGE: {limit_streak}/7"
+
+        # 4. Gil (Total steps)
+        total_gil = int(steps_s.sum())
+
+        # 5. Materia Status (7-day averages)
+        l7 = df.iloc[-7:] if len(df) >= 7 else df
+        avg_cals = pd.to_numeric(l7.iloc[:, 1], errors='coerce').mean()
+        avg_steps = pd.to_numeric(l7.iloc[:, 12], errors='coerce').mean()
+        avg_water = pd.to_numeric(l7.iloc[:, 24], errors='coerce').mean()
+        l7_loss = pd.to_numeric(l7.iloc[0, 3], errors='coerce') - pd.to_numeric(l7.iloc[-1, 3], errors='coerce')
+
+        m_diet_glow = "box-shadow: 0 0 15px #00ffaa;" if avg_cals <= 1633 else "opacity: 0.3;"
+        m_step_glow = "box-shadow: 0 0 15px #ffdd00;" if avg_steps >= 10000 else "opacity: 0.3;"
+        m_water_glow = "box-shadow: 0 0 15px #00aaff;" if avg_water >= 3000 else "opacity: 0.3;"
+        m_loss_glow = "box-shadow: 0 0 15px #ff0055;" if l7_loss > 0 else "opacity: 0.3;"
+
+        # FFVII Menu UI
+        st.markdown(f"""
+        <div style="background: linear-gradient(135deg, #000033 0%, #001188 100%); 
+                    border: 3px solid #silver; border-radius: 8px; padding: 25px; 
+                    font-family: 'Space Mono', monospace; color: white; 
+                    box-shadow: inset 0 0 20px rgba(0,0,0,0.8), 0 10px 30px rgba(0,0,0,0.8);
+                    text-transform: uppercase;">
+            
+            <div style="display: flex; justify-content: space-between; border-bottom: 2px solid rgba(255,255,255,0.3); padding-bottom: 15px; margin-bottom: 20px;">
+                <div style="font-size: 2.2rem; font-weight: bold; letter-spacing: 2px;">HARDY</div>
+                <div style="text-align: right;">
+                    <div style="font-size: 1rem; color: #5ac8fa;">LV</div>
+                    <div style="font-size: 2.5rem; font-weight: bold; line-height: 1;">{current_level}</div>
+                </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px;">
+                
+                <!-- Left Column: HP, MP, Limit -->
+                <div>
+                    <!-- HP -->
+                    <div style="margin-bottom: 15px;">
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                            <span style="color: #5ac8fa;">HP</span>
+                            <span>{current_hp} / {max_hp}</span>
+                        </div>
+                        <div style="background: rgba(0,0,0,0.5); height: 12px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.2); overflow: hidden;">
+                            <div style="background: {hp_color}; width: {(current_hp/max_hp)*100}%; height: 100%; transition: width 1s;"></div>
+                        </div>
+                    </div>
+                    
+                    <!-- MP -->
+                    <div style="margin-bottom: 20px;">
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                            <span style="color: #5ac8fa;">MP</span>
+                            <span>{current_mp} / {max_mp}</span>
+                        </div>
+                        <div style="background: rgba(0,0,0,0.5); height: 12px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.2); overflow: hidden;">
+                            <div style="background: #00aaff; width: {(current_mp/max_mp)*100}%; height: 100%; transition: width 1s;"></div>
+                        </div>
+                    </div>
+
+                    <!-- Limit Break -->
+                    <div style="margin-top: 30px;">
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                            <span style="color: #ff55aa; font-weight:bold;">LIMIT</span>
+                            <span style="font-size: 0.8rem;">{limit_text}</span>
+                        </div>
+                        <div style="background: rgba(0,0,0,0.5); height: 16px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.5); overflow: hidden;">
+                            <div style="background: {limit_color}; width: {limit_pct}%; height: 100%; transition: width 1s; box-shadow: 0 0 10px rgba(255,0,85,0.8);"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Column: EXP, Gil, Materia -->
+                <div>
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                        <span style="color: #5ac8fa;">EXP</span>
+                        <span>{total_exp:,}</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                        <span style="color: #5ac8fa;">NEXT LEVEL</span>
+                        <span>{exp_needed - exp_progress:,}</span>
+                    </div>
+                    <div style="background: rgba(0,0,0,0.5); height: 8px; border-radius: 4px; margin-bottom: 30px; border: 1px solid rgba(255,255,255,0.2); overflow: hidden;">
+                        <div style="background: linear-gradient(90deg, #5ac8fa, #ffffff); width: {exp_pct}%; height: 100%;"></div>
+                    </div>
+
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 30px; border-bottom: 1px dashed rgba(255,255,255,0.3); padding-bottom: 10px;">
+                        <span style="color: #5ac8fa;">GIL</span>
+                        <span style="font-size: 1.2rem;">{total_gil:,}</span>
+                    </div>
+
+                    <div>
+                        <span style="color: #5ac8fa; font-size: 0.9rem;">EQUIPMENT (7-DAY AVERAGES)</span>
+                        <div style="display: flex; align-items: center; margin-top: 15px;">
+                            <div style="width: 150px;">BUSTER SCALE</div>
+                            <div style="display: flex; gap: 10px; background: rgba(0,0,0,0.4); padding: 5px 15px; border-radius: 20px; border: 1px solid #555;">
+                                <div style="width: 20px; height: 20px; border-radius: 50%; background: radial-gradient(circle at 30% 30%, #55ffcc, #008855); {m_diet_glow}" title="Diet Materia"></div>
+                                <div style="width: 20px; height: 20px; border-radius: 50%; background: radial-gradient(circle at 30% 30%, #ff5588, #880022); {m_loss_glow}" title="Weight Materia"></div>
+                            </div>
+                        </div>
+                        <div style="display: flex; align-items: center; margin-top: 15px;">
+                            <div style="width: 150px;">SHINRA BAND</div>
+                            <div style="display: flex; gap: 10px; background: rgba(0,0,0,0.4); padding: 5px 15px; border-radius: 20px; border: 1px solid #555;">
+                                <div style="width: 20px; height: 20px; border-radius: 50%; background: radial-gradient(circle at 30% 30%, #ffff55, #888800); {m_step_glow}" title="Step Materia"></div>
+                                <div style="width: 20px; height: 20px; border-radius: 50%; background: radial-gradient(circle at 30% 30%, #55ccff, #005588); {m_water_glow}" title="Water Materia"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+
 
     # ─────────────────────────────────────────────
     #  JavaScript Odometer Injector (Tab-Aware)
