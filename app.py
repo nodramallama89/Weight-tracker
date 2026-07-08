@@ -255,10 +255,32 @@ def load_data():
 df = load_data()
 
 # ─────────────────────────────────────────────
+#  "COMPLETED DAYS ONLY" VIEW
+# ─────────────────────────────────────────────
+# The sheet contains rows for future/upcoming dates that haven't been logged
+# yet (blank cells). As the sheet has grown, more of these trailing blank
+# rows now sit after your most recent real entry. Tabs that grabbed data via
+# df.iloc[-1] / df.iloc[-7:] / df.mean() etc. on the *raw* dataframe were
+# picking up those blank rows instead of your actual latest data — that's
+# what was causing Lifetime / Averages / Sit Rep / Forecast to show zeros.
+#
+# Tab 1 (Review) already worked around this by filtering on Steps (col 12)
+# being non-blank. We apply that same "completed day" filter once here and
+# reuse it everywhere that needs "the latest real day" or "an average over
+# real days" rather than raw sheet rows.
+if not df.empty:
+    df_valid = df[df.iloc[:, 12].astype(str).str.strip() != ""].reset_index(drop=True)
+    if df_valid.empty:
+        df_valid = df
+else:
+    df_valid = df
+
+# ─────────────────────────────────────────────
 #  HELPERS
 # ─────────────────────────────────────────────
-def get_num(idx):
-    return pd.to_numeric(df.iloc[:, idx].astype(str).str.replace('%', '').str.replace(',', ''), errors='coerce')
+def get_num(idx, source=None):
+    src = df if source is None else source
+    return pd.to_numeric(src.iloc[:, idx].astype(str).str.replace('%', '').str.replace(',', ''), errors='coerce')
 
 def clean_float(val):
     try:
@@ -268,17 +290,25 @@ def clean_float(val):
     except:
         return 0.0
 
+def safe(x):
+    """Coerce NaN/None to 0.0 so we never leak the string 'nan' into HTML/JS attributes."""
+    try:
+        return float(x) if pd.notna(x) else 0.0
+    except (TypeError, ValueError):
+        return 0.0
+
 def card(label, display_val="", num_target=None, decimals=0, suffix="", delta_val=None, delta_label="", size="normal", invert=False):
     val_class = "val" if size == "normal" else "val-sm"
     
     if num_target is not None:
         val_class += " count-up"
-        val_html = f"<div class='{val_class}' data-target='{num_target}' data-decimals='{decimals}' data-suffix='{suffix}'>0</div>"
+        val_html = f"<div class='{val_class}' data-target='{safe(num_target)}' data-decimals='{decimals}' data-suffix='{suffix}'>0</div>"
     else:
         val_html = f"<div class='{val_class}'>{display_val}</div>"
 
     delta_html = ""
     if delta_val is not None:
+        delta_val = safe(delta_val)
         if invert:
             cls   = "delta-neg" if delta_val >= 0 else "delta-pos"
         else:
@@ -329,7 +359,7 @@ if not df.empty:
     #  TAB 1 — Review (Yesterday's Debrief)
     # ══════════════════════════════════════════
     with tab1:
-        completed = df[df.iloc[:, 12] != ""]
+        completed = df_valid
         if not completed.empty:
             y = completed.iloc[-1]
             date_str = str(y.iloc[0])[:10] if pd.notna(y.iloc[0]) else "LATEST_DATA"
@@ -379,14 +409,16 @@ if not df.empty:
     #  TAB 2 — Lifetime Stats
     # ══════════════════════════════════════════
     with tab2:
-        l = df.iloc[-1]
+        # Use the last COMPLETED day, not the raw last row (which may be a
+        # blank pre-populated future date).
+        l = df_valid.iloc[-1]
         st.markdown("<div class='section-header'>Lifetime Stats</div>", unsafe_allow_html=True)
 
         st.markdown(f"""
           <div class='card' style='background:linear-gradient(135deg,rgba(10,132,255,0.25),rgba(0,0,0,0.6));
                border-color:rgba(10,132,255,0.7); margin-bottom:1.5rem; animation: breathingGlow 4s infinite, springUpFade 0.7s both;'>
             <div class='label' style='color:#5ac8fa; font-size:0.85rem; letter-spacing:0.3em;'>// ACTIVE_STREAK</div>
-            <div class='count-up' data-target='{len(df)}' data-decimals='0' style='font-family:Syne,sans-serif; font-size:4.8rem; font-weight:800;
+            <div class='count-up' data-target='{len(df_valid)}' data-decimals='0' style='font-family:Syne,sans-serif; font-size:4.8rem; font-weight:800;
                         color:#ffffff; margin:10px 0; line-height:1; 
                         text-shadow: 0 0 20px #0a84ff, 0 0 40px #5ac8fa;'>0</div>
             <div style='font-family:Space Mono,monospace; font-size:0.85rem; color:#ffffff; font-weight:700;'>CONSECUTIVE DAYS LOGGED</div>
@@ -535,18 +567,21 @@ if not df.empty:
     #  TAB 9 — Averages
     # ══════════════════════════════════════════
     with tab9:
-        avg_loss = (get_num(3).iloc[0] - get_num(3).iloc[-1]) / (len(df) / 7)
+        # Averaged over COMPLETED days only — including blank future rows in
+        # the denominator/series here is what was zeroing this tab out.
+        w_valid = get_num(3, df_valid)
+        avg_loss = (w_valid.iloc[0] - w_valid.iloc[-1]) / (len(df_valid) / 7) if len(df_valid) > 0 else 0
         st.markdown("<div class='section-header'>Historical Data</div>", unsafe_allow_html=True)
         c1, c2, c3 = st.columns(3)
         with c1:
-            st.markdown(card("Avg Cals / Day", num_target=get_num(1).mean(), decimals=0), unsafe_allow_html=True)
-            st.markdown(card("Avg Protein", num_target=get_num(16).mean(), decimals=0, suffix="%"), unsafe_allow_html=True)
+            st.markdown(card("Avg Cals / Day", num_target=get_num(1, df_valid).mean(), decimals=0), unsafe_allow_html=True)
+            st.markdown(card("Avg Protein", num_target=get_num(16, df_valid).mean(), decimals=0, suffix="%"), unsafe_allow_html=True)
         with c2:
-            st.markdown(card("Avg Steps / Day", num_target=get_num(12).mean(), decimals=0), unsafe_allow_html=True)
-            st.markdown(card("Avg Carbs", num_target=get_num(17).mean(), decimals=0, suffix="%"), unsafe_allow_html=True)
+            st.markdown(card("Avg Steps / Day", num_target=get_num(12, df_valid).mean(), decimals=0), unsafe_allow_html=True)
+            st.markdown(card("Avg Carbs", num_target=get_num(17, df_valid).mean(), decimals=0, suffix="%"), unsafe_allow_html=True)
         with c3:
             st.markdown(card("Avg Loss / Week", num_target=avg_loss, decimals=2, suffix=" lbs"), unsafe_allow_html=True)
-            st.markdown(card("Avg Fat", num_target=get_num(18).mean(), decimals=0, suffix="%"), unsafe_allow_html=True)
+            st.markdown(card("Avg Fat", num_target=get_num(18, df_valid).mean(), decimals=0, suffix="%"), unsafe_allow_html=True)
 
     # ══════════════════════════════════════════
     #  TAB 10 — Blood Pressure
@@ -613,16 +648,18 @@ if not df.empty:
         st.markdown("<div class='section-header'>The Trophy Room</div>", unsafe_allow_html=True)
         st.markdown("<div class='section-sub'>Unlock milestones through consistency</div>", unsafe_allow_html=True)
 
-        total_days = len(df)
-        cals_in = get_num(1)
-        steps_arr = get_num(12)
-        sys_arr = get_num(21)
-        dia_arr = get_num(22)
+        # Base badge stats off completed days only, so blank future rows
+        # don't dilute percentages or skew the "last row" lookups below.
+        total_days = len(df_valid)
+        cals_in = get_num(1, df_valid)
+        steps_arr = get_num(12, df_valid)
+        sys_arr = get_num(21, df_valid)
+        dia_arr = get_num(22, df_valid)
         
-        total_loss_lbs = clean_float(df.iloc[-1].iloc[6]) if not df.empty else 0
-        min_weight = get_num(3).min()
+        total_loss_lbs = clean_float(df_valid.iloc[-1].iloc[6]) if not df_valid.empty else 0
+        min_weight = get_num(3, df_valid).min()
 
-        hyd_df = df[df[0] >= pd.Timestamp("2026-05-27")]
+        hyd_df = df_valid[df_valid[0] >= pd.Timestamp("2026-05-27")]
         hyd_arr_filtered = pd.to_numeric(hyd_df.iloc[:, 24], errors='coerce')
         perfect_hyd_days = (hyd_arr_filtered >= 3000).sum()
         hyd_days_tracked = len(hyd_df)
@@ -793,9 +830,11 @@ if not df.empty:
         st.markdown("<div class='section-header'>Weekly Sit Rep</div>", unsafe_allow_html=True)
         st.markdown("<div class='section-sub'>Last 7 Days vs Previous 7 Days</div>", unsafe_allow_html=True)
 
-        if len(df) >= 14:
-            last_7 = df.iloc[-7:]
-            prev_7 = df.iloc[-14:-7]
+        # Use completed days only — otherwise "last 7 days" can grab blank
+        # future placeholder rows instead of your real last two weeks.
+        if len(df_valid) >= 14:
+            last_7 = df_valid.iloc[-7:]
+            prev_7 = df_valid.iloc[-14:-7]
             
             # Extract data
             l7_cals = pd.to_numeric(last_7.iloc[:, 1], errors='coerce').mean()
@@ -827,7 +866,7 @@ if not df.empty:
                 st.markdown(card("Avg Steps (7 Days)", num_target=l7_steps, decimals=0, delta_val=step_diff, delta_label="vs Prev", invert=False), unsafe_allow_html=True)
             with col3:
                 # invert=True so if loss is bigger (more negative), the arrow is DOWN but painted GREEN
-                st.markdown(card("Weight Change (7 Days)", display_val=f"{l7_change:+.1f} lbs", delta_val=change_diff, delta_label="vs Prev", invert=True), unsafe_allow_html=True)
+                st.markdown(card("Weight Change (7 Days)", display_val=f"{safe(l7_change):+.1f} lbs", delta_val=change_diff, delta_label="vs Prev", invert=True), unsafe_allow_html=True)
 
         else:
             st.info("System requires at least 14 days of telemetry to generate a comparative Sit Rep.")
@@ -839,7 +878,9 @@ if not df.empty:
         st.markdown("<div class='section-header'>Forecasting Engine</div>", unsafe_allow_html=True)
         st.markdown("<div class='section-sub'>Estimated Time of Arrival (ETA) to 170 lbs</div>", unsafe_allow_html=True)
         
-        w_series = get_num(3).dropna()
+        # Base the forecast on completed days only, so blank future rows
+        # don't get counted toward "14 days of data" or skew the velocity calc.
+        w_series = get_num(3, df_valid).dropna()
         if len(w_series) >= 14:
             recent_14 = w_series.tail(14)
             # Calculate linear rate
