@@ -297,12 +297,27 @@ def safe(x):
     except (TypeError, ValueError):
         return 0.0
 
+def fmt_num(value, decimals=0, suffix=''):
+    """
+    Pre-render a number exactly the way the JS odometer would at the end of
+    its animation (comma-separated, fixed decimals, suffix). This is used as
+    the *initial* content of .count-up divs so the correct value is visible
+    immediately even if the JS animation never runs (e.g. if the iframe's
+    window.parent.document access gets blocked by a Streamlit/browser
+    sandboxing change). The JS still animates on top of this when it works.
+    """
+    v = safe(value)
+    formatted = f"{v:,.{decimals}f}"
+    if suffix:
+        formatted += f"<span style='font-size:0.65em; opacity:0.6; margin-left:4px;'>{suffix}</span>"
+    return formatted
+
 def card(label, display_val="", num_target=None, decimals=0, suffix="", delta_val=None, delta_label="", size="normal", invert=False):
     val_class = "val" if size == "normal" else "val-sm"
     
     if num_target is not None:
         val_class += " count-up"
-        val_html = f"<div class='{val_class}' data-target='{safe(num_target)}' data-decimals='{decimals}' data-suffix='{suffix}'>0</div>"
+        val_html = f"<div class='{val_class}' data-target='{safe(num_target)}' data-decimals='{decimals}' data-suffix='{suffix}'>{fmt_num(num_target, decimals, suffix)}</div>"
     else:
         val_html = f"<div class='{val_class}'>{display_val}</div>"
 
@@ -409,7 +424,7 @@ if not df.empty:
                 st.markdown(f"""
                   <div class='card'>
                     <div class='label'>Calories Consumed</div>
-                    <div class='val count-up' data-target='{cals}' data-decimals='0' data-suffix=' kcal'>0</div>
+                    <div class='val count-up' data-target='{cals}' data-decimals='0' data-suffix=' kcal'>{fmt_num(cals, 0, ' kcal')}</div>
                     <div class='delta {cal_pill_cls}'>{cal_arrow} {abs(cal_delta):,.0f} vs Target</div>
                   </div>""", unsafe_allow_html=True)
             with c2:
@@ -418,7 +433,7 @@ if not df.empty:
                 st.markdown(f"""
                   <div class='card'>
                     <div class='label'>Steps Taken</div>
-                    <div class='val count-up' data-target='{steps}' data-decimals='0' data-suffix=''>0</div>
+                    <div class='val count-up' data-target='{steps}' data-decimals='0' data-suffix=''>{fmt_num(steps, 0, '')}</div>
                     <div class='delta {step_pill_cls}'>{step_arrow} {abs(step_delta):,.0f} vs Target</div>
                   </div>""", unsafe_allow_html=True)
 
@@ -433,7 +448,7 @@ if not df.empty:
                 m[i].markdown(f"""
                   <div class='card' style='border-bottom: 4px solid {color}; box-shadow: 0 10px 20px rgba(0,0,0,0.5), 0 5px 15px {color}33;'>
                     <div class='label'>{lbl}</div>
-                    <div class='val-sm count-up' data-target='{val_raw}' data-decimals='1' data-suffix='%'>0</div>
+                    <div class='val-sm count-up' data-target='{val_raw}' data-decimals='1' data-suffix='%'>{fmt_num(val_raw, 1, '%')}</div>
                   </div>""", unsafe_allow_html=True)
 
     # ══════════════════════════════════════════
@@ -453,7 +468,7 @@ if not df.empty:
             <div class='label' style='color:#5ac8fa; font-size:0.85rem; letter-spacing:0.3em;'>// ACTIVE_STREAK</div>
             <div class='count-up' data-target='{len(df)}' data-decimals='0' style='font-family:Syne,sans-serif; font-size:4.8rem; font-weight:800;
                         color:#ffffff; margin:10px 0; line-height:1; 
-                        text-shadow: 0 0 20px #0a84ff, 0 0 40px #5ac8fa;'>0</div>
+                        text-shadow: 0 0 20px #0a84ff, 0 0 40px #5ac8fa;'>{fmt_num(len(df), 0, '')}</div>
             <div style='font-family:Space Mono,monospace; font-size:0.85rem; color:#ffffff; font-weight:700;'>CONSECUTIVE DAYS LOGGED</div>
           </div>""", unsafe_allow_html=True)
 
