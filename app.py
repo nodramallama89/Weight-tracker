@@ -1,5 +1,6 @@
 import streamlit as st
 import pandas as pd
+import numpy as np
 import gspread
 import plotly.graph_objects as go
 from google.oauth2.service_account import Credentials
@@ -363,37 +364,6 @@ if not df.empty:
       </span>
     </div>
     """, unsafe_allow_html=True)
-
-    # ── TEMPORARY DIAGNOSTICS ──
-    # This block doesn't change any dashboard logic — it just shows what the
-    # code is actually receiving for the columns behind Lifetime / Averages /
-    # Sit Rep / Forecast, so we can see exactly what changed instead of
-    # guessing. Safe to delete once the root cause is found.
-    with st.expander("🔍 Diagnostics (temporary — click to expand)"):
-        st.write(f"Total rows loaded: **{len(df)}**")
-        st.write("Last 5 raw rows (relevant columns only):")
-        diag_cols = {0: "Date", 1: "Cals In", 3: "Weight", 6: "TotalLoss#", 7: "TotalLoss_disp",
-                     8: "ToTarget#", 9: "ToTarget_disp", 10: "BMI", 11: "BMI_target",
-                     12: "Steps", 16: "Protein%", 17: "Carbs%", 18: "Fat%"}
-        raw_tail = df.iloc[-5:, list(diag_cols.keys())].copy()
-        raw_tail.columns = list(diag_cols.values())
-        st.dataframe(raw_tail, use_container_width=True)
-
-        st.write("Parsed numeric values + NaN counts (whole column, via get_num):")
-        diag_rows = []
-        for idx, name in diag_cols.items():
-            if name in ("Date",):
-                continue
-            series = get_num(idx)
-            diag_rows.append({
-                "Column": name,
-                "Non-null count": int(series.notna().sum()),
-                "NaN count": int(series.isna().sum()),
-                "Last value (raw)": df.iloc[-1, idx],
-                "Last value (parsed)": series.iloc[-1] if len(series) else None,
-                "Mean (all rows)": series.mean(),
-            })
-        st.dataframe(pd.DataFrame(diag_rows), use_container_width=True)
 
     # ── Tab bar (16 Tabs) ──
     tab1, tab2, tab3, tab4, tab5, tab6, tab7, tab8, tab9, tab10, tab11, tab12, tab13, tab14, tab15, tab16 = st.tabs([
@@ -921,12 +891,20 @@ if not df.empty:
         
         w_series = get_num(3).dropna()
         if len(w_series) >= 14:
-            recent_14 = w_series.tail(14)
-            # Calculate linear rate
-            loss_rate_per_day = (recent_14.iloc[0] - recent_14.iloc[-1]) / len(recent_14)
+            # Use a linear regression (least-squares trend line) over a
+            # wider recent window rather than just comparing the first vs.
+            # last day. Comparing two single points is very noisy — one bad
+            # (or good) day at either end of the window can flip the whole
+            # read to "neutral/positive" even when the overall trend is
+            # clearly downward. A regression line smooths that out.
+            window = min(21, len(w_series))
+            recent = w_series.tail(window).reset_index(drop=True)
+            x = np.arange(len(recent))
+            slope, _intercept = np.polyfit(x, recent.values, 1)  # lbs per day, negative = losing
+            loss_rate_per_day = -slope
             current_w = w_series.iloc[-1]
-            
-            if loss_rate_per_day > 0 and current_w > 170:
+
+            if loss_rate_per_day > 0.01 and current_w > 170:
                 days_to_goal = int((current_w - 170) / loss_rate_per_day)
                 eta_date = pd.Timestamp.now() + pd.Timedelta(days=days_to_goal)
                 
@@ -936,14 +914,14 @@ if not df.empty:
                     <div class='val' style='font-size: 2.5rem; color: #5ac8fa;'>{eta_date.strftime('%B %d, %Y')}</div>
                     <div class='label' style='margin-top: 15px; font-size: 0.9rem;'>Projected Goal Achievement Date</div>
                     <div style='font-family: var(--font-body); font-size: 1rem; color: rgba(255,255,255,0.7); margin-top: 15px;'>
-                        Based on your 14-day velocity of dropping {loss_rate_per_day*7:.1f} lbs per week. 
+                        Based on your {window}-day trend of dropping {loss_rate_per_day*7:.1f} lbs per week. 
                     </div>
                 </div>
                 """, unsafe_allow_html=True)
             elif current_w <= 170:
                 st.markdown("<div class='card'><div class='val' style='color:#30d158;'>TARGET ACHIEVED</div></div>", unsafe_allow_html=True)
             else:
-                st.info("Velocity currently neutral or positive. Maintain a continuous deficit to generate an ETA.")
+                st.info(f"Your {window}-day trend is currently flat or trending up ({loss_rate_per_day*7:+.1f} lbs/week). Maintain a continuous deficit to generate an ETA.")
         else:
             st.info("Requires at least 14 days of logged weight data to calculate a reliable projection.")
 
