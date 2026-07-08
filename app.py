@@ -349,6 +349,37 @@ if not df.empty:
     </div>
     """, unsafe_allow_html=True)
 
+    # ── TEMPORARY DIAGNOSTICS ──
+    # This block doesn't change any dashboard logic — it just shows what the
+    # code is actually receiving for the columns behind Lifetime / Averages /
+    # Sit Rep / Forecast, so we can see exactly what changed instead of
+    # guessing. Safe to delete once the root cause is found.
+    with st.expander("🔍 Diagnostics (temporary — click to expand)"):
+        st.write(f"Total rows loaded: **{len(df)}**")
+        st.write("Last 5 raw rows (relevant columns only):")
+        diag_cols = {0: "Date", 1: "Cals In", 3: "Weight", 6: "TotalLoss#", 7: "TotalLoss_disp",
+                     8: "ToTarget#", 9: "ToTarget_disp", 10: "BMI", 11: "BMI_target",
+                     12: "Steps", 16: "Protein%", 17: "Carbs%", 18: "Fat%"}
+        raw_tail = df.iloc[-5:, list(diag_cols.keys())].copy()
+        raw_tail.columns = list(diag_cols.values())
+        st.dataframe(raw_tail, use_container_width=True)
+
+        st.write("Parsed numeric values + NaN counts (whole column, via get_num):")
+        diag_rows = []
+        for idx, name in diag_cols.items():
+            if name in ("Date",):
+                continue
+            series = get_num(idx)
+            diag_rows.append({
+                "Column": name,
+                "Non-null count": int(series.notna().sum()),
+                "NaN count": int(series.isna().sum()),
+                "Last value (raw)": df.iloc[-1, idx],
+                "Last value (parsed)": series.iloc[-1] if len(series) else None,
+                "Mean (all rows)": series.mean(),
+            })
+        st.dataframe(pd.DataFrame(diag_rows), use_container_width=True)
+
     # ── Tab bar (16 Tabs) ──
     tab1, tab2, tab3, tab4, tab5, tab6, tab7, tab8, tab9, tab10, tab11, tab12, tab13, tab14, tab15, tab16 = st.tabs([
         "🛡️ Review", "📊 Lifetime", "🔥 Calories", "💧 Hydration", "⚖️ Weight",
@@ -409,16 +440,18 @@ if not df.empty:
     #  TAB 2 — Lifetime Stats
     # ══════════════════════════════════════════
     with tab2:
-        # Use the last COMPLETED day, not the raw last row (which may be a
-        # blank pre-populated future date).
-        l = df_valid.iloc[-1]
+        # Today's row is added first thing in the morning with date/weight
+        # filled in, while calories/steps/etc. are only completed at day's
+        # end — that's expected and normal, so we read straight off the raw
+        # last row here, same as the original app did.
+        l = df.iloc[-1]
         st.markdown("<div class='section-header'>Lifetime Stats</div>", unsafe_allow_html=True)
 
         st.markdown(f"""
           <div class='card' style='background:linear-gradient(135deg,rgba(10,132,255,0.25),rgba(0,0,0,0.6));
                border-color:rgba(10,132,255,0.7); margin-bottom:1.5rem; animation: breathingGlow 4s infinite, springUpFade 0.7s both;'>
             <div class='label' style='color:#5ac8fa; font-size:0.85rem; letter-spacing:0.3em;'>// ACTIVE_STREAK</div>
-            <div class='count-up' data-target='{len(df_valid)}' data-decimals='0' style='font-family:Syne,sans-serif; font-size:4.8rem; font-weight:800;
+            <div class='count-up' data-target='{len(df)}' data-decimals='0' style='font-family:Syne,sans-serif; font-size:4.8rem; font-weight:800;
                         color:#ffffff; margin:10px 0; line-height:1; 
                         text-shadow: 0 0 20px #0a84ff, 0 0 40px #5ac8fa;'>0</div>
             <div style='font-family:Space Mono,monospace; font-size:0.85rem; color:#ffffff; font-weight:700;'>CONSECUTIVE DAYS LOGGED</div>
@@ -567,21 +600,18 @@ if not df.empty:
     #  TAB 9 — Averages
     # ══════════════════════════════════════════
     with tab9:
-        # Averaged over COMPLETED days only — including blank future rows in
-        # the denominator/series here is what was zeroing this tab out.
-        w_valid = get_num(3, df_valid)
-        avg_loss = (w_valid.iloc[0] - w_valid.iloc[-1]) / (len(df_valid) / 7) if len(df_valid) > 0 else 0
+        avg_loss = (get_num(3).iloc[0] - get_num(3).iloc[-1]) / (len(df) / 7)
         st.markdown("<div class='section-header'>Historical Data</div>", unsafe_allow_html=True)
         c1, c2, c3 = st.columns(3)
         with c1:
-            st.markdown(card("Avg Cals / Day", num_target=get_num(1, df_valid).mean(), decimals=0), unsafe_allow_html=True)
-            st.markdown(card("Avg Protein", num_target=get_num(16, df_valid).mean(), decimals=0, suffix="%"), unsafe_allow_html=True)
+            st.markdown(card("Avg Cals / Day", num_target=get_num(1).mean(), decimals=0), unsafe_allow_html=True)
+            st.markdown(card("Avg Protein", num_target=get_num(16).mean(), decimals=0, suffix="%"), unsafe_allow_html=True)
         with c2:
-            st.markdown(card("Avg Steps / Day", num_target=get_num(12, df_valid).mean(), decimals=0), unsafe_allow_html=True)
-            st.markdown(card("Avg Carbs", num_target=get_num(17, df_valid).mean(), decimals=0, suffix="%"), unsafe_allow_html=True)
+            st.markdown(card("Avg Steps / Day", num_target=get_num(12).mean(), decimals=0), unsafe_allow_html=True)
+            st.markdown(card("Avg Carbs", num_target=get_num(17).mean(), decimals=0, suffix="%"), unsafe_allow_html=True)
         with c3:
             st.markdown(card("Avg Loss / Week", num_target=avg_loss, decimals=2, suffix=" lbs"), unsafe_allow_html=True)
-            st.markdown(card("Avg Fat", num_target=get_num(18, df_valid).mean(), decimals=0, suffix="%"), unsafe_allow_html=True)
+            st.markdown(card("Avg Fat", num_target=get_num(18).mean(), decimals=0, suffix="%"), unsafe_allow_html=True)
 
     # ══════════════════════════════════════════
     #  TAB 10 — Blood Pressure
@@ -648,18 +678,16 @@ if not df.empty:
         st.markdown("<div class='section-header'>The Trophy Room</div>", unsafe_allow_html=True)
         st.markdown("<div class='section-sub'>Unlock milestones through consistency</div>", unsafe_allow_html=True)
 
-        # Base badge stats off completed days only, so blank future rows
-        # don't dilute percentages or skew the "last row" lookups below.
-        total_days = len(df_valid)
-        cals_in = get_num(1, df_valid)
-        steps_arr = get_num(12, df_valid)
-        sys_arr = get_num(21, df_valid)
-        dia_arr = get_num(22, df_valid)
+        total_days = len(df)
+        cals_in = get_num(1)
+        steps_arr = get_num(12)
+        sys_arr = get_num(21)
+        dia_arr = get_num(22)
         
-        total_loss_lbs = clean_float(df_valid.iloc[-1].iloc[6]) if not df_valid.empty else 0
-        min_weight = get_num(3, df_valid).min()
+        total_loss_lbs = clean_float(df.iloc[-1].iloc[6]) if not df.empty else 0
+        min_weight = get_num(3).min()
 
-        hyd_df = df_valid[df_valid[0] >= pd.Timestamp("2026-05-27")]
+        hyd_df = df[df[0] >= pd.Timestamp("2026-05-27")]
         hyd_arr_filtered = pd.to_numeric(hyd_df.iloc[:, 24], errors='coerce')
         perfect_hyd_days = (hyd_arr_filtered >= 3000).sum()
         hyd_days_tracked = len(hyd_df)
@@ -830,11 +858,9 @@ if not df.empty:
         st.markdown("<div class='section-header'>Weekly Sit Rep</div>", unsafe_allow_html=True)
         st.markdown("<div class='section-sub'>Last 7 Days vs Previous 7 Days</div>", unsafe_allow_html=True)
 
-        # Use completed days only — otherwise "last 7 days" can grab blank
-        # future placeholder rows instead of your real last two weeks.
-        if len(df_valid) >= 14:
-            last_7 = df_valid.iloc[-7:]
-            prev_7 = df_valid.iloc[-14:-7]
+        if len(df) >= 14:
+            last_7 = df.iloc[-7:]
+            prev_7 = df.iloc[-14:-7]
             
             # Extract data
             l7_cals = pd.to_numeric(last_7.iloc[:, 1], errors='coerce').mean()
@@ -878,9 +904,7 @@ if not df.empty:
         st.markdown("<div class='section-header'>Forecasting Engine</div>", unsafe_allow_html=True)
         st.markdown("<div class='section-sub'>Estimated Time of Arrival (ETA) to 170 lbs</div>", unsafe_allow_html=True)
         
-        # Base the forecast on completed days only, so blank future rows
-        # don't get counted toward "14 days of data" or skew the velocity calc.
-        w_series = get_num(3, df_valid).dropna()
+        w_series = get_num(3).dropna()
         if len(w_series) >= 14:
             recent_14 = w_series.tail(14)
             # Calculate linear rate
