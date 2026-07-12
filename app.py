@@ -1038,7 +1038,7 @@ if not df.empty:
             with c1:
                 st.markdown(f"""
                   <div class='card'>
-                    <div class='label'>Today's Score</div>
+                    <div class='label'>Yesterday's Score</div>
                     <div class='val' style='color:{latest_color};'>{latest_score:.0f}<span style='font-size:0.5em; opacity:0.6;'>/100</span></div>
                     <div class='delta' style='background:{latest_fill}; color:{latest_color}; border:1px solid {latest_color}55;'>{latest_label}</div>
                   </div>""", unsafe_allow_html=True)
