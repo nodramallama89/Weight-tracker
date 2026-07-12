@@ -390,10 +390,10 @@ if not df.empty:
     <div class='page-subtitle'>Your daily wellness, tracked and trending</div>
     """, unsafe_allow_html=True)
 
-    # ── Tab bar (16 Tabs) ──
-    tab1, tab2, tab3, tab4, tab5, tab6, tab7, tab8, tab9, tab10, tab11, tab12, tab13, tab14, tab15, tab16 = st.tabs([
+    # ── Tab bar (17 Tabs) ──
+    tab1, tab2, tab3, tab4, tab5, tab6, tab7, tab8, tab9, tab10, tab11, tab12, tab13, tab14, tab15, tab16, tab17 = st.tabs([
         "🛡️ Review", "📊 Lifetime", "🔥 Calories", "💧 Hydration", "⚖️ Weight",
-        "📉 Trend", "👟 Steps", "🥗 Macros", "📈 Averages", "❤️ BP", "🎯 Target", "🏆 Trophies", "🧠 Analytics", "📋 Sit Rep", "🔮 Forecast", "🗄️ Data Log"
+        "📉 Trend", "👟 Steps", "🥗 Macros", "📈 Averages", "❤️ BP", "🎯 Target", "🏆 Trophies", "🧠 Analytics", "📋 Sit Rep", "🔮 Forecast", "⚡ Momentum", "🗄️ Data Log"
     ])
 
     # ══════════════════════════════════════════
@@ -984,9 +984,109 @@ if not df.empty:
             st.info("Requires at least 14 days of logged weight data to calculate a reliable projection.")
 
     # ══════════════════════════════════════════
-    #  TAB 16 — Raw Telemetry Log
+    #  TAB 16 — Momentum (Daily Health Score)
     # ══════════════════════════════════════════
+    # A single composite score (0-100) per day, built from four things you're
+    # already tracking every day: calories, steps, hydration, protein. Each
+    # contributes up to 25 points, scaled by how close you got to its target
+    # (partial credit, not just pass/fail) — so a day at 9,200 steps still
+    # scores well instead of getting nothing for missing 10k by a little.
+    # Runs on df_valid (completed days only) so trailing blank sheet rows
+    # can't drag a "streak" down to zero.
     with tab16:
+        st.markdown("<div class='section-header'>Momentum</div>", unsafe_allow_html=True)
+        st.markdown("<div class='section-sub'>Daily Health Score — Calories + Steps + Hydration + Protein</div>", unsafe_allow_html=True)
+
+        momentum_days = df_valid
+        if len(momentum_days) >= 1:
+            cal_m   = get_num(1, momentum_days).replace(0, np.nan)
+            steps_m = get_num(12, momentum_days)
+            hyd_m   = get_num(24, momentum_days)
+            prot_m  = get_num(16, momentum_days)
+
+            cal_score   = (1633 / cal_m).clip(upper=1).fillna(0) * 25
+            step_score  = (steps_m / 10000).clip(upper=1).fillna(0) * 25
+            hyd_score   = (hyd_m / 3000).clip(upper=1).fillna(0) * 25
+            prot_score  = (prot_m / 30).clip(upper=1).fillna(0) * 25
+
+            daily_score = (cal_score + step_score + hyd_score + prot_score).round(0).clip(upper=100)
+
+            def score_band(s):
+                if s >= 75: return ("On Track", "#30D158", "rgba(48,209,88,0.14)")
+                elif s >= 50: return ("Getting There", "#FF9F0A", "rgba(255,159,10,0.14)")
+                else: return ("Needs Focus", "#FF375F", "rgba(255,55,95,0.12)")
+
+            latest_score = safe(daily_score.iloc[-1])
+            latest_date  = str(momentum_days.iloc[-1, 0])[:10]
+            latest_label, latest_color, latest_fill = score_band(latest_score)
+
+            good_day = daily_score >= 75
+            # Current streak: consecutive ≥75 days trailing the most recent entry
+            current_streak = 0
+            for v in good_day.tolist()[::-1]:
+                if v: current_streak += 1
+                else: break
+            # Best streak ever: longest unbroken run of ≥75 days anywhere in history
+            streak_groups = (~good_day).cumsum()
+            best_streak = int(good_day.groupby(streak_groups).sum().max()) if len(good_day) else 0
+
+            best_idx = daily_score.idxmax()
+            best_score = safe(daily_score.loc[best_idx])
+            best_date = str(momentum_days.loc[best_idx].iloc[0])[:10]
+
+            c1, c2, c3 = st.columns(3)
+            with c1:
+                st.markdown(f"""
+                  <div class='card'>
+                    <div class='label'>Today's Score</div>
+                    <div class='val' style='color:{latest_color};'>{latest_score:.0f}<span style='font-size:0.5em; opacity:0.6;'>/100</span></div>
+                    <div class='delta' style='background:{latest_fill}; color:{latest_color}; border:1px solid {latest_color}55;'>{latest_label}</div>
+                  </div>""", unsafe_allow_html=True)
+            with c2:
+                st.markdown(card("Current Streak", display_val=f"{current_streak} {'day' if current_streak == 1 else 'days'}", delta_val=None), unsafe_allow_html=True)
+            with c3:
+                st.markdown(card("Best Streak Ever", display_val=f"{best_streak} {'day' if best_streak == 1 else 'days'}"), unsafe_allow_html=True)
+
+            st.markdown(f"""
+              <div class='card' style='text-align:left; padding:24px 28px; margin-top:4px;'>
+                <div style='display:flex; align-items:center; gap:18px;'>
+                  <div style='font-size:2.2rem;'>🏅</div>
+                  <div>
+                    <div class='label' style='margin-bottom:4px;'>Personal Best Day</div>
+                    <div style='font-family:var(--font-body); font-size:0.98rem; color:var(--text-secondary);'>
+                      <b style='color:var(--text-primary);'>{best_date}</b> scored <b style='color:#1E9145;'>{best_score:.0f}/100</b> — your strongest day on record for hitting calories, steps, hydration and protein together.
+                    </div>
+                  </div>
+                </div>
+              </div>""", unsafe_allow_html=True)
+
+            st.markdown("<div style='margin-top:8px'></div>", unsafe_allow_html=True)
+
+            trend_window = min(90, len(momentum_days))
+            recent_dates = momentum_days.iloc[:, 0].tail(trend_window)
+            recent_scores = daily_score.tail(trend_window)
+            recent_colors = [score_band(s)[1] for s in recent_scores]
+
+            fig = go.Figure()
+            fig.add_hrect(y0=75, y1=100, fillcolor='rgba(48,209,88,0.06)', layer="below", line_width=0)
+            fig.add_hrect(y0=50, y1=75, fillcolor='rgba(255,159,10,0.06)', layer="below", line_width=0)
+            fig.add_hrect(y0=0, y1=50, fillcolor='rgba(255,55,95,0.06)', layer="below", line_width=0)
+            fig.add_trace(go.Scatter(
+                x=recent_dates, y=recent_scores, mode='lines+markers', name='Daily Score',
+                line=dict(color='#0A84FF', width=2.5),
+                marker=dict(color=recent_colors, size=7, line=dict(color='#ffffff', width=1.5)),
+                fill='tozeroy', fillcolor='rgba(10,132,255,0.08)',
+            ))
+            fig.add_hline(y=75, line_dash="dash", line_color="#30D158", annotation_text="ON TRACK", annotation_font_color="#1E9145")
+            fig.update_layout(yaxis=dict(range=[0, 100]), xaxis=dict(rangeslider=dict(visible=True, bgcolor='rgba(0,0,0,0.03)'), type="date"))
+            st.plotly_chart(apply_theme(fig, "Momentum Trend", f"LAST {trend_window} DAYS // SCORE OUT OF 100"), use_container_width=True)
+        else:
+            st.info("Log a few days of calories, steps, hydration and protein to start building a Momentum score.")
+
+    # ══════════════════════════════════════════
+    #  TAB 17 — Raw Telemetry Log
+    # ══════════════════════════════════════════
+    with tab17:
         st.markdown("<div class='section-header'>Raw Telemetry</div>", unsafe_allow_html=True)
         st.markdown("<div class='section-sub'>Latest 30 Days Data Log</div>", unsafe_allow_html=True)
 
