@@ -8,43 +8,56 @@ import streamlit.components.v1 as components
 import time
 import re
 
-st.set_page_config(page_title="Hardy House Command", layout="wide", initial_sidebar_state="collapsed")
+st.set_page_config(page_title="Hardy House Health", layout="wide", initial_sidebar_state="collapsed")
 
 # ── Boot Sequence Notification ──
 if 'booted' not in st.session_state:
-    st.toast('System Online. Welcome to Hardy House Command.', icon='🚀')
+    st.toast('Welcome back — data synced.', icon='✅')
     time.sleep(0.5)
-    st.toast('Telemetry Synced. All sensors nominal.', icon='🟢')
+    st.toast('All metrics up to date.', icon='💚')
     st.session_state.booted = True
 
 # ─────────────────────────────────────────────
-#  PREMIUM CSS — macOS Dark Mode & Liquid Glass
+#  PREMIUM CSS — Apple Health / Fitness Light Theme
 # ─────────────────────────────────────────────
 st.markdown("""
 <style>
-@import url('https://fonts.googleapis.com/css2?family=SF+Pro+Display:wght@300;400;500;600;700&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@300;400;500;600;700&family=Syne:wght@400;500;600;700;800&family=Space+Mono&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
 
 /* ── Root tokens ── */
 :root {
-  --glass-bg:        rgba(20, 20, 25, 0.45);
-  --glass-bg-hover:  rgba(30, 30, 35, 0.65);
-  --glass-border:    rgba(255,255,255,0.15);
-  --glass-border-hi: rgba(255,255,255,0.3);
-  --glass-shadow:    0 8px 32px rgba(0,0,0,0.5), 0 1px 0 rgba(255,255,255,0.1) inset;
-  --glass-shadow-lg: 0 20px 50px rgba(0,0,0,0.8), 0 1px 0 rgba(255,255,255,0.2) inset;
-  --blur:            blur(24px) saturate(180%);
-  --blur-sm:         blur(12px) saturate(160%);
+  --bg-app:          #F2F2F7;
+  --bg-card:         #FFFFFF;
+  --bg-card-soft:    #F7F7FA;
+  --bg-card-muted:   #EFEFF3;
 
-  --text-primary:   #ffffff;
-  --text-secondary: rgba(255,255,255,0.9);
-  
-  --font-display: 'Syne', sans-serif;
-  --font-body:    'Instrument Sans', sans-serif;
-  --font-mono:    'Space Mono', monospace;
-  
-  --radius-xl: 24px;
+  --border-subtle:   rgba(60,60,67,0.08);
+  --border-strong:   rgba(60,60,67,0.14);
+
+  --shadow-card:      0 1px 2px rgba(0,0,0,0.04), 0 8px 24px rgba(60,60,67,0.06);
+  --shadow-card-hover: 0 4px 10px rgba(0,0,0,0.05), 0 16px 40px rgba(60,60,67,0.10);
+
+  --text-primary:   #1D1D1F;
+  --text-secondary: rgba(60,60,67,0.72);
+  --text-tertiary:  rgba(60,60,67,0.45);
+
+  --font-display: 'Inter', -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif;
+  --font-body:    'Inter', -apple-system, BlinkMacSystemFont, 'SF Pro Text', sans-serif;
+  --font-caption: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+
+  /* Apple Health / Fitness system accents */
+  --red:    #FF375F;
+  --orange: #FF9F0A;
+  --yellow: #FFD60A;
+  --green:  #30D158;
+  --teal:   #64D2FF;
+  --blue:   #0A84FF;
+  --purple: #BF5AF2;
+  --pink:   #FF2D55;
+
+  --radius-xl: 22px;
   --radius-lg: 16px;
+  --radius-md: 12px;
 }
 
 /* ── Base reset ── */
@@ -52,155 +65,153 @@ st.markdown("""
 
 /* ── Background ── */
 .stApp {
-  background-image: url('https://raw.githubusercontent.com/nodramallama89/Weight-tracker/main/BG.jpg');
-  background-size: cover;
-  background-attachment: fixed;
-  background-position: center;
+  background: radial-gradient(circle at 15% 0%, rgba(10,132,255,0.05) 0%, transparent 45%),
+              radial-gradient(circle at 85% 15%, rgba(48,209,88,0.05) 0%, transparent 45%),
+              var(--bg-app);
   font-family: var(--font-body);
 }
 
-.stApp::before {
-  content: '';
-  position: fixed;
-  inset: 0;
-  background: radial-gradient(circle at 50% 0%, rgba(10,132,255,0.1) 0%, transparent 70%),
-              linear-gradient(135deg, rgba(0,0,0,0.5) 0%, rgba(0,5,15,0.85) 100%);
-  pointer-events: none;
-  z-index: 0;
+#MainMenu, footer, header { visibility: hidden; }
+.block-container { padding: 2rem 2.5rem 3rem; max-width: 1600px; }
+
+/* ── Page Title ── */
+.page-eyebrow {
+  font-family: var(--font-caption);
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-tertiary);
+  text-align: center;
+  display: block;
+  margin-bottom: 0.4rem;
+  animation: fadeUp 0.5s ease both;
+}
+.page-eyebrow .status-dot {
+  display: inline-block; width: 7px; height: 7px; border-radius: 50%;
+  background-color: var(--green); margin-right: 7px;
+  box-shadow: 0 0 0 4px rgba(48,209,88,0.15);
 }
 
-#MainMenu, footer, header { visibility: hidden; }
-.block-container { padding: 2rem 2.5rem 3rem; max-width: 1600px; z-index: 1; position: relative; }
-
-/* ── Typewriter Page Title ── */
-.typewriter-text {
+.page-title {
   font-family: var(--font-display) !important;
-  font-size: 2.8rem !important;
+  font-size: 2.6rem !important;
   font-weight: 800 !important;
-  letter-spacing: -0.03em !important;
+  letter-spacing: -0.02em !important;
   color: var(--text-primary) !important;
   text-align: center !important;
-  margin-bottom: 0.3rem !important;
-  background: linear-gradient(135deg, #ffffff 30%, #5ac8fa);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  
-  display: inline-block;
-  overflow: hidden;
-  white-space: nowrap;
-  border-right: 4px solid #5ac8fa;
-  animation: typing 2s steps(30, end), blink-caret 0.75s step-end infinite;
+  margin: 0 0 0.25rem !important;
+  animation: fadeUp 0.6s ease 0.05s both;
 }
 
-@keyframes typing { from { width: 0 } to { width: 100% } }
-@keyframes blink-caret { from, to { border-color: transparent } 50% { border-color: #5ac8fa; } }
+.page-subtitle {
+  font-family: var(--font-body);
+  font-size: 0.92rem;
+  color: var(--text-secondary);
+  text-align: center;
+  margin-bottom: 2.2rem;
+  font-weight: 500;
+  animation: fadeUp 0.7s ease 0.1s both;
+}
 
-/* ── GLASS CARD WITH 3D HOVER ── */
+/* ── GLASS → CLEAN CARD ── */
 .card {
-  background: var(--glass-bg);
-  backdrop-filter: var(--blur);
-  -webkit-backdrop-filter: var(--blur);
+  background: var(--bg-card);
   border-radius: var(--radius-xl);
-  padding: 24px 20px 20px;
-  box-shadow: var(--glass-shadow);
-  border: 1px solid var(--glass-border);
-  border-top-color: rgba(255,255,255,0.25);
+  padding: 22px 20px 20px;
+  box-shadow: var(--shadow-card);
+  border: 1px solid var(--border-subtle);
   text-align: center;
   margin-bottom: 12px;
   position: relative;
   overflow: hidden;
-  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-  animation: springUpFade 0.7s cubic-bezier(0.16, 1, 0.3, 1) both;
+  transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+  animation: springUpFade 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
 .card:hover {
-  transform: translateY(-6px) scale(1.02);
-  box-shadow: var(--glass-shadow-lg);
-  background: var(--glass-bg-hover);
-  border-color: var(--glass-border-hi);
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-card-hover);
+  border-color: var(--border-strong);
 }
 
-/* Shimmer sweep on load */
-.card::after {
-  content: '';
-  position: absolute;
-  top: 0; left: -100%;
-  width: 50%;
-  height: 100%;
-  background: linear-gradient(105deg, transparent 20%, rgba(255,255,255,0.12) 50%, transparent 80%);
-  animation: shimmer 3s infinite 0.5s;
-  pointer-events: none;
-}
+/* ── Card Typography ── */
+.val { font-family: var(--font-display); font-size: 2.2rem; font-weight: 800; margin: 4px 0 4px; line-height: 1; color: var(--text-primary); letter-spacing: -0.02em; }
+.val-sm { font-family: var(--font-display); font-size: 1.55rem; font-weight: 800; margin: 4px 0 4px; line-height: 1; color: var(--text-primary); letter-spacing: -0.01em; }
+.label { font-family: var(--font-caption); font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-tertiary); }
 
-/* ── Card Typography (HIGH CONTRAST) ── */
-.val { font-family: var(--font-display); font-size: 2.3rem; font-weight: 700; margin: 6px 0 4px; line-height: 1; color: #ffffff; text-shadow: 0 2px 10px rgba(0,0,0,0.5); }
-.val-sm { font-family: var(--font-display); font-size: 1.7rem; font-weight: 700; margin: 6px 0 4px; line-height: 1; color: #ffffff; }
-.label { font-family: var(--font-mono); font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.15em; color: #ffffff; opacity: 0.95; }
-
-.delta { font-family: var(--font-body); font-size: 0.8rem; font-weight: 700; margin-top: 10px; padding: 6px 14px; border-radius: 50px; display: inline-block; box-shadow: 0 4px 15px rgba(0,0,0,0.3); color: #ffffff; }
-.delta-pos { background: rgba(48, 209, 88, 0.25); border: 1px solid rgba(48, 209, 88, 0.5); text-shadow: 0 1px 3px rgba(0,0,0,0.8); }
-.delta-neg { background: rgba(255, 69, 58, 0.25); border: 1px solid rgba(255, 69, 58, 0.5); text-shadow: 0 1px 3px rgba(0,0,0,0.8); }
+.delta { font-family: var(--font-body); font-size: 0.78rem; font-weight: 700; margin-top: 10px; padding: 5px 13px; border-radius: 50px; display: inline-block; }
+.delta-pos { background: rgba(48, 209, 88, 0.12); color: #1E9145; border: 1px solid rgba(48, 209, 88, 0.25); }
+.delta-neg { background: rgba(255, 55, 95, 0.10); color: #E0264F; border: 1px solid rgba(255, 55, 95, 0.22); }
 
 /* ── Section header ── */
-.section-header { font-family: var(--font-display); font-size: 1.8rem; font-weight: 700; color: var(--text-primary); margin: 0 0 1.2rem; text-align: center; animation: springUpFade 0.5s both; text-shadow: 0 2px 10px rgba(0,0,0,0.5); }
-.section-sub { font-family: var(--font-mono); font-size: 0.85rem; color: #5ac8fa; text-align: center; margin-top: -0.8rem; margin-bottom: 1.5rem; letter-spacing: 0.1em; text-transform: uppercase; font-weight: 700; }
+.section-header { font-family: var(--font-display); font-size: 1.6rem; font-weight: 800; color: var(--text-primary); margin: 0 0 0.3rem; text-align: center; letter-spacing: -0.01em; animation: fadeUp 0.5s both; }
+.section-sub { font-family: var(--font-caption); font-size: 0.8rem; color: var(--text-tertiary); text-align: center; margin-top: 0; margin-bottom: 1.6rem; letter-spacing: 0.04em; text-transform: uppercase; font-weight: 600; }
 
-/* ── Tab bar (HIGH CONTRAST) ── */
+/* ── Tab bar → iOS segmented control ── */
 div[data-baseweb="tab-list"] {
-  background: rgba(0,0,0,0.3) !important;
-  backdrop-filter: var(--blur-sm) !important;
-  border-radius: 18px !important;
-  padding: 8px !important;
-  border: 1px solid rgba(255,255,255,0.2) !important;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.6) !important;
+  background: var(--bg-card-muted) !important;
+  border-radius: 16px !important;
+  padding: 6px !important;
+  border: 1px solid var(--border-subtle) !important;
+  box-shadow: none !important;
   margin-bottom: 2rem !important;
   flex-wrap: wrap !important;
+  gap: 2px;
 }
-div[data-baseweb="tab"] { border-radius: 12px !important; transition: all 0.3s ease !important; }
-div[data-baseweb="tab"]:hover { background: rgba(255,255,255,0.15) !important; transform: translateY(-2px); }
-div[data-baseweb="tab"][aria-selected="true"] { background: rgba(10,132,255,0.3) !important; box-shadow: 0 0 20px rgba(10,132,255,0.5), inset 0 0 0 1px rgba(10,132,255,0.6) !important; }
-div[data-baseweb="tab-list"] button [data-testid="stMarkdownContainer"] p { font-family: var(--font-body) !important; color: #ffffff !important; font-size: 0.95rem !important; font-weight: 700 !important; }
+div[data-baseweb="tab"] { border-radius: 11px !important; transition: all 0.25s ease !important; }
+div[data-baseweb="tab"]:hover { background: rgba(0,0,0,0.03) !important; }
+div[data-baseweb="tab"][aria-selected="true"] { background: var(--bg-card) !important; box-shadow: 0 1px 3px rgba(0,0,0,0.08), 0 1px 1px rgba(0,0,0,0.04) !important; }
+div[data-baseweb="tab-list"] button [data-testid="stMarkdownContainer"] p { font-family: var(--font-body) !important; color: var(--text-secondary) !important; font-size: 0.9rem !important; font-weight: 600 !important; }
+div[data-baseweb="tab"][aria-selected="true"] [data-testid="stMarkdownContainer"] p { color: var(--text-primary) !important; }
 div[data-baseweb="tab-highlight"] { display: none !important; }
 
 /* ── Chart wrapper ── */
 .stPlotlyChart {
-  background: rgba(15,15,20,0.4) !important;
-  backdrop-filter: var(--blur) !important;
+  background: var(--bg-card) !important;
   border-radius: var(--radius-xl) !important;
-  padding: 16px !important;
-  border: 1px solid rgba(255,255,255,0.15) !important;
-  box-shadow: 0 15px 40px rgba(0,0,0,0.7) !important;
-  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) !important;
-  animation: springUpFade 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.2s both !important;
+  padding: 18px !important;
+  border: 1px solid var(--border-subtle) !important;
+  box-shadow: var(--shadow-card) !important;
+  transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1) !important;
+  animation: springUpFade 0.7s cubic-bezier(0.16, 1, 0.3, 1) 0.1s both !important;
 }
-.stPlotlyChart:hover { box-shadow: 0 25px 60px rgba(0,0,0,0.9), 0 0 20px rgba(10,132,255,0.2) !important; border-color: rgba(255,255,255,0.3) !important; transform: translateY(-4px) !important; }
+.stPlotlyChart:hover { box-shadow: var(--shadow-card-hover) !important; }
 
 /* ── Animations ── */
-@keyframes springUpFade { 
-  0% { opacity: 0; transform: translateY(40px) scale(0.95); filter: blur(4px); } 
-  100% { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); } 
+@keyframes springUpFade {
+  0% { opacity: 0; transform: translateY(18px); }
+  100% { opacity: 1; transform: translateY(0); }
 }
-@keyframes shimmer { 0% { left: -100%; } 100% { left: 200%; } }
-@keyframes breathingGlow { 0% { box-shadow: 0 0 20px rgba(10,132,255,0.3); } 50% { box-shadow: 0 0 50px rgba(10,132,255,0.7); } 100% { box-shadow: 0 0 20px rgba(10,132,255,0.3); } }
+@keyframes fadeUp {
+  0% { opacity: 0; transform: translateY(10px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
 
 /* Staggered load */
-.card:nth-child(1) { animation-delay: 0.05s; }
-.card:nth-child(2) { animation-delay: 0.10s; }
-.card:nth-child(3) { animation-delay: 0.15s; }
-.card:nth-child(4) { animation-delay: 0.20s; }
+.card:nth-child(1) { animation-delay: 0.03s; }
+.card:nth-child(2) { animation-delay: 0.06s; }
+.card:nth-child(3) { animation-delay: 0.09s; }
+.card:nth-child(4) { animation-delay: 0.12s; }
 
 ::-webkit-scrollbar { width: 6px; height: 6px; }
-::-webkit-scrollbar-track { background: rgba(0,0,0,0.1); }
-::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.3); border-radius: 10px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.15); border-radius: 10px; }
 
 /* DataFrame Styling */
 [data-testid="stDataFrame"] {
-  background: var(--glass-bg);
-  backdrop-filter: var(--blur);
+  background: var(--bg-card);
   border-radius: var(--radius-lg);
-  border: 1px solid var(--glass-border);
+  border: 1px solid var(--border-subtle);
   padding: 10px;
+}
+
+/* st.info boxes */
+div[data-testid="stAlert"] {
+  background: var(--bg-card-soft) !important;
+  border: 1px solid var(--border-subtle) !important;
+  border-radius: var(--radius-lg) !important;
+  color: var(--text-secondary) !important;
 }
 </style>
 """, unsafe_allow_html=True)
@@ -210,26 +221,26 @@ div[data-baseweb="tab-highlight"] { display: none !important; }
 #  PLOTLY THEME
 # ─────────────────────────────────────────────
 def apply_theme(fig, title="", subtitle=""):
-    full_title = f"<b>{title}</b>" + (f"<br><span style='font-size:12px;color:rgba(255,255,255,0.6);font-family:Space Mono'>{subtitle}</span>" if subtitle else "")
+    full_title = f"<b>{title}</b>" + (f"<br><span style='font-size:12px;color:rgba(60,60,67,0.55);font-family:Inter'>{subtitle}</span>" if subtitle else "")
     fig.update_layout(
-        title=dict(text=full_title, font=dict(family="Syne, sans-serif", color='#ffffff', size=20), x=0.03, xanchor='left', y=0.96),
+        title=dict(text=full_title, font=dict(family="Inter, sans-serif", color='#1D1D1F', size=19), x=0.03, xanchor='left', y=0.96),
         paper_bgcolor='rgba(0,0,0,0)',
         plot_bgcolor='rgba(0,0,0,0)',
-        font=dict(family="Instrument Sans, sans-serif", color='rgba(255,255,255,0.85)', size=12),
-        legend=dict(font=dict(color='#ffffff', size=11), bgcolor='rgba(0,0,0,0.6)', bordercolor='rgba(255,255,255,0.3)', borderwidth=1, x=0.01, y=0.99, orientation='h'),
+        font=dict(family="Inter, sans-serif", color='rgba(60,60,67,0.75)', size=12),
+        legend=dict(font=dict(color='#1D1D1F', size=11), bgcolor='rgba(255,255,255,0.9)', bordercolor='rgba(60,60,67,0.12)', borderwidth=1, x=0.01, y=0.99, orientation='h'),
         xaxis=dict(
-            color='rgba(255,255,255,0.7)', gridcolor='rgba(255,255,255,0.08)',
-            showspikes=True, spikemode="across", spikethickness=1, spikedash="solid", spikecolor="rgba(10,132,255,0.8)",
+            color='rgba(60,60,67,0.55)', gridcolor='rgba(60,60,67,0.07)',
+            showspikes=True, spikemode="across", spikethickness=1, spikedash="solid", spikecolor="rgba(10,132,255,0.6)",
             showgrid=True, zeroline=False
         ),
         yaxis=dict(
-            color='rgba(255,255,255,0.7)', gridcolor='rgba(255,255,255,0.08)',
-            showspikes=True, spikemode="across", spikethickness=1, spikedash="solid", spikecolor="rgba(10,132,255,0.8)",
+            color='rgba(60,60,67,0.55)', gridcolor='rgba(60,60,67,0.07)',
+            showspikes=True, spikemode="across", spikethickness=1, spikedash="solid", spikecolor="rgba(10,132,255,0.6)",
             zeroline=False
         ),
         margin=dict(l=20, r=20, t=70, b=20),
         hovermode='x unified',
-        hoverlabel=dict(bgcolor='rgba(10,15,30,0.95)', bordercolor='#0a84ff', font=dict(color='#ffffff', size=13, family='Space Mono, monospace')),
+        hoverlabel=dict(bgcolor='rgba(255,255,255,0.98)', bordercolor='#0A84FF', font=dict(color='#1D1D1F', size=13, family='Inter, sans-serif')),
     )
     return fig
 
@@ -310,12 +321,12 @@ def fmt_num(value, decimals=0, suffix=''):
     v = safe(value)
     formatted = f"{v:,.{decimals}f}"
     if suffix:
-        formatted += f"<span style='font-size:0.65em; opacity:0.6; margin-left:4px;'>{suffix}</span>"
+        formatted += f"<span style='font-size:0.65em; opacity:0.55; margin-left:4px;'>{suffix}</span>"
     return formatted
 
 def card(label, display_val="", num_target=None, decimals=0, suffix="", delta_val=None, delta_label="", size="normal", invert=False):
     val_class = "val" if size == "normal" else "val-sm"
-    
+
     if num_target is not None:
         val_class += " count-up"
         val_html = f"<div class='{val_class}' data-target='{safe(num_target)}' data-decimals='{decimals}' data-suffix='{suffix}'>{fmt_num(num_target, decimals, suffix)}</div>"
@@ -329,10 +340,10 @@ def card(label, display_val="", num_target=None, decimals=0, suffix="", delta_va
             cls   = "delta-neg" if delta_val >= 0 else "delta-pos"
         else:
             cls   = "delta-pos" if delta_val >= 0 else "delta-neg"
-            
+
         arrow = "▲" if delta_val >= 0 else "▼"
         delta_html = f"<div class='delta {cls}'>{arrow} {abs(delta_val):,.1f} {delta_label}</div>"
-        
+
     return f"""
     <div class='card'>
       <div class='label'>{label}</div>
@@ -345,24 +356,15 @@ def card(label, display_val="", num_target=None, decimals=0, suffix="", delta_va
 # ─────────────────────────────────────────────
 if not df.empty:
 
-    # ── Animated Header ──
+    # ── Header ──
     st.markdown("""
-    <div style='text-align:center; margin-bottom:0.2rem; animation: springUpFade 0.5s ease both;'>
-      <span style='font-family:Space Mono,monospace; font-size:0.75rem; font-weight:700; letter-spacing:0.2em; color:#ffffff; opacity: 0.8;'>
-        <span style='display:inline-block; width:8px; height:8px; background-color:#30d158; border-radius:50%; margin-right:8px; box-shadow: 0 0 12px #30d158; animation: blink-caret 1s infinite;'></span>
-        SYSTEM_ACTIVE
-      </span>
-    </div>
+    <span class='page-eyebrow'><span class='status-dot'></span>SYNCED WITH GOOGLE SHEETS</span>
     """, unsafe_allow_html=True)
 
-    st.markdown("<div style='text-align:center;'><h1 class='typewriter-text'>Command Centre</h1></div>", unsafe_allow_html=True)
+    st.markdown("<div style='text-align:center;'><h1 class='page-title'>Health Summary</h1></div>", unsafe_allow_html=True)
 
     st.markdown("""
-    <div style='text-align:center; margin-bottom:2.5rem; animation: springUpFade 0.8s ease 0.5s both;'>
-      <span style='font-family:Space Mono,monospace; font-size:0.85rem; color:#5ac8fa; font-weight: 700;'>
-        [ DATA_SYNC: GOOGLE_SHEETS // TELEMETRY: NOMINAL ]
-      </span>
-    </div>
+    <div class='page-subtitle'>Your daily wellness, tracked and trending</div>
     """, unsafe_allow_html=True)
 
     # ── Tab bar (16 Tabs) ──
@@ -383,7 +385,7 @@ if not df.empty:
             steps = clean_float(y.iloc[12])
 
             st.markdown("<div class='section-header'>Yesterday's Debrief</div>", unsafe_allow_html=True)
-            st.markdown(f"<div class='section-sub'>[{date_str}]</div>", unsafe_allow_html=True)
+            st.markdown(f"<div class='section-sub'>{date_str}</div>", unsafe_allow_html=True)
 
             c1, c2 = st.columns(2)
             cal_delta  = cals  - 1633
@@ -410,13 +412,13 @@ if not df.empty:
             st.markdown("<div style='margin-top:20px'></div>", unsafe_allow_html=True)
 
             macro_labels  = ["Protein", "Carbs", "Fat", "Alcohol"]
-            macro_colors  = ["#ff453a", "#5ac8fa", "#ffd60a", "#bf5af2"]
+            macro_colors  = ["#FF375F", "#0A84FF", "#FFD60A", "#BF5AF2"]
             macro_indices = [16, 17, 18, 19]
             m = st.columns(4)
             for i, (lbl, color, idx) in enumerate(zip(macro_labels, macro_colors, macro_indices)):
                 val_raw = clean_float(y.iloc[idx])
                 m[i].markdown(f"""
-                  <div class='card' style='border-bottom: 4px solid {color}; box-shadow: 0 10px 20px rgba(0,0,0,0.5), 0 5px 15px {color}33;'>
+                  <div class='card' style='border-bottom: 3px solid {color};'>
                     <div class='label'>{lbl}</div>
                     <div class='val-sm count-up' data-target='{val_raw}' data-decimals='1' data-suffix='%'>{fmt_num(val_raw, 1, '%')}</div>
                   </div>""", unsafe_allow_html=True)
@@ -433,13 +435,12 @@ if not df.empty:
         st.markdown("<div class='section-header'>Lifetime Stats</div>", unsafe_allow_html=True)
 
         st.markdown(f"""
-          <div class='card' style='background:linear-gradient(135deg,rgba(10,132,255,0.25),rgba(0,0,0,0.6));
-               border-color:rgba(10,132,255,0.7); margin-bottom:1.5rem; animation: breathingGlow 4s infinite, springUpFade 0.7s both;'>
-            <div class='label' style='color:#5ac8fa; font-size:0.85rem; letter-spacing:0.3em;'>// ACTIVE_STREAK</div>
-            <div class='count-up' data-target='{len(df)}' data-decimals='0' style='font-family:Syne,sans-serif; font-size:4.8rem; font-weight:800;
-                        color:#ffffff; margin:10px 0; line-height:1; 
-                        text-shadow: 0 0 20px #0a84ff, 0 0 40px #5ac8fa;'>{fmt_num(len(df), 0, '')}</div>
-            <div style='font-family:Space Mono,monospace; font-size:0.85rem; color:#ffffff; font-weight:700;'>CONSECUTIVE DAYS LOGGED</div>
+          <div class='card' style='background:linear-gradient(135deg,#0A84FF 0%,#30D158 130%);
+               border: none; margin-bottom:1.5rem; box-shadow: 0 10px 30px rgba(10,132,255,0.28);'>
+            <div class='label' style='color:rgba(255,255,255,0.85); font-size:0.78rem; letter-spacing:0.1em;'>ACTIVE STREAK</div>
+            <div class='count-up' data-target='{len(df)}' data-decimals='0' style='font-family:Inter,sans-serif; font-size:4.2rem; font-weight:800;
+                        color:#ffffff; margin:8px 0; line-height:1; letter-spacing:-0.02em;'>{fmt_num(len(df), 0, '')}</div>
+            <div style='font-family:Inter,sans-serif; font-size:0.85rem; color:rgba(255,255,255,0.9); font-weight:600;'>CONSECUTIVE DAYS LOGGED</div>
           </div>""", unsafe_allow_html=True)
 
         c1, c2, c3 = st.columns(3)
@@ -463,7 +464,7 @@ if not df.empty:
         cal_range = cal_max - cal_min if cal_max != cal_min else 1
 
         def norm(v): return max(0.0, min(1.0, (v - cal_min) / cal_range))
-        colorscale = [[0.0, '#1a5c34'], [norm(1633), '#30d158'], [norm(1634), '#ff9f0a'], [norm(1700), '#ff6b1a'], [norm(1701), '#ff453a'], [1.0, '#cc1100']]
+        colorscale = [[0.0, '#2FA84F'], [norm(1633), '#30D158'], [norm(1634), '#FF9F0A'], [norm(1700), '#FF7A1A'], [norm(1701), '#FF375F'], [1.0, '#D01144']]
         clean_cs = []
         seen = set()
         for pos, col in colorscale:
@@ -474,11 +475,11 @@ if not df.empty:
         fig = go.Figure()
         fig.add_trace(go.Bar(
             x=df.iloc[:, 0], y=cal_series, name="Calories In",
-            marker=dict(color=cal_series, colorscale=clean_cs, cmin=cal_min, cmax=cal_max, line=dict(width=0)), opacity=0.9,
+            marker=dict(color=cal_series, colorscale=clean_cs, cmin=cal_min, cmax=cal_max, line=dict(width=0)), opacity=0.92,
         ))
-        fig.add_trace(go.Scatter(x=df.iloc[:, 0], y=get_num(2), name="Net Calories", mode='lines', line=dict(color='#ffffff', width=2.5, dash='dot')))
-        fig.add_hline(y=1633, line_dash="dash", line_color="#30d158", annotation_text="Target 1,633", annotation_font_color="#30d158")
-        fig.update_layout(xaxis=dict(rangeslider=dict(visible=True, bgcolor='rgba(0,0,0,0.4)', bordercolor='rgba(255,255,255,0.2)'), type="date"))
+        fig.add_trace(go.Scatter(x=df.iloc[:, 0], y=get_num(2), name="Net Calories", mode='lines', line=dict(color='#1D1D1F', width=2.5, dash='dot')))
+        fig.add_hline(y=1633, line_dash="dash", line_color="#30D158", annotation_text="Target 1,633", annotation_font_color="#1E9145")
+        fig.update_layout(xaxis=dict(rangeslider=dict(visible=True, bgcolor='rgba(0,0,0,0.03)', bordercolor='rgba(60,60,67,0.12)'), type="date"))
         st.plotly_chart(apply_theme(fig, "Caloric Intake", "≤1,633 GREEN // >1,700 RED"), use_container_width=True)
 
     # ══════════════════════════════════════════
@@ -486,20 +487,20 @@ if not df.empty:
     # ══════════════════════════════════════════
     with tab4:
         hyd_series = get_num(24)
-        
+
         fig = go.Figure()
         fig.add_trace(go.Bar(
             x=df.iloc[:, 0], y=hyd_series, name="Hydration (ml)",
             marker=dict(
-                color=hyd_series, 
-                colorscale=[[0, '#0a84ff'], [1, '#5ac8fa']], 
-                line=dict(width=1, color='rgba(255,255,255,0.3)')
+                color=hyd_series,
+                colorscale=[[0, '#0A84FF'], [1, '#64D2FF']],
+                line=dict(width=1, color='rgba(255,255,255,0.6)')
             ),
         ))
-        
-        fig.add_hline(y=3000, line_dash="dash", line_color="#5ac8fa", annotation_text="3,000 ml TARGET", annotation_font_color="#5ac8fa")
-        
-        fig.update_layout(xaxis=dict(rangeslider=dict(visible=True, bgcolor='rgba(0,0,0,0.4)', bordercolor='rgba(255,255,255,0.2)'), type="date"))
+
+        fig.add_hline(y=3000, line_dash="dash", line_color="#0A84FF", annotation_text="3,000 ml TARGET", annotation_font_color="#0A84FF")
+
+        fig.update_layout(xaxis=dict(rangeslider=dict(visible=True, bgcolor='rgba(0,0,0,0.03)', bordercolor='rgba(60,60,67,0.12)'), type="date"))
         st.plotly_chart(apply_theme(fig, "Daily Hydration", "MEASURED IN MILLILITERS"), use_container_width=True)
 
     # ══════════════════════════════════════════
@@ -508,40 +509,40 @@ if not df.empty:
     with tab5:
         w_series = get_num(3).dropna()
         w_max = float(w_series.max()) + 2 if not w_series.empty else 210
-        
+
         fig = go.Figure()
         fig.add_trace(go.Scatter(
             x=df.iloc[:len(w_series), 0], y=w_series,
             name="Weight", mode='lines+markers',
-            line=dict(color='#ffffff', width=2),
-            marker=dict(color='#bf5af2', size=8, symbol='diamond', line=dict(color='#ffffff', width=1)),
+            line=dict(color='#1D1D1F', width=2),
+            marker=dict(color='#BF5AF2', size=8, symbol='circle', line=dict(color='#ffffff', width=1.5)),
             zorder=3
         ))
-        fig.add_trace(go.Scatter(x=df.iloc[:len(w_series), 0], y=w_series, mode='lines', line=dict(color='rgba(191,90,242,0.5)', width=12), hoverinfo='skip', showlegend=False, zorder=2))
-        fig.add_trace(go.Scatter(x=df.iloc[:len(w_series), 0], y=w_series, mode='lines', line=dict(color='rgba(191,90,242,0.2)', width=24), hoverinfo='skip', showlegend=False, zorder=1))
+        fig.add_trace(go.Scatter(x=df.iloc[:len(w_series), 0], y=w_series, mode='lines', line=dict(color='rgba(191,90,242,0.35)', width=10), hoverinfo='skip', showlegend=False, zorder=2))
+        fig.add_trace(go.Scatter(x=df.iloc[:len(w_series), 0], y=w_series, mode='lines', line=dict(color='rgba(191,90,242,0.12)', width=20), hoverinfo='skip', showlegend=False, zorder=1))
 
-        fig.add_hline(y=170, line_dash="dash", line_color="#5ac8fa", annotation_text="🎯 GOAL: 170 lbs", annotation_font_color="#5ac8fa", annotation_position="top left")
+        fig.add_hline(y=170, line_dash="dash", line_color="#0A84FF", annotation_text="🎯 GOAL: 170 lbs", annotation_font_color="#0A84FF", annotation_position="top left")
 
-        fig.update_layout(yaxis=dict(range=[168, w_max]), xaxis=dict(rangeslider=dict(visible=True, bgcolor='rgba(0,0,0,0.4)', bordercolor='rgba(255,255,255,0.2)'), type="date"))
-        st.plotly_chart(apply_theme(fig, "Weight Trajectory", "DAILY ACTUALS // NEON HUD ACTIVATED"), use_container_width=True)
+        fig.update_layout(yaxis=dict(range=[168, w_max]), xaxis=dict(rangeslider=dict(visible=True, bgcolor='rgba(0,0,0,0.03)', bordercolor='rgba(60,60,67,0.12)'), type="date"))
+        st.plotly_chart(apply_theme(fig, "Weight Trajectory", "DAILY ACTUALS"), use_container_width=True)
 
     # ══════════════════════════════════════════
     #  TAB 6 — Gain / Loss Trend
     # ══════════════════════════════════════════
     with tab6:
         trend = get_num(5)
-        colors_trend = ['#30d158' if v < 0 else '#ff453a' for v in trend.fillna(0)]
+        colors_trend = ['#30D158' if v < 0 else '#FF375F' for v in trend.fillna(0)]
         fig = go.Figure()
-        fig.add_hrect(y0=-5, y1=0, fillcolor='rgba(48,209,88,0.08)', layer="below", line_width=0)
-        fig.add_hrect(y0=0,  y1=5, fillcolor='rgba(255,69,58,0.08)', layer="below", line_width=0)
+        fig.add_hrect(y0=-5, y1=0, fillcolor='rgba(48,209,88,0.06)', layer="below", line_width=0)
+        fig.add_hrect(y0=0,  y1=5, fillcolor='rgba(255,55,95,0.06)', layer="below", line_width=0)
         fig.add_trace(go.Scatter(
             x=df.iloc[:, 0], y=trend, mode='lines+markers',
-            line=dict(color='#ff9f0a', width=2),
-            marker=dict(color=colors_trend, size=7, symbol='cross', line=dict(color='#ffffff', width=1)),
-            name="Net Trend", fill='tozeroy', fillcolor='rgba(255,159,10,0.15)',
+            line=dict(color='#FF9F0A', width=2),
+            marker=dict(color=colors_trend, size=7, symbol='circle', line=dict(color='#ffffff', width=1.5)),
+            name="Net Trend", fill='tozeroy', fillcolor='rgba(255,159,10,0.10)',
         ))
-        fig.add_hline(y=0, line_dash="solid", line_color="#ffffff", line_width=2)
-        fig.update_layout(yaxis=dict(range=[-5, 5]), xaxis=dict(rangeslider=dict(visible=True, bgcolor='rgba(0,0,0,0.4)'), type="date"))
+        fig.add_hline(y=0, line_dash="solid", line_color="#1D1D1F", line_width=1.5)
+        fig.update_layout(yaxis=dict(range=[-5, 5]), xaxis=dict(rangeslider=dict(visible=True, bgcolor='rgba(0,0,0,0.03)'), type="date"))
         st.plotly_chart(apply_theme(fig, "Weight Variance", "RANGE ±5 LBS"), use_container_width=True)
 
     # ══════════════════════════════════════════
@@ -550,19 +551,19 @@ if not df.empty:
     with tab7:
         steps_data  = get_num(12)
         def step_color(s):
-            if s >= 10000: return '#30d158'
-            elif s >= 8001: return '#ff9f0a'
-            else: return '#ff453a'
+            if s >= 10000: return '#30D158'
+            elif s >= 8001: return '#FF9F0A'
+            else: return '#FF375F'
         step_colors = [step_color(s) for s in steps_data.fillna(0)]
-        
+
         fig = go.Figure()
         fig.add_trace(go.Bar(
             x=df.iloc[:, 0], y=steps_data, name="Steps",
-            marker=dict(color=step_colors, line=dict(width=1, color='rgba(255,255,255,0.3)')),
+            marker=dict(color=step_colors, line=dict(width=1, color='rgba(255,255,255,0.6)')),
         ))
-        fig.add_hline(y=10000, line_dash="dash", line_color="#30d158", annotation_text="10K TARGET", annotation_font_color="#30d158")
-        fig.add_hline(y=8000, line_dash="dot", line_color="#ff453a", annotation_text="8K FLOOR", annotation_font_color="#ff453a")
-        fig.update_layout(xaxis=dict(rangeslider=dict(visible=True, bgcolor='rgba(0,0,0,0.4)'), type="date"))
+        fig.add_hline(y=10000, line_dash="dash", line_color="#30D158", annotation_text="10K TARGET", annotation_font_color="#1E9145")
+        fig.add_hline(y=8000, line_dash="dot", line_color="#FF375F", annotation_text="8K FLOOR", annotation_font_color="#E0264F")
+        fig.update_layout(xaxis=dict(rangeslider=dict(visible=True, bgcolor='rgba(0,0,0,0.03)'), type="date"))
         st.plotly_chart(apply_theme(fig, "Daily Steps", "STATUS: TRACKING"), use_container_width=True)
 
     # ══════════════════════════════════════════
@@ -570,7 +571,7 @@ if not df.empty:
     # ══════════════════════════════════════════
     with tab8:
         fig = go.Figure()
-        macro_cfg = [(16, "Protein", "#ff453a", "rgba(255,69,58,0.15)"), (17, "Carbs", "#5ac8fa", "rgba(90,200,250,0.15)"), (18, "Fat", "#ffd60a", "rgba(255,214,10,0.15)")]
+        macro_cfg = [(16, "Protein", "#FF375F", "rgba(255,55,95,0.10)"), (17, "Carbs", "#0A84FF", "rgba(10,132,255,0.10)"), (18, "Fat", "#FFD60A", "rgba(255,214,10,0.12)")]
         for idx, name, color, fill in macro_cfg:
             series = get_num(idx)
             fig.add_trace(go.Scatter(
@@ -578,7 +579,7 @@ if not df.empty:
                 line=dict(color=color, width=3, shape='spline'),
                 fill='tozeroy', fillcolor=fill,
             ))
-        fig.update_layout(xaxis=dict(rangeslider=dict(visible=True, bgcolor='rgba(0,0,0,0.4)'), type="date"))
+        fig.update_layout(xaxis=dict(rangeslider=dict(visible=True, bgcolor='rgba(0,0,0,0.03)'), type="date"))
         st.plotly_chart(apply_theme(fig, "Macro Composition", "SMOOTHED SPLINE PROJECTIONS"), use_container_width=True)
 
     # ══════════════════════════════════════════
@@ -605,17 +606,17 @@ if not df.empty:
         sys_data = get_num(21)
         dia_data = get_num(22)
         fig = go.Figure()
-        fig.add_hrect(y0=60, y1=80, fillcolor='rgba(48,209,88,0.08)', layer="below", line_width=0)
-        fig.add_hrect(y0=80, y1=90, fillcolor='rgba(255,214,10,0.08)', layer="below", line_width=0)
-        fig.add_hrect(y0=90, y1=180, fillcolor='rgba(255,69,58,0.08)', layer="below", line_width=0)
-        
-        fig.add_hline(y=120, line_dash="dash", line_color="#30d158", annotation_text="SYS IDEAL", annotation_font_color="#30d158")
-        fig.add_hline(y=80, line_dash="dash", line_color="#5ac8fa", annotation_text="DIA IDEAL", annotation_font_color="#5ac8fa")
+        fig.add_hrect(y0=60, y1=80, fillcolor='rgba(48,209,88,0.06)', layer="below", line_width=0)
+        fig.add_hrect(y0=80, y1=90, fillcolor='rgba(255,214,10,0.07)', layer="below", line_width=0)
+        fig.add_hrect(y0=90, y1=180, fillcolor='rgba(255,55,95,0.06)', layer="below", line_width=0)
 
-        fig.add_trace(go.Scatter(x=df.iloc[:, 0], y=sys_data, name="Systolic", mode='lines+markers', connectgaps=True, line=dict(color='#ff453a', width=3), marker=dict(size=8, color='#ff453a', line=dict(color='#ffffff', width=1.5))))
-        fig.add_trace(go.Scatter(x=df.iloc[:, 0], y=dia_data, name="Diastolic", mode='lines+markers', connectgaps=True, line=dict(color='#5ac8fa', width=3), marker=dict(size=8, color='#5ac8fa', line=dict(color='#ffffff', width=1.5))))
+        fig.add_hline(y=120, line_dash="dash", line_color="#30D158", annotation_text="SYS IDEAL", annotation_font_color="#1E9145")
+        fig.add_hline(y=80, line_dash="dash", line_color="#0A84FF", annotation_text="DIA IDEAL", annotation_font_color="#0A84FF")
 
-        fig.update_layout(yaxis=dict(range=[60, 180]), xaxis=dict(rangeslider=dict(visible=True, bgcolor='rgba(0,0,0,0.4)'), type="date"))
+        fig.add_trace(go.Scatter(x=df.iloc[:, 0], y=sys_data, name="Systolic", mode='lines+markers', connectgaps=True, line=dict(color='#FF375F', width=3), marker=dict(size=8, color='#FF375F', line=dict(color='#ffffff', width=1.5))))
+        fig.add_trace(go.Scatter(x=df.iloc[:, 0], y=dia_data, name="Diastolic", mode='lines+markers', connectgaps=True, line=dict(color='#0A84FF', width=3), marker=dict(size=8, color='#0A84FF', line=dict(color='#ffffff', width=1.5))))
+
+        fig.update_layout(yaxis=dict(range=[60, 180]), xaxis=dict(rangeslider=dict(visible=True, bgcolor='rgba(0,0,0,0.03)'), type="date"))
         st.plotly_chart(apply_theme(fig, "Blood Pressure Monitor", "VITAL SIGNS"), use_container_width=True)
 
     # ══════════════════════════════════════════
@@ -624,35 +625,35 @@ if not df.empty:
     with tab11:
         st.markdown("<div class='section-header'>Mission Progress</div>", unsafe_allow_html=True)
         st.markdown("<div class='section-sub'>Distance to 170 lbs</div>", unsafe_allow_html=True)
-        
+
         w_series = get_num(3).dropna()
         if len(w_series) > 1:
             current_w = w_series.iloc[-1]
             start_w = w_series.iloc[0]
             goal_w = 170
-            
+
             fig = go.Figure(go.Indicator(
                 mode = "gauge+number+delta",
                 value = current_w,
                 domain = {'x': [0, 1], 'y': [0, 1]},
-                title = {'text': "Current Weight (lbs)", 'font': {'color': 'rgba(255,255,255,0.7)', 'size': 18, 'family': 'Space Mono'}},
-                delta = {'reference': start_w, 'increasing': {'color': '#ff453a'}, 'decreasing': {'color': '#30d158'}},
+                title = {'text': "Current Weight (lbs)", 'font': {'color': 'rgba(60,60,67,0.7)', 'size': 18, 'family': 'Inter'}},
+                delta = {'reference': start_w, 'increasing': {'color': '#FF375F'}, 'decreasing': {'color': '#30D158'}},
                 gauge = {
-                    'axis': {'range': [goal_w - 5, start_w + 5], 'tickcolor': "white", 'tickfont': {'color': 'white'}},
-                    'bar': {'color': "#5ac8fa"},
-                    'bgcolor': "rgba(0,0,0,0.4)",
-                    'borderwidth': 2,
-                    'bordercolor': "rgba(255,255,255,0.2)",
+                    'axis': {'range': [goal_w - 5, start_w + 5], 'tickcolor': "rgba(60,60,67,0.4)", 'tickfont': {'color': 'rgba(60,60,67,0.6)'}},
+                    'bar': {'color': "#0A84FF"},
+                    'bgcolor': "rgba(0,0,0,0.03)",
+                    'borderwidth': 1,
+                    'bordercolor': "rgba(60,60,67,0.12)",
                     'steps': [
-                        {'range': [goal_w, goal_w + 10], 'color': "rgba(48,209,88,0.2)"},
-                        {'range': [goal_w + 10, start_w], 'color': "rgba(255,159,10,0.15)"}
+                        {'range': [goal_w, goal_w + 10], 'color': "rgba(48,209,88,0.14)"},
+                        {'range': [goal_w + 10, start_w], 'color': "rgba(255,159,10,0.10)"}
                     ],
-                    'threshold': {'line': {'color': "#bf5af2", 'width': 5}, 'thickness': 0.85, 'value': goal_w}
+                    'threshold': {'line': {'color': "#BF5AF2", 'width': 4}, 'thickness': 0.85, 'value': goal_w}
                 }
             ))
-            
-            fig.update_layout(paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', font=dict(color='white', family='Syne'), height=450, margin=dict(t=60, b=40))
-            st.markdown("<div class='card' style='padding: 0; border: none; background: transparent; box-shadow: none;'>", unsafe_allow_html=True)
+
+            fig.update_layout(paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', font=dict(color='#1D1D1F', family='Inter'), height=450, margin=dict(t=60, b=40))
+            st.markdown("<div class='card' style='padding: 4px; box-shadow: var(--shadow-card);'>", unsafe_allow_html=True)
             st.plotly_chart(fig, use_container_width=True)
             st.markdown("</div>", unsafe_allow_html=True)
 
@@ -668,7 +669,7 @@ if not df.empty:
         steps_arr = get_num(12)
         sys_arr = get_num(21)
         dia_arr = get_num(22)
-        
+
         total_loss_lbs = clean_float(df.iloc[-1].iloc[6]) if not df.empty else 0
         min_weight = get_num(3).min()
 
@@ -705,20 +706,20 @@ if not df.empty:
 
         def render_badge(b):
             if b["unlocked"]:
-                glow = "box-shadow: 0 0 25px rgba(48,209,88,0.3); border-color: rgba(48,209,88,0.6);"
-                val_color = "#30d158"
+                extra = "border-color: rgba(48,209,88,0.35); box-shadow: 0 4px 16px rgba(48,209,88,0.14);"
+                val_color = "#1E9145"
                 status = "UNLOCKED"
             else:
-                glow = "opacity: 0.4; filter: grayscale(100%); background: rgba(0,0,0,0.6);"
-                val_color = "#ffffff"
+                extra = "opacity: 0.5; background: var(--bg-card-soft);"
+                val_color = "var(--text-tertiary)"
                 status = "LOCKED"
-                
+
             return f"""
-            <div class='card' style='{glow} transition: all 0.3s ease; height: 180px; display: flex; flex-direction: column; justify-content: center;'>
-                <div style='font-size:2.5rem; margin-bottom:8px; text-shadow: 0 5px 15px rgba(0,0,0,0.5);'>{b['icon']}</div>
-                <div class='label' style='color:{val_color}; margin-bottom:4px; letter-spacing:0.15em;'>{status}</div>
-                <div class='val-sm' style='font-size:1.1rem; margin-bottom:2px;'>{b['title']}</div>
-                <div style='font-family:Space Mono,monospace; font-size:0.7rem; color:rgba(255,255,255,0.7);'>{b['desc']}</div>
+            <div class='card' style='{extra} transition: all 0.3s ease; height: 180px; display: flex; flex-direction: column; justify-content: center;'>
+                <div style='font-size:2.3rem; margin-bottom:8px;'>{b['icon']}</div>
+                <div class='label' style='color:{val_color}; margin-bottom:4px; letter-spacing:0.08em;'>{status}</div>
+                <div class='val-sm' style='font-size:1.05rem; margin-bottom:2px;'>{b['title']}</div>
+                <div style='font-family:Inter,sans-serif; font-size:0.7rem; color:var(--text-tertiary); font-weight:500;'>{b['desc']}</div>
             </div>"""
 
         for i in range(0, len(badges), 4):
@@ -748,13 +749,13 @@ if not df.empty:
         # 1. Caloric Impact
         good_cal_mask = (cals_series <= 1633) & valid_days_mask
         bad_cal_mask = (cals_series > 1633) & valid_days_mask
-        
+
         avg_change_good_cals = next_day_weight_diff[good_cal_mask].mean()
         avg_change_bad_cals = next_day_weight_diff[bad_cal_mask].mean()
         avg_change_good_cals = avg_change_good_cals if pd.notna(avg_change_good_cals) else 0
         avg_change_bad_cals = avg_change_bad_cals if pd.notna(avg_change_bad_cals) else 0
-        
-        cal_insight_color = "#30d158" if avg_change_good_cals < 0 else "#ff9f0a"
+
+        cal_insight_color = "#1E9145" if avg_change_good_cals < 0 else "#FF9F0A"
         cal_str_good = f"{avg_change_good_cals:+.2f} lbs"
         cal_str_bad = f"{avg_change_bad_cals:+.2f} lbs"
 
@@ -786,52 +787,52 @@ if not df.empty:
             best_day, worst_day = "N/A", "N/A"
 
         st.markdown(f"""
-        <div class='card' style='text-align: left; padding: 30px; margin-bottom: 20px;'>
-            <div style='font-size: 2rem; margin-bottom: 10px;'>🔥</div>
-            <div class='val-sm' style='margin-bottom: 15px; color: #5ac8fa;'>Caloric Efficiency Engine</div>
-            <div style='font-family: var(--font-body); font-size: 1.1rem; color: rgba(255,255,255,0.9); line-height: 1.6;'>
-                When your daily intake stays <b>at or below your 1,633 target</b>, your following day's weight changes by an average of <span style='color: {cal_insight_color}; font-weight: bold;'>{cal_str_good}</span>. 
-                Conversely, when you exceed the calorie limit, your next day's weight changes by an average of <span style='color: #ff453a; font-weight: bold;'>{cal_str_bad}</span>.
+        <div class='card' style='text-align: left; padding: 28px; margin-bottom: 16px;'>
+            <div style='font-size: 1.8rem; margin-bottom: 8px;'>🔥</div>
+            <div class='val-sm' style='margin-bottom: 12px; color: #0A84FF;'>Caloric Efficiency Engine</div>
+            <div style='font-family: var(--font-body); font-size: 1.05rem; color: var(--text-secondary); line-height: 1.6;'>
+                When your daily intake stays <b style='color:var(--text-primary);'>at or below your 1,633 target</b>, your following day's weight changes by an average of <span style='color: {cal_insight_color}; font-weight: 700;'>{cal_str_good}</span>.
+                Conversely, when you exceed the calorie limit, your next day's weight changes by an average of <span style='color: #E0264F; font-weight: 700;'>{cal_str_bad}</span>.
             </div>
         </div>
         """, unsafe_allow_html=True)
 
         st.markdown(f"""
-        <div class='card' style='text-align: left; padding: 30px; margin-bottom: 20px;'>
-            <div style='font-size: 2rem; margin-bottom: 10px;'>👟</div>
-            <div class='val-sm' style='margin-bottom: 15px; color: #5ac8fa;'>Kinetic Success Rate</div>
-            <div style='font-family: var(--font-body); font-size: 1.1rem; color: rgba(255,255,255,0.9); line-height: 1.6;'>
-                Hitting your 10,000 step goal yields a <span style='color: #30d158; font-weight: bold; font-size: 1.2em;'>{success_rate:.0f}%</span> success rate for a weight drop on the scale the very next morning. Consistency here directly influences the trendline.
-            </div>
-        </div>
-        """, unsafe_allow_html=True)
-        
-        st.markdown(f"""
-        <div class='card' style='text-align: left; padding: 30px; margin-bottom: 20px;'>
-            <div style='font-size: 2rem; margin-bottom: 10px;'>💧</div>
-            <div class='val-sm' style='margin-bottom: 15px; color: #5ac8fa;'>The Hydration Catalyst</div>
-            <div style='font-family: var(--font-body); font-size: 1.1rem; color: rgba(255,255,255,0.9); line-height: 1.6;'>
-                Drinking 3L or more of water gives you a <span style='color: #30d158; font-weight: bold;'>{hyd_success_good:.0f}%</span> chance of dropping weight the next day. On days you miss your water target, that drops to <span style='color: #ff9f0a; font-weight: bold;'>{hyd_success_bad:.0f}%</span>.
+        <div class='card' style='text-align: left; padding: 28px; margin-bottom: 16px;'>
+            <div style='font-size: 1.8rem; margin-bottom: 8px;'>👟</div>
+            <div class='val-sm' style='margin-bottom: 12px; color: #0A84FF;'>Kinetic Success Rate</div>
+            <div style='font-family: var(--font-body); font-size: 1.05rem; color: var(--text-secondary); line-height: 1.6;'>
+                Hitting your 10,000 step goal yields a <span style='color: #1E9145; font-weight: 700; font-size: 1.15em;'>{success_rate:.0f}%</span> success rate for a weight drop on the scale the very next morning. Consistency here directly influences the trendline.
             </div>
         </div>
         """, unsafe_allow_html=True)
 
         st.markdown(f"""
-        <div class='card' style='text-align: left; padding: 30px; margin-bottom: 20px;'>
-            <div style='font-size: 2rem; margin-bottom: 10px;'>🥩</div>
-            <div class='val-sm' style='margin-bottom: 15px; color: #5ac8fa;'>Protein Power Correlation</div>
-            <div style='font-family: var(--font-body); font-size: 1.1rem; color: rgba(255,255,255,0.9); line-height: 1.6;'>
-                On days where protein makes up 30%+ of your macros, your next day's average scale shift is <span style='font-weight: bold;'>{avg_change_high_prot:+.2f} lbs</span>. On days under 30%, the shift averages <span style='font-weight: bold;'>{avg_change_low_prot:+.2f} lbs</span>.
+        <div class='card' style='text-align: left; padding: 28px; margin-bottom: 16px;'>
+            <div style='font-size: 1.8rem; margin-bottom: 8px;'>💧</div>
+            <div class='val-sm' style='margin-bottom: 12px; color: #0A84FF;'>The Hydration Catalyst</div>
+            <div style='font-family: var(--font-body); font-size: 1.05rem; color: var(--text-secondary); line-height: 1.6;'>
+                Drinking 3L or more of water gives you a <span style='color: #1E9145; font-weight: 700;'>{hyd_success_good:.0f}%</span> chance of dropping weight the next day. On days you miss your water target, that drops to <span style='color: #FF9F0A; font-weight: 700;'>{hyd_success_bad:.0f}%</span>.
             </div>
         </div>
         """, unsafe_allow_html=True)
-        
+
         st.markdown(f"""
-        <div class='card' style='text-align: left; padding: 30px; margin-bottom: 20px;'>
-            <div style='font-size: 2rem; margin-bottom: 10px;'>📅</div>
-            <div class='val-sm' style='margin-bottom: 15px; color: #5ac8fa;'>The Weekly Profiler</div>
-            <div style='font-family: var(--font-body); font-size: 1.1rem; color: rgba(255,255,255,0.9); line-height: 1.6;'>
-                Historically, <span style='color: #30d158; font-weight: bold;'>{best_day}s</span> are when you see the biggest drops on the scale. By contrast, <span style='color: #ff453a; font-weight: bold;'>{worst_day}s</span> tend to be your most resistant days.
+        <div class='card' style='text-align: left; padding: 28px; margin-bottom: 16px;'>
+            <div style='font-size: 1.8rem; margin-bottom: 8px;'>🥩</div>
+            <div class='val-sm' style='margin-bottom: 12px; color: #0A84FF;'>Protein Power Correlation</div>
+            <div style='font-family: var(--font-body); font-size: 1.05rem; color: var(--text-secondary); line-height: 1.6;'>
+                On days where protein makes up 30%+ of your macros, your next day's average scale shift is <span style='font-weight: 700; color:var(--text-primary);'>{avg_change_high_prot:+.2f} lbs</span>. On days under 30%, the shift averages <span style='font-weight: 700; color:var(--text-primary);'>{avg_change_low_prot:+.2f} lbs</span>.
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+
+        st.markdown(f"""
+        <div class='card' style='text-align: left; padding: 28px; margin-bottom: 16px;'>
+            <div style='font-size: 1.8rem; margin-bottom: 8px;'>📅</div>
+            <div class='val-sm' style='margin-bottom: 12px; color: #0A84FF;'>The Weekly Profiler</div>
+            <div style='font-family: var(--font-body); font-size: 1.05rem; color: var(--text-secondary); line-height: 1.6;'>
+                Historically, <span style='color: #1E9145; font-weight: 700;'>{best_day}s</span> are when you see the biggest drops on the scale. By contrast, <span style='color: #E0264F; font-weight: 700;'>{worst_day}s</span> tend to be your most resistant days.
             </div>
         </div>
         """, unsafe_allow_html=True)
@@ -846,19 +847,19 @@ if not df.empty:
         if len(df) >= 14:
             last_7 = df.iloc[-7:]
             prev_7 = df.iloc[-14:-7]
-            
+
             # Extract data
             l7_cals = pd.to_numeric(last_7.iloc[:, 1], errors='coerce').mean()
             p7_cals = pd.to_numeric(prev_7.iloc[:, 1], errors='coerce').mean()
-            
+
             l7_steps = pd.to_numeric(last_7.iloc[:, 12], errors='coerce').mean()
             p7_steps = pd.to_numeric(prev_7.iloc[:, 12], errors='coerce').mean()
-            
+
             # Use raw start vs end to get change in weight (so drops are negative numbers)
             l7_w_start = pd.to_numeric(last_7.iloc[0, 3], errors='coerce')
             l7_w_end = pd.to_numeric(last_7.iloc[-1, 3], errors='coerce')
             l7_change = l7_w_end - l7_w_start
-            
+
             p7_w_start = pd.to_numeric(prev_7.iloc[0, 3], errors='coerce')
             p7_w_end = pd.to_numeric(prev_7.iloc[-1, 3], errors='coerce')
             p7_change = p7_w_end - p7_w_start
@@ -888,7 +889,7 @@ if not df.empty:
     with tab15:
         st.markdown("<div class='section-header'>Forecasting Engine</div>", unsafe_allow_html=True)
         st.markdown("<div class='section-sub'>Estimated Time of Arrival (ETA) to 170 lbs</div>", unsafe_allow_html=True)
-        
+
         w_series = get_num(3).dropna()
         if len(w_series) >= 14:
             # Use a linear regression (least-squares trend line) over a
@@ -907,19 +908,19 @@ if not df.empty:
             if loss_rate_per_day > 0.01 and current_w > 170:
                 days_to_goal = int((current_w - 170) / loss_rate_per_day)
                 eta_date = pd.Timestamp.now() + pd.Timedelta(days=days_to_goal)
-                
+
                 st.markdown(f"""
-                <div class='card' style='padding: 40px 20px; border: 1px solid rgba(10, 132, 255, 0.4); box-shadow: 0 0 30px rgba(10,132,255,0.2);'>
-                    <div style='font-size: 3rem; margin-bottom: 10px;'>🔮</div>
-                    <div class='val' style='font-size: 2.5rem; color: #5ac8fa;'>{eta_date.strftime('%B %d, %Y')}</div>
-                    <div class='label' style='margin-top: 15px; font-size: 0.9rem;'>Projected Goal Achievement Date</div>
-                    <div style='font-family: var(--font-body); font-size: 1rem; color: rgba(255,255,255,0.7); margin-top: 15px;'>
-                        Based on your {window}-day trend of dropping {loss_rate_per_day*7:.1f} lbs per week. 
+                <div class='card' style='padding: 36px 20px;'>
+                    <div style='font-size: 2.6rem; margin-bottom: 8px;'>🔮</div>
+                    <div class='val' style='font-size: 2.3rem; color: #0A84FF;'>{eta_date.strftime('%B %d, %Y')}</div>
+                    <div class='label' style='margin-top: 14px; font-size: 0.85rem;'>Projected Goal Achievement Date</div>
+                    <div style='font-family: var(--font-body); font-size: 0.95rem; color: var(--text-secondary); margin-top: 14px;'>
+                        Based on your {window}-day trend of dropping {loss_rate_per_day*7:.1f} lbs per week.
                     </div>
                 </div>
                 """, unsafe_allow_html=True)
             elif current_w <= 170:
-                st.markdown("<div class='card'><div class='val' style='color:#30d158;'>TARGET ACHIEVED</div></div>", unsafe_allow_html=True)
+                st.markdown("<div class='card'><div class='val' style='color:#1E9145;'>TARGET ACHIEVED</div></div>", unsafe_allow_html=True)
             else:
                 st.info(f"Your {window}-day trend is currently flat or trending up ({loss_rate_per_day*7:+.1f} lbs/week). Maintain a continuous deficit to generate an ETA.")
         else:
@@ -931,24 +932,24 @@ if not df.empty:
     with tab16:
         st.markdown("<div class='section-header'>Raw Telemetry</div>", unsafe_allow_html=True)
         st.markdown("<div class='section-sub'>Latest 30 Days Data Log</div>", unsafe_allow_html=True)
-        
+
         # Format the dataframe for display
         display_df = df.copy()
         display_df[0] = display_df[0].dt.strftime('%Y-%m-%d')
         display_df = display_df.iloc[::-1].head(30) # Newest first
         display_df.columns = [str(i) for i in range(len(display_df.columns))] # temp columns to avoid issues
-        
+
         # Pick the most important columns to show so it fits nicely
         cols_to_show = {
-            '0': 'Date', '1': 'Cals In', '3': 'Weight (lbs)', '12': 'Steps', 
+            '0': 'Date', '1': 'Cals In', '3': 'Weight (lbs)', '12': 'Steps',
             '16': 'Protein %', '17': 'Carbs %', '18': 'Fat %', '24': 'Water (ml)'
         }
-        
+
         clean_df = display_df[list(cols_to_show.keys())].rename(columns=cols_to_show)
-        
+
         st.dataframe(
-            clean_df, 
-            use_container_width=True, 
+            clean_df,
+            use_container_width=True,
             hide_index=True,
             height=400
         )
@@ -962,14 +963,14 @@ if not df.empty:
 
     function runOdometer() {
         const targets = Array.from(docs.querySelectorAll('.count-up')).filter(el => el.offsetParent !== null);
-        
+
         targets.forEach(el => {
             if (el.animFrame) cancelAnimationFrame(el.animFrame);
-            
+
             const target = parseFloat(el.getAttribute('data-target')) || 0;
             const decimals = parseInt(el.getAttribute('data-decimals')) || 0;
             const suffix = el.getAttribute('data-suffix') || '';
-            const duration = 1200; 
+            const duration = 1200;
             const start = performance.now();
 
             function update(now) {
@@ -977,15 +978,15 @@ if not df.empty:
                 const progress = Math.min(elapsed / duration, 1);
                 const ease = progress === 1 ? 1 : 1 - Math.pow(2, -10 * progress);
                 const current = target * ease;
-                
+
                 let formatted = current.toFixed(decimals);
                 let parts = formatted.split(".");
                 parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ",");
                 formatted = parts.join(".");
-                
-                let suffixHtml = suffix ? "<span style='font-size:0.65em; opacity:0.6; margin-left:4px;'>" + suffix + "</span>" : "";
+
+                let suffixHtml = suffix ? "<span style='font-size:0.65em; opacity:0.55; margin-left:4px;'>" + suffix + "</span>" : "";
                 el.innerHTML = formatted + suffixHtml;
-                
+
                 if (progress < 1) {
                     el.animFrame = requestAnimationFrame(update);
                 } else {
@@ -1016,4 +1017,4 @@ if not df.empty:
     components.html(js_code, height=0, width=0)
 
 else:
-    st.error("SYSTEM FAILURE: Data link severed. Check credentials.")
+    st.error("Data link severed. Check credentials.")
