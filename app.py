@@ -31,11 +31,17 @@ st.markdown("""
   --bg-card-soft:    #F7F7FA;
   --bg-card-muted:   #EFEFF3;
 
-  --border-subtle:   rgba(60,60,67,0.08);
-  --border-strong:   rgba(60,60,67,0.14);
+  --glass-bg:        rgba(255,255,255,0.68);
+  --glass-bg-hover:  rgba(255,255,255,0.80);
+  --glass-border:    rgba(255,255,255,0.55);
+  --glass-blur:      blur(28px) saturate(180%);
+  --glass-blur-sm:   blur(16px) saturate(160%);
 
-  --shadow-card:      0 1px 2px rgba(0,0,0,0.04), 0 8px 24px rgba(60,60,67,0.06);
-  --shadow-card-hover: 0 4px 10px rgba(0,0,0,0.05), 0 16px 40px rgba(60,60,67,0.10);
+  --border-subtle:   rgba(60,60,67,0.08);
+  --border-strong:   rgba(60,60,67,0.16);
+
+  --shadow-card:       0 1px 2px rgba(15,23,42,0.05), 0 14px 34px rgba(15,23,42,0.10);
+  --shadow-card-hover: 0 6px 14px rgba(15,23,42,0.08), 0 26px 54px rgba(15,23,42,0.16);
 
   --text-primary:   #1D1D1F;
   --text-secondary: rgba(60,60,67,0.72);
@@ -65,9 +71,12 @@ st.markdown("""
 
 /* ── Background ── */
 .stApp {
-  background: radial-gradient(circle at 15% 0%, rgba(10,132,255,0.05) 0%, transparent 45%),
-              radial-gradient(circle at 85% 15%, rgba(48,209,88,0.05) 0%, transparent 45%),
-              var(--bg-app);
+  background-image:
+    linear-gradient(180deg, rgba(242,242,247,0.50) 0%, rgba(242,242,247,0.82) 55%, rgba(242,242,247,0.94) 100%),
+    url('https://github.com/nodramallama89/Weight-tracker/blob/33fc966fe489b029049541e417658a7441afa776/Gemini_Generated_Image_1zukku1zukku1zuk.png?raw=true');
+  background-size: cover;
+  background-attachment: fixed;
+  background-position: center;
   font-family: var(--font-body);
 }
 
@@ -102,6 +111,7 @@ st.markdown("""
   text-align: center !important;
   margin: 0 0 0.25rem !important;
   animation: fadeUp 0.6s ease 0.05s both;
+  text-shadow: 0 1px 12px rgba(255,255,255,0.6);
 }
 
 .page-subtitle {
@@ -114,13 +124,15 @@ st.markdown("""
   animation: fadeUp 0.7s ease 0.1s both;
 }
 
-/* ── GLASS → CLEAN CARD ── */
+/* ── Frosted glass card ── */
 .card {
-  background: var(--bg-card);
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
   border-radius: var(--radius-xl);
   padding: 22px 20px 20px;
-  box-shadow: var(--shadow-card);
-  border: 1px solid var(--border-subtle);
+  box-shadow: var(--shadow-card), inset 0 1px 0 rgba(255,255,255,0.6);
+  border: 1px solid var(--glass-border);
   text-align: center;
   margin-bottom: 12px;
   position: relative;
@@ -130,9 +142,10 @@ st.markdown("""
 }
 
 .card:hover {
-  transform: translateY(-3px);
-  box-shadow: var(--shadow-card-hover);
-  border-color: var(--border-strong);
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-card-hover), inset 0 1px 0 rgba(255,255,255,0.7);
+  border-color: rgba(255,255,255,0.8);
+  background: var(--glass-bg-hover);
 }
 
 /* ── Card Typography ── */
@@ -140,43 +153,47 @@ st.markdown("""
 .val-sm { font-family: var(--font-display); font-size: 1.55rem; font-weight: 800; margin: 4px 0 4px; line-height: 1; color: var(--text-primary); letter-spacing: -0.01em; }
 .label { font-family: var(--font-caption); font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-tertiary); }
 
-.delta { font-family: var(--font-body); font-size: 0.78rem; font-weight: 700; margin-top: 10px; padding: 5px 13px; border-radius: 50px; display: inline-block; }
-.delta-pos { background: rgba(48, 209, 88, 0.12); color: #1E9145; border: 1px solid rgba(48, 209, 88, 0.25); }
-.delta-neg { background: rgba(255, 55, 95, 0.10); color: #E0264F; border: 1px solid rgba(255, 55, 95, 0.22); }
+.delta { font-family: var(--font-body); font-size: 0.78rem; font-weight: 700; margin-top: 10px; padding: 5px 13px; border-radius: 50px; display: inline-block; box-shadow: 0 2px 8px rgba(15,23,42,0.06); }
+.delta-pos { background: rgba(48, 209, 88, 0.16); color: #1E9145; border: 1px solid rgba(48, 209, 88, 0.3); }
+.delta-neg { background: rgba(255, 55, 95, 0.14); color: #E0264F; border: 1px solid rgba(255, 55, 95, 0.28); }
 
 /* ── Section header ── */
-.section-header { font-family: var(--font-display); font-size: 1.6rem; font-weight: 800; color: var(--text-primary); margin: 0 0 0.3rem; text-align: center; letter-spacing: -0.01em; animation: fadeUp 0.5s both; }
+.section-header { font-family: var(--font-display); font-size: 1.6rem; font-weight: 800; color: var(--text-primary); margin: 0 0 0.3rem; text-align: center; letter-spacing: -0.01em; animation: fadeUp 0.5s both; text-shadow: 0 1px 12px rgba(255,255,255,0.6); }
 .section-sub { font-family: var(--font-caption); font-size: 0.8rem; color: var(--text-tertiary); text-align: center; margin-top: 0; margin-bottom: 1.6rem; letter-spacing: 0.04em; text-transform: uppercase; font-weight: 600; }
 
-/* ── Tab bar → iOS segmented control ── */
+/* ── Tab bar → iOS segmented control (frosted) ── */
 div[data-baseweb="tab-list"] {
-  background: var(--bg-card-muted) !important;
+  background: rgba(255,255,255,0.45) !important;
+  backdrop-filter: var(--glass-blur-sm) !important;
+  -webkit-backdrop-filter: var(--glass-blur-sm) !important;
   border-radius: 16px !important;
   padding: 6px !important;
-  border: 1px solid var(--border-subtle) !important;
-  box-shadow: none !important;
+  border: 1px solid var(--glass-border) !important;
+  box-shadow: var(--shadow-card) !important;
   margin-bottom: 2rem !important;
   flex-wrap: wrap !important;
   gap: 2px;
 }
 div[data-baseweb="tab"] { border-radius: 11px !important; transition: all 0.25s ease !important; }
-div[data-baseweb="tab"]:hover { background: rgba(0,0,0,0.03) !important; }
-div[data-baseweb="tab"][aria-selected="true"] { background: var(--bg-card) !important; box-shadow: 0 1px 3px rgba(0,0,0,0.08), 0 1px 1px rgba(0,0,0,0.04) !important; }
+div[data-baseweb="tab"]:hover { background: rgba(255,255,255,0.35) !important; }
+div[data-baseweb="tab"][aria-selected="true"] { background: rgba(255,255,255,0.92) !important; box-shadow: 0 2px 6px rgba(15,23,42,0.10), 0 1px 1px rgba(15,23,42,0.04) !important; }
 div[data-baseweb="tab-list"] button [data-testid="stMarkdownContainer"] p { font-family: var(--font-body) !important; color: var(--text-secondary) !important; font-size: 0.9rem !important; font-weight: 600 !important; }
 div[data-baseweb="tab"][aria-selected="true"] [data-testid="stMarkdownContainer"] p { color: var(--text-primary) !important; }
 div[data-baseweb="tab-highlight"] { display: none !important; }
 
-/* ── Chart wrapper ── */
+/* ── Chart wrapper (frosted) ── */
 .stPlotlyChart {
-  background: var(--bg-card) !important;
+  background: var(--glass-bg) !important;
+  backdrop-filter: var(--glass-blur) !important;
+  -webkit-backdrop-filter: var(--glass-blur) !important;
   border-radius: var(--radius-xl) !important;
   padding: 18px !important;
-  border: 1px solid var(--border-subtle) !important;
-  box-shadow: var(--shadow-card) !important;
+  border: 1px solid var(--glass-border) !important;
+  box-shadow: var(--shadow-card), inset 0 1px 0 rgba(255,255,255,0.6) !important;
   transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1) !important;
   animation: springUpFade 0.7s cubic-bezier(0.16, 1, 0.3, 1) 0.1s both !important;
 }
-.stPlotlyChart:hover { box-shadow: var(--shadow-card-hover) !important; }
+.stPlotlyChart:hover { box-shadow: var(--shadow-card-hover), inset 0 1px 0 rgba(255,255,255,0.7) !important; }
 
 /* ── Animations ── */
 @keyframes springUpFade {
@@ -198,19 +215,25 @@ div[data-baseweb="tab-highlight"] { display: none !important; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.15); border-radius: 10px; }
 
-/* DataFrame Styling */
+/* DataFrame Styling (frosted) */
 [data-testid="stDataFrame"] {
-  background: var(--bg-card);
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur-sm);
+  -webkit-backdrop-filter: var(--glass-blur-sm);
   border-radius: var(--radius-lg);
-  border: 1px solid var(--border-subtle);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--shadow-card);
   padding: 10px;
 }
 
-/* st.info boxes */
+/* st.info boxes (frosted) */
 div[data-testid="stAlert"] {
-  background: var(--bg-card-soft) !important;
-  border: 1px solid var(--border-subtle) !important;
+  background: var(--glass-bg) !important;
+  backdrop-filter: var(--glass-blur-sm) !important;
+  -webkit-backdrop-filter: var(--glass-blur-sm) !important;
+  border: 1px solid var(--glass-border) !important;
   border-radius: var(--radius-lg) !important;
+  box-shadow: var(--shadow-card) !important;
   color: var(--text-secondary) !important;
 }
 </style>
