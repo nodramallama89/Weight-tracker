@@ -482,6 +482,19 @@ if not df.empty:
         fig.update_layout(xaxis=dict(rangeslider=dict(visible=True, bgcolor='rgba(0,0,0,0.03)', bordercolor='rgba(60,60,67,0.12)'), type="date"))
         st.plotly_chart(apply_theme(fig, "Caloric Intake", "≤1,633 GREEN // >1,700 RED"), use_container_width=True)
 
+        # Rolling averages, computed only over days that actually have a
+        # logged value (dropna) so trailing blank/future sheet rows never
+        # dilute the window — same "completed days" principle as df_valid.
+        st.markdown("<div style='margin-top:22px'></div>", unsafe_allow_html=True)
+        cal_logged = cal_series.dropna()
+        cc1, cc2, cc3 = st.columns(3)
+        with cc1:
+            st.markdown(card("7-Day Avg", num_target=cal_logged.tail(7).mean(), decimals=0, suffix=" kcal"), unsafe_allow_html=True)
+        with cc2:
+            st.markdown(card("30-Day Avg", num_target=cal_logged.tail(30).mean(), decimals=0, suffix=" kcal"), unsafe_allow_html=True)
+        with cc3:
+            st.markdown(card("90-Day Avg", num_target=cal_logged.tail(90).mean(), decimals=0, suffix=" kcal"), unsafe_allow_html=True)
+
     # ══════════════════════════════════════════
     #  TAB 4 — Hydration
     # ══════════════════════════════════════════
@@ -565,6 +578,17 @@ if not df.empty:
         fig.add_hline(y=8000, line_dash="dot", line_color="#FF375F", annotation_text="8K FLOOR", annotation_font_color="#E0264F")
         fig.update_layout(xaxis=dict(rangeslider=dict(visible=True, bgcolor='rgba(0,0,0,0.03)'), type="date"))
         st.plotly_chart(apply_theme(fig, "Daily Steps", "STATUS: TRACKING"), use_container_width=True)
+
+        # Same "completed days only" rolling average approach as Calories.
+        st.markdown("<div style='margin-top:22px'></div>", unsafe_allow_html=True)
+        steps_logged = steps_data.dropna()
+        sc1, sc2, sc3 = st.columns(3)
+        with sc1:
+            st.markdown(card("7-Day Avg", num_target=steps_logged.tail(7).mean(), decimals=0), unsafe_allow_html=True)
+        with sc2:
+            st.markdown(card("30-Day Avg", num_target=steps_logged.tail(30).mean(), decimals=0), unsafe_allow_html=True)
+        with sc3:
+            st.markdown(card("90-Day Avg", num_target=steps_logged.tail(90).mean(), decimals=0), unsafe_allow_html=True)
 
     # ══════════════════════════════════════════
     #  TAB 8 — Macros
@@ -734,13 +758,23 @@ if not df.empty:
     # ══════════════════════════════════════════
     with tab13:
         st.markdown("<div class='section-header'>Data Insights</div>", unsafe_allow_html=True)
-        st.markdown("<div class='section-sub'>Cause and Effect Analysis</div>", unsafe_allow_html=True)
+        st.markdown("<div class='section-sub'>Cause and Effect Analysis — Last 90 Days</div>", unsafe_allow_html=True)
 
-        w_series = get_num(3)
-        cals_series = get_num(1)
-        steps_series = get_num(12)
-        hyd_series = get_num(24)
-        prot_series = get_num(16)
+        # This tab used to average over your *entire* history. With many
+        # months of data, a single new day barely moves a lifetime average —
+        # e.g. day 251 changing an average of 250 days looks like nothing
+        # happened. That's why it looked static/hardcoded even though it was
+        # genuinely recalculating every time. Windowing to the most recent
+        # 90 completed days (same df_valid filter used elsewhere, so trailing
+        # blank sheet rows are excluded) makes it responsive to how you've
+        # actually been doing lately, not diluted by day 1.
+        analytics_window = df_valid.tail(90).reset_index(drop=True)
+
+        w_series = get_num(3, analytics_window)
+        cals_series = get_num(1, analytics_window)
+        steps_series = get_num(12, analytics_window)
+        hyd_series = get_num(24, analytics_window)
+        prot_series = get_num(16, analytics_window)
 
         # Shift weight by -1 to get the 'next day' weight for correlation
         next_day_weight_diff = w_series.shift(-1) - w_series
@@ -778,7 +812,7 @@ if not df.empty:
         avg_change_low_prot = avg_change_low_prot if pd.notna(avg_change_low_prot) else 0
 
         # 5. Day of the week profiler
-        temp_df = pd.DataFrame({'day': df.iloc[:, 0].dt.day_name(), 'diff': next_day_weight_diff})
+        temp_df = pd.DataFrame({'day': analytics_window.iloc[:, 0].dt.day_name(), 'diff': next_day_weight_diff})
         day_means = temp_df.groupby('day')['diff'].mean().dropna()
         if not day_means.empty:
             best_day = day_means.idxmin()
