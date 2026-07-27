@@ -13,7 +13,7 @@ import re
 #  PAGE CONFIGURATION
 # ─────────────────────────────────────────────
 st.set_page_config(
-    page_title="Hardy House Health — World-Class Telemetry",
+    page_title="Hardy House Health — World-Class Intelligence",
     layout="wide",
     initial_sidebar_state="collapsed"
 )
@@ -22,11 +22,11 @@ st.set_page_config(
 if 'booted' not in st.session_state:
     st.toast('Masterclass Health Engine Active.', icon='✅')
     time.sleep(0.4)
-    st.toast('RAG Macro Engine & Vitals Matrix Online.', icon='💚')
+    st.toast('TDEE Engine & Biometric Matrix Online.', icon='💚')
     st.session_state.booted = True
 
 # ─────────────────────────────────────────────
-#  PREMIUM GLASSMORPHISM CSS (iOS / macOS Dashboard Aesthetic)
+#  PREMIUM GLASSMORPHISM CSS (Apple / Samsung Health Aesthetics)
 # ─────────────────────────────────────────────
 st.markdown("""
 <style>
@@ -137,7 +137,7 @@ st.markdown("""
 .rag-amber { background: rgba(255, 159, 10, 0.18); color: #C67200; border: 1px solid rgba(255, 159, 10, 0.35); }
 .rag-red   { background: rgba(255, 55, 95, 0.16); color: #D01144; border: 1px solid rgba(255, 55, 95, 0.35); }
 
-/* ── Top Insights Box (Inspired by Image 3) ── */
+/* ── Top Insights Box ── */
 .insights-card {
   background: rgba(255, 255, 255, 0.85);
   backdrop-filter: var(--glass-blur); -webkit-backdrop-filter: var(--glass-blur);
@@ -232,7 +232,6 @@ def apply_theme(fig, title="", subtitle=""):
     return fig
 
 def make_semi_gauge(val, title, min_v, max_v, green_range, amber_range, red_range, unit=""):
-    """Generates semi-circular radial dial gauge inspired by Image 1."""
     fig = go.Figure(go.Indicator(
         mode="gauge+number",
         value=val,
@@ -446,7 +445,7 @@ def evaluate_debuffs(row_data):
 # ─────────────────────────────────────────────
 if not df.empty:
 
-    # ── Top Ticker Header ──
+    # ── Top Header ──
     st.markdown("""
     <span class='page-eyebrow'><span class='status-dot'></span>MASTERCLASS HEALTH TELEMETRY ENGINE</span>
     """, unsafe_allow_html=True)
@@ -454,14 +453,16 @@ if not df.empty:
     st.markdown("<div style='text-align:center;'><h1 class='page-title'>Hardy House Health</h1></div>", unsafe_allow_html=True)
     st.markdown("<div class='page-subtitle'>World-Class Biometric Intelligence & Multi-Factor Performance Matrix</div>", unsafe_allow_html=True)
 
-    # ── 17 Tabs ──
-    tab1, tab2, tab3, tab4, tab5, tab6, tab7, tab8, tab9, tab10, tab11, tab12, tab13, tab14, tab15, tab16, tab17 = st.tabs([
-        "🛡️ Command", "📊 Lifetime", "🔥 Calories", "💧 Hydration", "⚖️ Weight",
-        "📉 Trend", "👟 Steps", "🥗 Macros", "📈 Averages", "❤️ Vitals", "🎯 Target", "🏆 Trophies", "🧠 Analytics", "📋 Sit Rep", "🔮 Forecast", "⚡ Momentum", "🗄️ Data Log"
+    # ── 19 Expanded Tabs ──
+    tab1, tab2, tab3, tab4, tab5, tab6, tab7, tab8, tab9, tab10, tab11, tab12, tab13, tab14, tab15, tab16, tab17, tab18, tab19 = st.tabs([
+        "🛡️ Command", "🧬 Metabolic", "🫀 Cardio", "📊 Lifetime", "🔥 Calories",
+        "💧 Hydration", "⚖️ Weight", "📉 Variance", "👟 Steps", "🥗 Macro RAG",
+        "📅 Patterns", "📈 Averages", "🎯 Milestone", "🏆 Trophies", "🧠 Analytics",
+        "📋 Sit Rep", "🔮 Forecast", "⚡ Momentum", "🗄️ Data Log"
     ])
 
     # ══════════════════════════════════════════
-    #  TAB 1 — Command Center (Review + Gauges)
+    #  TAB 1 — Command Center
     # ══════════════════════════════════════════
     with tab1:
         completed = df_valid
@@ -471,7 +472,7 @@ if not df.empty:
             cals  = clean_float(y.iloc[1])
             steps = clean_float(y.iloc[12])
 
-            # ── TOP INSIGHTS ENGINE (Inspired by Image 3) ──
+            # ── TOP INSIGHTS ENGINE ──
             last_14 = completed.tail(14)
             cals_14 = pd.to_numeric(last_14.iloc[:, 1], errors='coerce')
             p_14    = pd.to_numeric(last_14.iloc[:, 16], errors='coerce')
@@ -484,9 +485,9 @@ if not df.empty:
             st.markdown(f"""
             <div class='insights-card'>
                 <div class='insights-title'>⚡ AUTOMATED BIOMETRIC INSIGHTS ({date_str})</div>
-                <div class='insight-item'>• <b>Caloric Consistency:</b> Hit caloric target (≤1,633 kcal) on <b>{cal_hit_cnt} of the last 14 days</b> ({(cal_hit_cnt/14*100):.0f}% adherence).</div>
-                <div class='insight-item'>• <b>Protein RAG Adherence:</b> Reached <b>GREEN Protein status (≥85% Target)</b> on <b>{p_green_cnt} of the last 14 days</b>.</div>
-                <div class='insight-item'>• <b>Hydration Performance:</b> Achieved optimal 3,000 ml water volume on <b>{water_hit_cnt} of the last 14 days</b>.</div>
+                <div class='insight-item'>• <b>Caloric Adherence:</b> Reached calorie goal (≤1,633 kcal) on <b>{cal_hit_cnt} of the last 14 days</b> ({(cal_hit_cnt/14*100):.0f}% compliance).</div>
+                <div class='insight-item'>• <b>Protein RAG Status:</b> Achieved <b>GREEN Protein status (≥85% Target)</b> on <b>{p_green_cnt} of the last 14 days</b>.</div>
+                <div class='insight-item'>• <b>Hydration Performance:</b> Hit target 3,000 ml water volume on <b>{water_hit_cnt} of the last 14 days</b>.</div>
             </div>
             """, unsafe_allow_html=True)
 
@@ -561,7 +562,7 @@ if not df.empty:
                 <div class='rag-badge {"rag-green" if alc_kcal==0 else "rag-red"}'>{"ZERO" if alc_kcal==0 else "ACTIVE"}</div>
               </div>""", unsafe_allow_html=True)
 
-            # ── RADIALLY CLUSTERED GAUGES (Inspired by Image 1) ──
+            # Radial Gauge Cluster
             st.markdown("<div style='margin-top:20px'></div>", unsafe_allow_html=True)
             st.markdown("<div class='section-sub'>Vitals & Pulse Dial Gauge Cluster</div>", unsafe_allow_html=True)
             
@@ -577,13 +578,90 @@ if not df.empty:
             with g3:
                 st.plotly_chart(make_semi_gauge(hr_val, "Resting HR", 40, 130, [40, 75], [75, 90], [90, 130], "BPM"), use_container_width=True)
 
-            # Debuff Status Engine
             st.markdown(evaluate_debuffs(y), unsafe_allow_html=True)
 
     # ══════════════════════════════════════════
-    #  TAB 2 — Lifetime Stats
+    #  TAB 2 — 🧬 Metabolic Intelligence & Dynamic TDEE
     # ══════════════════════════════════════════
     with tab2:
+        st.markdown("<div class='section-header'>Metabolic Intelligence Engine</div>", unsafe_allow_html=True)
+        st.markdown("<div class='section-sub'>Dynamic TDEE Re-estimation & True Fat Mass Loss Vector</div>", unsafe_allow_html=True)
+
+        w_series = get_num(3, df_valid).dropna()
+        cals_series = get_num(1, df_valid).dropna()
+
+        if len(w_series) >= 14:
+            # 14-day & 30-day TDEE Re-estimation
+            w_14_start = w_series.iloc[-14]
+            w_14_end   = w_series.iloc[-1]
+            w_14_drop  = w_14_start - w_14_end # lbs lost in 14 days
+            avg_cals_14 = cals_series.tail(14).mean()
+
+            # 3500 kcal per lb of weight
+            est_tdee_14 = avg_cals_14 + (w_14_drop * 3500.0 / 14.0)
+
+            w_30_start = w_series.iloc[-30] if len(w_series) >= 30 else w_series.iloc[0]
+            w_30_days  = 30 if len(w_series) >= 30 else len(w_series)
+            w_30_drop  = w_30_start - w_14_end
+            avg_cals_30 = cals_series.tail(w_30_days).mean()
+            est_tdee_30 = avg_cals_30 + (w_30_drop * 3500.0 / float(w_30_days))
+
+            # Cumulative Caloric Deficit
+            cum_deficit = (est_tdee_30 - cals_series.tail(w_30_days)).sum()
+            calc_fat_lost_lbs = cum_deficit / 3500.0
+
+            mc1, mc2, mc3 = st.columns(3)
+            with mc1:
+                st.markdown(card("14-Day Dynamic TDEE", num_target=est_tdee_14, decimals=0, suffix=" kcal/day"), unsafe_allow_html=True)
+            with mc2:
+                st.markdown(card("30-Day Dynamic TDEE", num_target=est_tdee_30, decimals=0, suffix=" kcal/day"), unsafe_allow_html=True)
+            with mc3:
+                st.markdown(card("Estimated True Fat Loss (30d)", num_target=calc_fat_lost_lbs, decimals=1, suffix=" lbs"), unsafe_allow_html=True)
+
+            # TDEE vs Intake Chart
+            dates_tdee = df_valid.iloc[-w_30_days:, 0]
+            fig_t = go.Figure()
+            fig_t.add_trace(go.Bar(x=dates_tdee, y=cals_series.tail(w_30_days), name="Actual Calories In", marker_color='rgba(10,132,255,0.7)'))
+            fig_t.add_hline(y=est_tdee_30, line_dash="dash", line_color="#FF375F", annotation_text=f"Estimated TDEE ({est_tdee_30:.0f} kcal)", annotation_font_color="#FF375F")
+            st.plotly_chart(apply_theme(fig_t, "Daily Intake vs Re-calculated TDEE Baseline", "DYNAMIC METABOLIC BURNS"), use_container_width=True)
+        else:
+            st.info("Requires at least 14 days of logged weight & calories to calculate dynamic TDEE.")
+
+    # ══════════════════════════════════════════
+    #  TAB 3 — 🫀 Biological Cardio Age & Vitals
+    # ══════════════════════════════════════════
+    with tab3:
+        st.markdown("<div class='section-header'>Cardiovascular Matrix</div>", unsafe_allow_html=True)
+        st.markdown("<div class='section-sub'>Hemodynamic Health, Pulse Pressure & Mean Arterial Pressure (MAP)</div>", unsafe_allow_html=True)
+
+        sys_data = get_num(21)
+        dia_data = get_num(22)
+        hr_data  = get_num(23)
+
+        last_sys = sys_data.dropna().iloc[-1] if sys_data.dropna().shape[0] > 0 else 120.0
+        last_dia = dia_data.dropna().iloc[-1] if dia_data.dropna().shape[0] > 0 else 80.0
+        pulse_pressure = last_sys - last_dia
+        map_val = last_dia + (pulse_pressure / 3.0)
+
+        vc1, vc2, vc3 = st.columns(3)
+        with vc1:
+            st.markdown(card("Pulse Pressure (Sys - Dia)", num_target=pulse_pressure, decimals=0, suffix=" mmHg"), unsafe_allow_html=True)
+        with vc2:
+            st.markdown(card("Mean Arterial Pressure (MAP)", num_target=map_val, decimals=1, suffix=" mmHg"), unsafe_allow_html=True)
+        with vc3:
+            st.markdown(card("Avg Resting Heart Rate", num_target=hr_data.dropna().mean() if hr_data.dropna().shape[0]>0 else 72, decimals=0, suffix=" BPM"), unsafe_allow_html=True)
+
+        fig_cardio = go.Figure()
+        fig_cardio.add_trace(go.Scatter(x=df.iloc[:, 0], y=sys_data, name="Systolic BP", mode='lines+markers', line=dict(color='#FF375F', width=2.5)))
+        fig_cardio.add_trace(go.Scatter(x=df.iloc[:, 0], y=dia_data, name="Diastolic BP", mode='lines+markers', line=dict(color='#0A84FF', width=2.5)))
+        if hr_data.notna().any():
+            fig_cardio.add_trace(go.Scatter(x=df.iloc[:, 0], y=hr_data, name="Resting HR (BPM)", mode='lines', line=dict(color='#BF5AF2', width=2, dash='dot')))
+        st.plotly_chart(apply_theme(fig_cardio, "Blood Pressure & Heart Rate Trends", "HEMODYNAMIC PROFILING"), use_container_width=True)
+
+    # ══════════════════════════════════════════
+    #  TAB 4 — Lifetime Stats
+    # ══════════════════════════════════════════
+    with tab4:
         l = df.iloc[-1]
         st.markdown("<div class='section-header'>Lifetime Stats</div>", unsafe_allow_html=True)
 
@@ -608,9 +686,9 @@ if not df.empty:
             st.markdown(card("To Target BMI", num_target=clean_float(l.iloc[11]), decimals=1), unsafe_allow_html=True)
 
     # ══════════════════════════════════════════
-    #  TAB 3 — Calories
+    #  TAB 5 — Calories
     # ══════════════════════════════════════════
-    with tab3:
+    with tab5:
         cal_series = get_num(1)
         cal_min = float(cal_series.min()) if cal_series.notna().any() else 0
         cal_max = float(cal_series.max()) if cal_series.notna().any() else 2000
@@ -646,9 +724,9 @@ if not df.empty:
             st.markdown(card("90-Day Avg", num_target=cal_logged.tail(90).mean(), decimals=0, suffix=" kcal"), unsafe_allow_html=True)
 
     # ══════════════════════════════════════════
-    #  TAB 4 — Hydration
+    #  TAB 6 — Hydration
     # ══════════════════════════════════════════
-    with tab4:
+    with tab6:
         hyd_series = get_num(24)
 
         fig = go.Figure()
@@ -671,15 +749,13 @@ if not df.empty:
             st.markdown(card("90-Day Avg Water", num_target=hyd_logged.tail(90).mean(), decimals=0, suffix=" ml"), unsafe_allow_html=True)
 
     # ══════════════════════════════════════════
-    #  TAB 5 — Weight Trajectory (Smoothing Engine)
+    #  TAB 7 — Weight Trajectory (Smoothing Engine)
     # ══════════════════════════════════════════
-    with tab5:
+    with tab7:
         w_series = get_num(3).dropna()
         dates_w  = df.iloc[:len(w_series), 0]
-        
-        # 7-Day Exponential Moving Average (EMA) to filter water weight noise
-        w_ema = w_series.ewm(span=7, adjust=False).mean()
-        w_max = float(w_series.max()) + 2 if not w_series.empty else 210
+        w_ema    = w_series.ewm(span=7, adjust=False).mean()
+        w_max    = float(w_series.max()) + 2 if not w_series.empty else 210
 
         fig = go.Figure()
         fig.add_trace(go.Scatter(
@@ -707,9 +783,9 @@ if not df.empty:
             st.markdown(card("7-Day Trend Weight", num_target=w_ema.iloc[-1] if not w_ema.empty else 0, decimals=1, suffix=" lbs"), unsafe_allow_html=True)
 
     # ══════════════════════════════════════════
-    #  TAB 6 — Gain / Loss Trend
+    #  TAB 8 — Scale Variance
     # ══════════════════════════════════════════
-    with tab6:
+    with tab8:
         trend = get_num(5) # Col 5
         colors_trend = ['#30D158' if v <= 0 else '#FF375F' for v in trend.fillna(0)]
 
@@ -727,9 +803,9 @@ if not df.empty:
         st.plotly_chart(apply_theme(fig, "Daily Scale Variance", "RANGE ±5 LBS DELTA"), use_container_width=True)
 
     # ══════════════════════════════════════════
-    #  TAB 7 — Steps
+    #  TAB 9 — Steps
     # ══════════════════════════════════════════
-    with tab7:
+    with tab9:
         steps_data  = get_num(12)
         def step_color(s):
             if s >= 10000: return '#30D158'
@@ -758,11 +834,11 @@ if not df.empty:
             st.markdown(card("90-Day Avg", num_target=steps_logged.tail(90).mean(), decimals=0), unsafe_allow_html=True)
 
     # ══════════════════════════════════════════
-    #  TAB 8 — RAG Macro Matrix
+    #  TAB 10 — RAG Macro Matrix
     # ══════════════════════════════════════════
-    with tab8:
+    with tab10:
         st.markdown("<div class='section-header'>RAG Macro Performance Matrix</div>", unsafe_allow_html=True)
-        st.markdown("<div class='section-sub'>Proportional Target Adherence (%) over Time</div>", unsafe_allow_html=True)
+        st.markdown("<div class='section-sub'>Proportional Target Adherence (% Target) over Time</div>", unsafe_allow_html=True)
 
         p_pcts = get_num(16)
         c_pcts = get_num(17)
@@ -779,7 +855,6 @@ if not df.empty:
         fig_m.update_layout(xaxis=dict(rangeslider=dict(visible=True, bgcolor='rgba(0,0,0,0.03)'), type="date"))
         st.plotly_chart(apply_theme(fig_m, "Macro Target Compliance (% Target)", "RAG COMPLIANCE ENGINE"), use_container_width=True)
 
-        # RAG Compliance Breakdown Donut (Inspired by Image 2)
         p_green_cnt = (p_pcts >= 85).sum()
         p_amber_cnt = ((p_pcts >= 60) & (p_pcts < 85)).sum()
         p_red_cnt   = (p_pcts < 60).sum()
@@ -794,9 +869,31 @@ if not df.empty:
         st.plotly_chart(fig_pie, use_container_width=True)
 
     # ══════════════════════════════════════════
-    #  TAB 9 — Averages
+    #  TAB 11 — 📅 Day of Week Pattern Profiler
     # ══════════════════════════════════════════
-    with tab9:
+    with tab11:
+        st.markdown("<div class='section-header'>Weekly Pattern Profiler</div>", unsafe_allow_html=True)
+        st.markdown("<div class='section-sub'>Behavioral Variance by Day of the Week</div>", unsafe_allow_html=True)
+
+        dow_df = df_valid.copy()
+        dow_df['Day'] = dow_df.iloc[:, 0].dt.day_name()
+        days_order = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
+        
+        dow_df['Calories'] = pd.to_numeric(dow_df.iloc[:, 1], errors='coerce')
+        dow_df['Steps']    = pd.to_numeric(dow_df.iloc[:, 12], errors='coerce')
+        dow_df['Water']    = pd.to_numeric(dow_df.iloc[:, 24], errors='coerce')
+
+        dow_summary = dow_df.groupby('Day')[['Calories', 'Steps', 'Water']].mean().reindex(days_order)
+
+        fig_dow = go.Figure()
+        fig_dow.add_trace(go.Bar(x=dow_summary.index, y=dow_summary['Calories'], name='Avg Calories', marker_color='#0A84FF'))
+        fig_dow.add_hline(y=1633, line_dash="dash", line_color="#30D158", annotation_text="1,633 Target")
+        st.plotly_chart(apply_theme(fig_dow, "Average Caloric Intake by Day of Week", "BEHAVIORAL RISK ANALYSIS"), use_container_width=True)
+
+    # ══════════════════════════════════════════
+    #  TAB 12 — Averages
+    # ══════════════════════════════════════════
+    with tab12:
         w_series = get_num(3).dropna()
         avg_loss = (w_series.iloc[0] - w_series.iloc[-1]) / (len(df) / 7) if len(w_series) > 1 else 0.0
 
@@ -813,84 +910,33 @@ if not df.empty:
             st.markdown(card("Avg Fat % Target", num_target=get_num(18).mean(), decimals=1, suffix="%"), unsafe_allow_html=True)
 
     # ══════════════════════════════════════════
-    #  TAB 10 — Cardiovascular Vitals
+    #  TAB 13 — 🎯 Stone Gateway & Milestones
     # ══════════════════════════════════════════
-    with tab10:
-        sys_data = get_num(21)
-        dia_data = get_num(22)
-        hr_data  = get_num(23)
+    with tab13:
+        st.markdown("<div class='section-header'>Stone Gateway & Milestone Tracker</div>", unsafe_allow_html=True)
+        st.markdown("<div class='section-sub'>Breakdown to Major Stone Boundaries</div>", unsafe_allow_html=True)
 
-        fig = go.Figure()
-        fig.add_hrect(y0=60, y1=80, fillcolor='rgba(48,209,88,0.06)', layer="below", line_width=0)
-        fig.add_hrect(y0=80, y1=90, fillcolor='rgba(255,214,10,0.07)', layer="below", line_width=0)
-        fig.add_hrect(y0=90, y1=180, fillcolor='rgba(255,55,95,0.06)', layer="below", line_width=0)
+        latest_w = get_num(3).dropna().iloc[-1] if not get_num(3).dropna().empty else 200.0
 
-        fig.add_hline(y=120, line_dash="dash", line_color="#30D158", annotation_text="SYS IDEAL", annotation_font_color="#1E9145")
-        fig.add_hline(y=80, line_dash="dash", line_color="#0A84FF", annotation_text="DIA IDEAL", annotation_font_color="#0A84FF")
+        st_15 = 210.0 # 15 stone
+        st_14 = 196.0 # 14 stone
+        st_13 = 182.0 # 13 stone
+        st_12_2 = 170.0 # 12 stone 2 lbs (Final Goal)
 
-        fig.add_trace(go.Scatter(x=df.iloc[:, 0], y=sys_data, name="Systolic", mode='lines+markers', connectgaps=True, line=dict(color='#FF375F', width=3), marker=dict(size=8, color='#FF375F')))
-        fig.add_trace(go.Scatter(x=df.iloc[:, 0], y=dia_data, name="Diastolic", mode='lines+markers', connectgaps=True, line=dict(color='#0A84FF', width=3), marker=dict(size=8, color='#0A84FF')))
-        
-        if hr_data.notna().any():
-            fig.add_trace(go.Scatter(x=df.iloc[:, 0], y=hr_data, name="Heart Rate (BPM)", mode='lines+markers', connectgaps=True, line=dict(color='#BF5AF2', width=2, dash='dot'), marker=dict(size=6, color='#BF5AF2')))
-
-        fig.update_layout(yaxis=dict(range=[50, 180]), xaxis=dict(rangeslider=dict(visible=True, bgcolor='rgba(0,0,0,0.03)'), type="date"))
-        st.plotly_chart(apply_theme(fig, "Cardiovascular Vitals Monitor", "SYSTOLIC // DIASTOLIC // RESTING HR"), use_container_width=True)
-
-        last_sys = sys_data.dropna().iloc[-1] if sys_data.dropna().shape[0] > 0 else 120
-        last_dia = dia_data.dropna().iloc[-1] if dia_data.dropna().shape[0] > 0 else 80
-        pulse_pressure = last_sys - last_dia
-        map_val = last_dia + (pulse_pressure / 3.0)
-
-        st.markdown("<div style='margin-top:16px'></div>", unsafe_allow_html=True)
-        vc1, vc2, vc3 = st.columns(3)
-        with vc1:
-            st.markdown(card("Pulse Pressure (Sys - Dia)", num_target=pulse_pressure, decimals=0, suffix=" mmHg"), unsafe_allow_html=True)
-        with vc2:
-            st.markdown(card("Mean Arterial Pressure (MAP)", num_target=map_val, decimals=1, suffix=" mmHg"), unsafe_allow_html=True)
-        with vc3:
-            st.markdown(card("Avg Resting HR", num_target=hr_data.dropna().mean() if hr_data.dropna().shape[0]>0 else 0, decimals=0, suffix=" BPM"), unsafe_allow_html=True)
+        sc1, sc2, sc3, sc4 = st.columns(4)
+        with sc1:
+            st.markdown(card("15 Stone Threshold", display_val="PASSED" if latest_w < st_15 else f"{latest_w - st_15:.1f} lbs to go"), unsafe_allow_html=True)
+        with sc2:
+            st.markdown(card("14 Stone Threshold (196 lbs)", display_val="PASSED" if latest_w < st_14 else f"{latest_w - st_14:.1f} lbs to go"), unsafe_allow_html=True)
+        with sc3:
+            st.markdown(card("13 Stone Threshold (182 lbs)", display_val="PASSED" if latest_w < st_13 else f"{latest_w - st_13:.1f} lbs to go"), unsafe_allow_html=True)
+        with sc4:
+            st.markdown(card("12 st 2 lbs Final Goal", display_val="ACHIEVED" if latest_w <= st_12_2 else f"{latest_w - st_12_2:.1f} lbs to go"), unsafe_allow_html=True)
 
     # ══════════════════════════════════════════
-    #  TAB 11 — Target Gauge
+    #  TAB 14 — Trophy Room
     # ══════════════════════════════════════════
-    with tab11:
-        st.markdown("<div class='section-header'>Mission Progress</div>", unsafe_allow_html=True)
-        st.markdown("<div class='section-sub'>Scale Target Gauge: 170 LBS (12 ST 2 LBS)</div>", unsafe_allow_html=True)
-
-        w_series = get_num(3).dropna()
-        if len(w_series) > 1:
-            current_w = w_series.iloc[-1]
-            start_w   = w_series.iloc[0]
-            goal_w    = 170
-
-            fig = go.Figure(go.Indicator(
-                mode = "gauge+number+delta",
-                value = current_w,
-                domain = {'x': [0, 1], 'y': [0, 1]},
-                title = {'text': "Current Scale Weight (lbs)", 'font': {'color': 'rgba(60,60,67,0.7)', 'size': 18, 'family': 'Inter'}},
-                delta = {'reference': start_w, 'increasing': {'color': '#FF375F'}, 'decreasing': {'color': '#30D158'}},
-                gauge = {
-                    'axis': {'range': [goal_w - 5, start_w + 5], 'tickcolor': "rgba(60,60,67,0.4)"},
-                    'bar': {'color': "#0A84FF"},
-                    'bgcolor': "rgba(0,0,0,0.03)",
-                    'borderwidth': 1,
-                    'bordercolor': "rgba(60,60,67,0.12)",
-                    'steps': [
-                        {'range': [goal_w, goal_w + 10], 'color': "rgba(48,209,88,0.14)"},
-                        {'range': [goal_w + 10, start_w], 'color': "rgba(255,159,10,0.10)"}
-                    ],
-                    'threshold': {'line': {'color': "#BF5AF2", 'width': 4}, 'thickness': 0.85, 'value': goal_w}
-                }
-            ))
-
-            fig.update_layout(paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', font=dict(color='#1D1D1F', family='Inter'), height=450, margin=dict(t=60, b=40))
-            st.plotly_chart(fig, use_container_width=True)
-
-    # ══════════════════════════════════════════
-    #  TAB 12 — Trophy Room
-    # ══════════════════════════════════════════
-    with tab12:
+    with tab14:
         st.markdown("<div class='section-header'>The Trophy Room</div>", unsafe_allow_html=True)
         st.markdown("<div class='section-sub'>Milestone Unlocks</div>", unsafe_allow_html=True)
 
@@ -954,9 +1000,9 @@ if not df.empty:
                         st.markdown(render_badge(badges[i + j]), unsafe_allow_html=True)
 
     # ══════════════════════════════════════════
-    #  TAB 13 — Analytics Engine & Heatmap
+    #  TAB 15 — Analytics Engine & Heatmap
     # ══════════════════════════════════════════
-    with tab13:
+    with tab15:
         st.markdown("<div class='section-header'>Masterclass Analytics Engine</div>", unsafe_allow_html=True)
         st.markdown("<div class='section-sub'>Multi-Factor Correlation Matrix & Cause-and-Effect Analysis</div>", unsafe_allow_html=True)
 
@@ -971,29 +1017,23 @@ if not df.empty:
         fat_series   = get_num(18, analytics_window)
         alc_series   = get_num(19, analytics_window)
 
-        # TEMPORAL ALIGNMENT: Telemetry on Row X correlates with morning scale shift on Row X
         weight_delta = w_series - w_series.shift(1)
         valid_mask   = weight_delta.notna()
 
-        # 1. Caloric Threshold
         good_cal_mask = (cals_series <= 1633) & valid_mask
         bad_cal_mask  = (cals_series > 1633) & valid_mask
         avg_good_cal  = weight_delta[good_cal_mask].mean() if good_cal_mask.sum() > 0 else 0.0
         avg_bad_cal   = weight_delta[bad_cal_mask].mean() if bad_cal_mask.sum() > 0 else 0.0
 
-        # 2. Protein RAG Impact
         prot_green_mask = (prot_series >= 85) & valid_mask
         avg_prot_green  = weight_delta[prot_green_mask].mean() if prot_green_mask.sum() > 0 else 0.0
 
-        # 3. Net Carbs RAG Impact
         carb_green_mask = (carb_series < 90) & valid_mask
         avg_carb_green  = weight_delta[carb_green_mask].mean() if carb_green_mask.sum() > 0 else 0.0
 
-        # 4. Alcohol Impact
         alc_mask = (alc_series > 0) & valid_mask
         avg_alc  = weight_delta[alc_mask].mean() if alc_mask.sum() > 0 else 0.0
 
-        # ── Pearson Correlation Heatmap ──
         corr_df = pd.DataFrame({
             'Scale Shift (lbs)': weight_delta,
             'Calories': cals_series,
@@ -1040,33 +1080,10 @@ if not df.empty:
         </div>
         """, unsafe_allow_html=True)
 
-        st.markdown(f"""
-        <div class='card' style='text-align: left; padding: 26px; margin-bottom: 14px;'>
-            <div style='font-size: 1.8rem; margin-bottom: 6px;'>🍞</div>
-            <div class='val-sm' style='margin-bottom: 8px; color: #0A84FF;'>Net Carbs RAG Compliance Effect</div>
-            <div style='font-family: var(--font-body); font-size: 1.02rem; color: var(--text-secondary); line-height: 1.6;'>
-                Staying <b>GREEN Net Carbs (<90% Target)</b> yields an average scale movement of 
-                <span style='color: #1E9145; font-weight: 800;'>{avg_carb_green:+.2f} lbs</span>.
-            </div>
-        </div>
-        """, unsafe_allow_html=True)
-
-        if alc_mask.sum() > 0:
-            st.markdown(f"""
-            <div class='card' style='text-align: left; padding: 26px; margin-bottom: 14px;'>
-                <div style='font-size: 1.8rem; margin-bottom: 6px;'>🍷</div>
-                <div class='val-sm' style='margin-bottom: 8px; color: #BF5AF2;'>Alcohol Interference</div>
-                <div style='font-family: var(--font-body); font-size: 1.02rem; color: var(--text-secondary); line-height: 1.6;'>
-                    Days with active alcohol intake produced an average scale shift of 
-                    <span style='color: #E0264F; font-weight: 800;'>{avg_alc:+.2f} lbs</span>.
-                </div>
-            </div>
-            """, unsafe_allow_html=True)
-
     # ══════════════════════════════════════════
-    #  TAB 14 — Weekly Sit Rep
+    #  TAB 16 — Weekly Sit Rep
     # ══════════════════════════════════════════
-    with tab14:
+    with tab16:
         st.markdown("<div class='section-header'>Weekly Sit Rep</div>", unsafe_allow_html=True)
         st.markdown("<div class='section-sub'>Last 7 Days vs Previous 7 Days</div>", unsafe_allow_html=True)
 
@@ -1103,9 +1120,9 @@ if not df.empty:
             st.info("System requires at least 14 days of telemetry to generate a comparative Sit Rep.")
 
     # ══════════════════════════════════════════
-    #  TAB 15 — Forecast Projection Engine
+    #  TAB 17 — Forecast Projection Engine
     # ══════════════════════════════════════════
-    with tab15:
+    with tab17:
         st.markdown("<div class='section-header'>Forecasting Engine</div>", unsafe_allow_html=True)
         st.markdown("<div class='section-sub'>Estimated Arrival Date (ETA) to 170 lbs (12 st 2 lbs)</div>", unsafe_allow_html=True)
 
@@ -1140,11 +1157,11 @@ if not df.empty:
             st.info("Requires at least 14 days of logged weight telemetry to calculate projection.")
 
     # ══════════════════════════════════════════
-    #  TAB 16 — Momentum Score
+    #  TAB 18 — Momentum Score
     # ══════════════════════════════════════════
-    with tab16:
+    with tab18:
         st.markdown("<div class='section-header'>Momentum Score</div>", unsafe_allow_html=True)
-        st.markdown("<div class='section-sub'>Daily Score — Calories + Steps + Water + Macro RAG</div>", unsafe_allow_html=True)
+        st.markdown("<div class='section-sub'>Daily Composite Score — Calories + Steps + Water + Macro RAG</div>", unsafe_allow_html=True)
 
         momentum_days = df_valid
         if len(momentum_days) >= 1:
@@ -1200,9 +1217,9 @@ if not df.empty:
             st.plotly_chart(apply_theme(fig, "Momentum Score Trend", "COMPOSITE HEALTH MATRIX"), use_container_width=True)
 
     # ══════════════════════════════════════════
-    #  TAB 17 — Raw Telemetry Log
+    #  TAB 19 — Raw Telemetry Log
     # ══════════════════════════════════════════
-    with tab17:
+    with tab19:
         st.markdown("<div class='section-header'>Raw Telemetry Log</div>", unsafe_allow_html=True)
         st.markdown("<div class='section-sub'>Latest 30 Records</div>", unsafe_allow_html=True)
 
