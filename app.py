@@ -22,7 +22,7 @@ st.set_page_config(
 if 'booted' not in st.session_state:
     st.toast('Masterclass Health Engine Active.', icon='✅')
     time.sleep(0.4)
-    st.toast('5,000 ml Hydration Target & TDEE Matrix Online.', icon='💚')
+    st.toast('Resting HR, Elevation & Stand Hours Synchronized.', icon='💚')
     st.session_state.booted = True
 
 # ─────────────────────────────────────────────
@@ -275,16 +275,16 @@ def make_semi_gauge(val, title, min_v, max_v, green_range, amber_range, red_rang
 @st.cache_data(ttl=60)
 def load_data():
     """
-    Column Schema (0 to 24):
-    0: Date                 10: BMI             20: Notes
-    1: Calories consumed    11: To target BMI   21: Systolic BP
-    2: Net calories         12: Steps           22: Diastolic BP
-    3: Weight (lbs)         13: Approx miles    23: Heart Rate (HR)
+    Full Expanded Schema (0 to 29):
+    0: Date                 10: BMI             20: Notes               26 (AA): Flights Climbed
+    1: Calories consumed    11: To target BMI   21: Systolic BP         27 (AB): Resting HR (BPM)
+    2: Net calories         12: Steps           22: Diastolic BP        28 (AC): Stand Hours (from July 4th)
+    3: Weight (lbs)         13: Approx miles    23: HR (Spot)           29 (AD): Exercise Mins (from July 4th)
     4: Weight (St)          14: Activity time   24: Water (ml)
-    5: Gain/Loss            15: Activity cals
-    6: Total loss (lbs)     16: Protein (% Tgt)
-    7: Total loss (St)      17: Net Carbs (% Tgt)
-    8: To tgt (lbs)         18: Fat (% Tgt)
+    5: Gain/Loss            15: Activity cals   25: (Z Column)
+    6: Total loss (lbs)     16: Protein % Tgt
+    7: Total loss (St)      17: Net Carbs % Tgt
+    8: To tgt (lbs)         18: Fat % Tgt
     9: To tgt (St)          19: Alcohol (kcal)
     """
     try:
@@ -427,6 +427,13 @@ def evaluate_debuffs(row_data):
     elif 0 < water_ml < 5000:
         badges.append(f"<div class='debuff-badge debuff-caution'>💧 Hydration Under Target ({water_ml:,.0f} / 5,000 ml)</div>")
 
+    # Resting HR Check (Col 27)
+    rhr = clean_float(row_data.iloc[27]) if len(row_data) > 27 else 0.0
+    if rhr > 0 and rhr <= 65:
+        badges.append(f"<div class='debuff-badge debuff-optimal'>❤️ Excellent Resting HR ({rhr:,.0f} BPM)</div>")
+    elif rhr > 75:
+        badges.append(f"<div class='debuff-badge debuff-caution'>❤️ Elevated Resting HR ({rhr:,.0f} BPM)</div>")
+
     # Macro RAG
     p_pct = clean_float(row_data.iloc[16]) if len(row_data) > 16 else 0.0
     c_pct = clean_float(row_data.iloc[17]) if len(row_data) > 17 else 0.0
@@ -454,7 +461,6 @@ def evaluate_debuffs(row_data):
 # ─────────────────────────────────────────────
 if not df.empty:
 
-    # ── Header ──
     st.markdown("""
     <span class='page-eyebrow'><span class='status-dot'></span>MASTERCLASS HEALTH TELEMETRY ENGINE</span>
     """, unsafe_allow_html=True)
@@ -465,7 +471,7 @@ if not df.empty:
     # ── 17 Focused Tabs ──
     tab1, tab2, tab3, tab4, tab5, tab6, tab7, tab8, tab9, tab10, tab11, tab12, tab13, tab14, tab15, tab16, tab17 = st.tabs([
         "🛡️ Command", "🧬 Metabolic", "🫀 Cardio", "📊 Lifetime", "🔥 Calories",
-        "💧 Hydration", "⚖️ Weight", "👟 Steps", "🥗 Macro RAG", "📅 Patterns",
+        "💧 Hydration", "⚖️ Weight", "👟 Steps & Elevation", "🥗 Macro RAG", "📅 Patterns",
         "📈 Averages", "🎯 Milestones", "🏆 Trophies", "🧠 Analytics", "🔮 Forecast",
         "⚡ Momentum (30d)", "🗄️ Data Log"
     ])
@@ -566,11 +572,13 @@ if not df.empty:
               </div>""", unsafe_allow_html=True)
 
             st.markdown("<div style='margin-top:20px'></div>", unsafe_allow_html=True)
-            st.markdown("<div class='section-sub'>Vitals Dial Gauge Cluster</div>", unsafe_allow_html=True)
+            st.markdown("<div class='section-sub'>Vitals & Resting HR Dial Gauge Cluster</div>", unsafe_allow_html=True)
             
             sys_val = clean_float(y.iloc[21]) if len(y) > 21 and clean_float(y.iloc[21]) > 0 else 118.0
             dia_val = clean_float(y.iloc[22]) if len(y) > 22 and clean_float(y.iloc[22]) > 0 else 78.0
-            hr_val  = clean_float(y.iloc[23]) if len(y) > 23 and clean_float(y.iloc[23]) > 0 else 72.0
+            # Use Column 27 (Resting HR) if populated, else Column 23
+            rhr_val = clean_float(y.iloc[27]) if len(y) > 27 and clean_float(y.iloc[27]) > 0 else clean_float(y.iloc[23])
+            if rhr_val == 0: rhr_val = 72.0
 
             g1, g2, g3 = st.columns(3)
             with g1:
@@ -578,12 +586,12 @@ if not df.empty:
             with g2:
                 st.plotly_chart(make_semi_gauge(dia_val, "Diastolic BP", 50, 120, [50, 80], [80, 90], [90, 120], "mmHg"), use_container_width=True)
             with g3:
-                st.plotly_chart(make_semi_gauge(hr_val, "Resting HR", 40, 130, [40, 75], [75, 90], [90, 130], "BPM"), use_container_width=True)
+                st.plotly_chart(make_semi_gauge(rhr_val, "Resting HR", 40, 130, [40, 65], [65, 80], [80, 130], "BPM"), use_container_width=True)
 
             st.markdown(evaluate_debuffs(y), unsafe_allow_html=True)
 
     # ══════════════════════════════════════════
-    #  TAB 2 — 🧬 Metabolic Intelligence (No MathJax Glitches)
+    #  TAB 2 — 🧬 Metabolic Intelligence
     # ══════════════════════════════════════════
     with tab2:
         st.markdown("<div class='section-header'>Metabolic Intelligence Engine</div>", unsafe_allow_html=True)
@@ -648,27 +656,38 @@ if not df.empty:
             st.info("Requires at least 14 days of logged weight & calories to calculate dynamic TDEE.")
 
     # ══════════════════════════════════════════
-    #  TAB 3 — 🫀 Cardio Vitals & Context
+    #  TAB 3 — 🫀 Cardio Vitals & Resting HR Analysis
     # ══════════════════════════════════════════
     with tab3:
-        st.markdown("<div class='section-header'>Cardiovascular Matrix & Clinical Context</div>", unsafe_allow_html=True)
-        st.markdown("<div class='section-sub'>Hemodynamic Health, Pulse Pressure & Mean Arterial Pressure (MAP)</div>", unsafe_allow_html=True)
-
-        st.markdown("""
-        <div class='context-card'>
-            <div class='context-title'>🫀 UNDERSTANDING YOUR CARDIO VITAL RANGES</div>
-            <div class='context-text'>
-                • <b>Systolic (Top Number):</b> Ideal: <b>< 120 mmHg</b>. Measures arterial pressure during heart contraction.<br>
-                • <b>Diastolic (Bottom Number):</b> Ideal: <b>< 80 mmHg</b>. Measures resting pressure in arteries.<br>
-                • <b>Pulse Pressure (Systolic − Diastolic):</b> Ideal: <b>40–60 mmHg</b>. Evaluates vascular stiffness and cardiac efficiency.<br>
-                • <b>Mean Arterial Pressure (MAP):</b> Ideal: <b>70–100 mmHg</b>. As fat mass decreases and hydration reaches 5,000 ml, vascular resistance drops, protecting kidney and heart tissue.
-            </div>
-        </div>
-        """, unsafe_allow_html=True)
+        st.markdown("<div class='section-header'>Cardiovascular Matrix & Resting Heart Rate</div>", unsafe_allow_html=True)
+        st.markdown("<div class='section-sub'>Resting HR Dynamics, Alcohol Elevation & Arterial Pressure</div>", unsafe_allow_html=True)
 
         sys_data = get_num(21)
         dia_data = get_num(22)
-        hr_data  = get_num(23)
+        rhr_data = get_num(27) # Column 27: Resting HR (AB)
+        if not rhr_data.notna().any():
+            rhr_data = get_num(23) # Fallback to Spot HR if AB is empty
+
+        alc_series = get_num(19)
+
+        # Resting HR vs Alcohol Impact Analysis
+        valid_rhr_mask = rhr_data.notna() & (rhr_data > 0)
+        alc_days_mask  = (alc_series > 0) & valid_rhr_mask
+        sober_days_mask = (alc_series == 0) & valid_rhr_mask
+
+        avg_rhr_alc   = rhr_data[alc_days_mask].mean() if alc_days_mask.sum() > 0 else 0.0
+        avg_rhr_sober = rhr_data[sober_days_mask].mean() if sober_days_mask.sum() > 0 else 0.0
+        rhr_diff      = avg_rhr_alc - avg_rhr_sober
+
+        st.markdown(f"""
+        <div class='context-card'>
+            <div class='context-title'>❤️ RESTING HEART RATE (RHR) & RECOVERY PHYSIOLOGY</div>
+            <div class='context-text'>
+                • <b>Resting HR Baseline:</b> Ideal resting heart rate for cardiovascular fitness is <b>50–65 BPM</b>.<br>
+                • <b>Alcohol Cardio Strain:</b> On days following alcohol consumption, your Resting HR averaged <b style='color:#FF375F;'>{avg_rhr_alc:.1f} BPM</b> vs. <b style='color:#30D158;'>{avg_rhr_sober:.1f} BPM</b> on sober days (a cardio strain penalty of <b style='color:#FF375F;'>+{rhr_diff:+.1f} BPM</b>).
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
 
         last_sys = sys_data.dropna().iloc[-1] if sys_data.dropna().shape[0] > 0 else 120.0
         last_dia = dia_data.dropna().iloc[-1] if dia_data.dropna().shape[0] > 0 else 80.0
@@ -681,17 +700,17 @@ if not df.empty:
         with vc2:
             st.markdown(card("Mean Arterial Pressure (MAP)", num_target=map_val, decimals=1, suffix=" mmHg"), unsafe_allow_html=True)
         with vc3:
-            st.markdown(card("Avg Resting Heart Rate", num_target=hr_data.dropna().mean() if hr_data.dropna().shape[0]>0 else 72, decimals=0, suffix=" BPM"), unsafe_allow_html=True)
+            st.markdown(card("Latest Resting HR", num_target=rhr_data.dropna().iloc[-1] if rhr_data.dropna().shape[0]>0 else 72, decimals=0, suffix=" BPM"), unsafe_allow_html=True)
 
         fig_cardio = go.Figure()
         fig_cardio.add_trace(go.Scatter(x=df.iloc[:, 0], y=sys_data, name="Systolic BP", mode='lines+markers', connectgaps=True, line=dict(color='#FF375F', width=2.5)))
         fig_cardio.add_trace(go.Scatter(x=df.iloc[:, 0], y=dia_data, name="Diastolic BP", mode='lines+markers', connectgaps=True, line=dict(color='#0A84FF', width=2.5)))
-        if hr_data.notna().any():
-            fig_cardio.add_trace(go.Scatter(x=df.iloc[:, 0], y=hr_data, name="Resting HR (BPM)", mode='lines+markers', connectgaps=True, line=dict(color='#BF5AF2', width=2, dash='dot')))
-        st.plotly_chart(apply_theme(fig_cardio, "Blood Pressure & Heart Rate Trends", "HEMODYNAMIC PROFILING"), use_container_width=True)
+        if rhr_data.notna().any():
+            fig_cardio.add_trace(go.Scatter(x=df.iloc[:, 0], y=rhr_data, name="Resting HR (BPM)", mode='lines+markers', connectgaps=True, line=dict(color='#30D158', width=2.5)))
+        st.plotly_chart(apply_theme(fig_cardio, "Blood Pressure & Resting HR Trends", "HEMODYNAMIC & CARDIAC MONITORING"), use_container_width=True)
 
     # ══════════════════════════════════════════
-    #  TAB 4 — Lifetime Stats (Complete Unfiltered Grid)
+    #  TAB 4 — Lifetime Cumulative Analytics (Full Grid)
     # ══════════════════════════════════════════
     with tab4:
         l = df.iloc[-1]
@@ -706,14 +725,22 @@ if not df.empty:
             <div style='font-family:Inter,sans-serif; font-size:0.85rem; color:rgba(255,255,255,0.9); font-weight:600;'>CONSECUTIVE DAYS LOGGED</div>
           </div>""", unsafe_allow_html=True)
 
-        total_steps_lt = get_num(12).sum()
-        total_miles_lt = get_num(13).sum()
-        total_act_mins  = get_num(14).sum()
-        total_act_cals  = get_num(15).sum()
-        total_water_l   = get_num(24).sum() / 1000.0
-        total_marathons = total_miles_lt / 26.2 if total_miles_lt > 0 else 0.0
+        total_steps_lt   = get_num(12).sum()
+        total_miles_lt   = get_num(13).sum()
+        total_flights_lt = get_num(26).sum() # Column 26: Flights Climbed
+        total_elevation_ft = total_flights_lt * 10.0 # 10 ft per flight
+        total_act_cals   = get_num(15).sum()
+        total_water_l    = get_num(24).sum() / 1000.0
+        total_marathons  = total_miles_lt / 26.2 if total_miles_lt > 0 else 0.0
 
-        # Row 1: Weight Metrics
+        rhr_series_lt = get_num(27)
+        if not rhr_series_lt.notna().any(): rhr_series_lt = get_num(23)
+        avg_rhr_lt    = rhr_series_lt.replace(0, np.nan).dropna().mean()
+
+        total_stand_hrs = get_num(28).sum() # Column 28: Stand Hours
+        total_ex_mins   = get_num(29).sum() # Column 29: Exercise Mins
+
+        # Row 1: Weight & Target
         r1_c1, r1_c2, r1_c3, r1_c4 = st.columns(4)
         with r1_c1:
             st.markdown(card("Total Weight Loss (lbs)", num_target=clean_float(l.iloc[6]), decimals=1, suffix=" lbs"), unsafe_allow_html=True)
@@ -724,27 +751,38 @@ if not df.empty:
         with r1_c4:
             st.markdown(card("To Target (Stone)", display_val=f"{l.iloc[9]}"), unsafe_allow_html=True)
 
-        # Row 2: BMI & Distance
+        # Row 2: Distance & Elevation
         r2_c1, r2_c2, r2_c3, r2_c4 = st.columns(4)
         with r2_c1:
-            st.markdown(card("Current BMI", num_target=clean_float(l.iloc[10]), decimals=1), unsafe_allow_html=True)
+            st.markdown(card("Total Miles Walked", num_target=total_miles_lt, decimals=1, suffix=" miles"), unsafe_allow_html=True)
         with r2_c2:
-            st.markdown(card("To Target BMI", num_target=clean_float(l.iloc[11]), decimals=1), unsafe_allow_html=True)
-        with r2_c3:
-            st.markdown(card("Total Distance Walked", num_target=total_miles_lt, decimals=1, suffix=" miles"), unsafe_allow_html=True)
-        with r2_c4:
             st.markdown(card("Equivalent Marathons", num_target=total_marathons, decimals=1, suffix=" races"), unsafe_allow_html=True)
+        with r2_c3:
+            st.markdown(card("Total Flights Climbed", num_target=total_flights_lt, decimals=0, suffix=" flights"), unsafe_allow_html=True)
+        with r2_c4:
+            st.markdown(card("Vertical Elevation Gained", num_target=total_elevation_ft, decimals=0, suffix=" ft"), unsafe_allow_html=True)
 
-        # Row 3: Activity & Volume
+        # Row 3: Movement, Cardio & Water
         r3_c1, r3_c2, r3_c3, r3_c4 = st.columns(4)
         with r3_c1:
-            st.markdown(card("Total Steps Walked", num_target=total_steps_lt, decimals=0, suffix=" steps"), unsafe_allow_html=True)
+            st.markdown(card("Average Resting HR", num_target=avg_rhr_lt if pd.notna(avg_rhr_lt) else 0, decimals=0, suffix=" BPM"), unsafe_allow_html=True)
         with r3_c2:
-            st.markdown(card("Total Active Minutes", num_target=total_act_mins, decimals=0, suffix=" mins"), unsafe_allow_html=True)
+            st.markdown(card("Total Exercise Minutes", num_target=total_ex_mins, decimals=0, suffix=" mins"), unsafe_allow_html=True)
         with r3_c3:
-            st.markdown(card("Total Activity Cals Burned", num_target=total_act_cals, decimals=0, suffix=" kcal"), unsafe_allow_html=True)
+            st.markdown(card("Total Stand Hours Logged", num_target=total_stand_hrs, decimals=0, suffix=" hrs"), unsafe_allow_html=True)
         with r3_c4:
             st.markdown(card("Total Water Consumed", num_target=total_water_l, decimals=0, suffix=" Liters"), unsafe_allow_html=True)
+
+        # Row 4: BMI & Activity Calories
+        r4_c1, r4_c2, r4_c3, r4_c4 = st.columns(4)
+        with r4_c1:
+            st.markdown(card("Current BMI", num_target=clean_float(l.iloc[10]), decimals=1), unsafe_allow_html=True)
+        with r4_c2:
+            st.markdown(card("To Target BMI", num_target=clean_float(l.iloc[11]), decimals=1), unsafe_allow_html=True)
+        with r4_c3:
+            st.markdown(card("Total Steps Logged", num_target=total_steps_lt, decimals=0, suffix=" steps"), unsafe_allow_html=True)
+        with r4_c4:
+            st.markdown(card("Total Activity Cals Burned", num_target=total_act_cals, decimals=0, suffix=" kcal"), unsafe_allow_html=True)
 
     # ══════════════════════════════════════════
     #  TAB 5 — Calories
@@ -785,7 +823,7 @@ if not df.empty:
             st.markdown(card("90-Day Avg", num_target=cal_logged.tail(90).mean(), decimals=0, suffix=" kcal"), unsafe_allow_html=True)
 
     # ══════════════════════════════════════════
-    #  TAB 6 — Hydration (Clear Loss vs Gain Logic)
+    #  TAB 6 — Hydration (5,000 ml Target Baseline)
     # ══════════════════════════════════════════
     with tab6:
         st.markdown("<div class='section-header'>Hydration & Fluid Intelligence</div>", unsafe_allow_html=True)
@@ -807,7 +845,6 @@ if not df.empty:
         drop_high_desc = f"{abs(avg_drop_high_w):.2f} lbs drop" if avg_drop_high_w <= 0 else f"{abs(avg_drop_high_w):.2f} lbs gain"
         drop_low_desc  = f"{abs(avg_drop_low_w):.2f} lbs drop" if avg_drop_low_w <= 0 else f"{abs(avg_drop_low_w):.2f} lbs gain"
 
-        # Highlight whichever group produced the larger scale drop
         high_color = "#1E9145" if avg_drop_high_w <= avg_drop_low_w else "#0A84FF"
         low_color  = "#1E9145" if avg_drop_low_w < avg_drop_high_w else "#0A84FF"
 
@@ -874,25 +911,29 @@ if not df.empty:
             st.markdown(card("7-Day Trend Weight", num_target=w_ema.iloc[-1] if not w_ema.empty else 0, decimals=1, suffix=" lbs"), unsafe_allow_html=True)
 
     # ══════════════════════════════════════════
-    #  TAB 8 — Kinetic Step Intelligence
+    #  TAB 8 — Steps, Flights & Kinetic Intelligence
     # ══════════════════════════════════════════
     with tab8:
-        st.markdown("<div class='section-header'>Kinetic Steps & Activity Intelligence</div>", unsafe_allow_html=True)
-        st.markdown("<div class='section-sub'>Step Volume vs Caloric Burn & Scale Impact</div>", unsafe_allow_html=True)
+        st.markdown("<div class='section-header'>Kinetic Movement & Vertical Elevation</div>", unsafe_allow_html=True)
+        st.markdown("<div class='section-sub'>Steps, Miles, Flights Climbed & Movement Minutes</div>", unsafe_allow_html=True)
 
         steps_data   = get_num(12)
         steps_logged = steps_data.dropna()
         miles_data   = get_num(13).dropna()
+        flights_data = get_num(26) # Flights Climbed
+        ex_mins_data = get_num(29) # Exercise Mins
 
         total_marathons = (miles_data.sum() / 26.2) if miles_data.sum() > 0 else 0.0
+        total_elev_ft   = flights_data.sum() * 10.0
+        everest_pct     = (total_elev_ft / 29032.0) * 100.0 # Mt. Everest height = 29,032 ft
 
         st.markdown(f"""
         <div class='context-card'>
-            <div class='context-title'>👟 KINETIC NEAT & MARATHON EQUIVALENCY</div>
+            <div class='context-title'>👟 KINETIC ELEVATION & MOVEMENT EQUIVALENCY</div>
             <div class='context-text'>
-                • <b>Total Lifetime Distance Walked:</b> <b>{miles_data.sum():,.1f} miles</b>.<br>
-                • <b>Marathon Equivalency:</b> Equivalent to completing <b style='color:#0A84FF;'>{total_marathons:.1f} full Marathons</b> (26.2 miles each)!<br>
-                • <b>10k Step Days:</b> Reached 10,000+ steps on <b>{(steps_logged >= 10000).sum()} days</b> ({(steps_logged >= 10000).sum() / len(steps_logged) * 100:.0f}% of total days).
+                • <b>Total Lifetime Distance Walked:</b> <b>{miles_data.sum():,.1f} miles</b> ({total_marathons:.1f} Marathons).<br>
+                • <b>Vertical Elevation Gained:</b> <b>{flights_data.sum():,.0f} flights climbed</b> ({total_elev_ft:,.0f} ft of vertical elevation gained — equal to <b style='color:#0A84FF;'>{everest_pct:.1f}% of Mount Everest</b>!).<br>
+                • <b>Exercise Minutes (July 4th+):</b> Logged <b style='color:#30D158;'>{ex_mins_data.sum():,.0f} brisk exercise minutes</b>.
             </div>
         </div>
         """, unsafe_allow_html=True)
@@ -957,7 +998,7 @@ if not df.empty:
         st.plotly_chart(fig_pie, use_container_width=True)
 
     # ══════════════════════════════════════════
-    #  TAB 10 — 📅 Patterns (Automated Overview + Timeframe)
+    #  TAB 10 — 📅 Patterns (Multi-Timeframe Profiler)
     # ══════════════════════════════════════════
     with tab10:
         st.markdown("<div class='section-header'>Weekly Pattern Profiler</div>", unsafe_allow_html=True)
@@ -1127,7 +1168,7 @@ if not df.empty:
                         st.markdown(render_badge(badges[i + j]), unsafe_allow_html=True)
 
     # ══════════════════════════════════════════
-    #  TAB 14 — Analytics Engine
+    #  TAB 14 — Analytics Engine (Expanded Telemetry Heatmap)
     # ══════════════════════════════════════════
     with tab14:
         st.markdown("<div class='section-header'>Masterclass Analytics Engine</div>", unsafe_allow_html=True)
@@ -1143,6 +1184,9 @@ if not df.empty:
         carb_series  = get_num(17, analytics_window)
         fat_series   = get_num(18, analytics_window)
         alc_series   = get_num(19, analytics_window)
+        rhr_series   = get_num(27, analytics_window) # Col 27 Resting HR
+        if not rhr_series.notna().any(): rhr_series = get_num(23, analytics_window)
+        flights_series = get_num(26, analytics_window) # Col 26 Flights
 
         weight_delta = w_series - w_series.shift(1)
         valid_mask   = weight_delta.notna()
@@ -1163,7 +1207,9 @@ if not df.empty:
             'Protein %': prot_series,
             'Carbs %': carb_series,
             'Fat %': fat_series,
-            'Alcohol (kcal)': alc_series
+            'Alcohol (kcal)': alc_series,
+            'Resting HR': rhr_series,
+            'Flights Climbed': flights_series
         }).dropna()
 
         if len(corr_df) > 5:
@@ -1171,7 +1217,7 @@ if not df.empty:
             fig_corr = px.imshow(
                 corr_matrix, text_auto=".2f", aspect="auto",
                 color_continuous_scale="RdBu_r",
-                title="Telemetry Correlation Heatmap (Pearson r)"
+                title="Expanded Telemetry Correlation Heatmap (Pearson r)"
             )
             fig_corr.update_layout(paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', font=dict(family="Inter"))
             st.plotly_chart(fig_corr, use_container_width=True)
@@ -1329,8 +1375,9 @@ if not df.empty:
 
         cols_to_show = {
             '0': 'Date', '1': 'Calories', '3': 'Weight (lbs)', '4': 'Weight (St)',
-            '12': 'Steps', '16': 'Protein % Tgt', '17': 'Carbs % Tgt', '18': 'Fat % Tgt',
-            '19': 'Alcohol (kcal)', '21': 'Systolic BP', '22': 'Diastolic BP', '23': 'HR', '24': 'Water (ml)'
+            '12': 'Steps', '13': 'Miles', '16': 'Protein % Tgt', '17': 'Carbs % Tgt', '18': 'Fat % Tgt',
+            '19': 'Alcohol (kcal)', '21': 'Systolic BP', '22': 'Diastolic BP', '26': 'Flights Climbed',
+            '27': 'Resting HR', '28': 'Stand Hrs', '29': 'Exercise Mins', '24': 'Water (ml)'
         }
 
         existing_cols = [c for c in cols_to_show.keys() if c in display_df.columns]
