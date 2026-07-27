@@ -13,20 +13,20 @@ import re
 #  PAGE CONFIGURATION
 # ─────────────────────────────────────────────
 st.set_page_config(
-    page_title="Hardy House Health — Masterclass Intelligence",
+    page_title="Hardy House Health — World-Class Telemetry",
     layout="wide",
     initial_sidebar_state="collapsed"
 )
 
-# ── Boot Notification ──
+# ── Boot Sequence ──
 if 'booted' not in st.session_state:
-    st.toast('Masterclass Intelligence Engine Synchronized.', icon='✅')
+    st.toast('Masterclass Health Engine Active.', icon='✅')
     time.sleep(0.4)
-    st.toast('RAG Macro System & Telemetry Matrix Active.', icon='💚')
+    st.toast('RAG Macro Engine & Vitals Matrix Online.', icon='💚')
     st.session_state.booted = True
 
 # ─────────────────────────────────────────────
-#  PREMIUM GLASSMORPHISM CSS (iOS / macOS Light Theme)
+#  PREMIUM GLASSMORPHISM CSS (iOS / macOS Dashboard Aesthetic)
 # ─────────────────────────────────────────────
 st.markdown("""
 <style>
@@ -34,14 +34,14 @@ st.markdown("""
 
 :root {
   --bg-app:          #F2F2F7;
-  --bg-card:         rgba(255, 255, 255, 0.74);
-  --bg-card-hover:   rgba(255, 255, 255, 0.90);
-  --glass-border:    rgba(255, 255, 255, 0.68);
-  --glass-blur:      blur(28px) saturate(190%);
-  --glass-blur-sm:   blur(16px) saturate(160%);
+  --bg-card:         rgba(255, 255, 255, 0.78);
+  --bg-card-hover:   rgba(255, 255, 255, 0.92);
+  --glass-border:    rgba(255, 255, 255, 0.75);
+  --glass-blur:      blur(30px) saturate(200%);
+  --glass-blur-sm:   blur(18px) saturate(170%);
 
-  --shadow-card:       0 2px 8px rgba(15,23,42,0.04), 0 16px 36px rgba(15,23,42,0.08);
-  --shadow-card-hover: 0 8px 20px rgba(15,23,42,0.08), 0 28px 60px rgba(15,23,42,0.14);
+  --shadow-card:       0 2px 10px rgba(15,23,42,0.04), 0 18px 40px rgba(15,23,42,0.09);
+  --shadow-card-hover: 0 8px 24px rgba(15,23,42,0.08), 0 30px 64px rgba(15,23,42,0.15);
 
   --text-primary:   #1D1D1F;
   --text-secondary: rgba(60,60,67,0.72);
@@ -50,7 +50,7 @@ st.markdown("""
   --font-display: 'Inter', -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif;
   --font-body:    'Inter', -apple-system, BlinkMacSystemFont, 'SF Pro Text', sans-serif;
 
-  /* RAG & iOS Accents */
+  /* RAG & Accents */
   --red:    #FF375F;
   --amber:  #FF9F0A;
   --green:  #30D158;
@@ -67,7 +67,7 @@ st.markdown("""
 
 .stApp {
   background-image:
-    linear-gradient(180deg, rgba(242,242,247,0.55) 0%, rgba(242,242,247,0.85) 50%, rgba(242,242,247,0.96) 100%),
+    linear-gradient(180deg, rgba(242,242,247,0.50) 0%, rgba(242,242,247,0.82) 50%, rgba(242,242,247,0.95) 100%),
     url('https://github.com/nodramallama89/Weight-tracker/blob/33fc966fe489b029049541e417658a7441afa776/Gemini_Generated_Image_1zukku1zukku1zuk.png?raw=true');
   background-size: cover;
   background-attachment: fixed;
@@ -76,39 +76,39 @@ st.markdown("""
 }
 
 #MainMenu, footer, header { visibility: hidden; }
-.block-container { padding: 1.8rem 2.2rem 3rem; max-width: 1650px; }
+.block-container { padding: 1.5rem 2rem 3rem; max-width: 1680px; }
 
 /* ── Typography ── */
 .page-eyebrow {
-  font-size: 0.78rem; font-weight: 700; letter-spacing: 0.09em;
+  font-size: 0.78rem; font-weight: 800; letter-spacing: 0.1em;
   text-transform: uppercase; color: var(--text-tertiary); text-align: center;
   display: block; margin-bottom: 0.3rem; animation: fadeUp 0.5s ease both;
 }
 .page-eyebrow .status-dot {
   display: inline-block; width: 8px; height: 8px; border-radius: 50%;
   background-color: var(--green); margin-right: 7px;
-  box-shadow: 0 0 0 4px rgba(48,209,88,0.2);
+  box-shadow: 0 0 0 4px rgba(48,209,88,0.25);
 }
 
 .page-title {
-  font-family: var(--font-display) !important; font-size: 2.7rem !important;
+  font-family: var(--font-display) !important; font-size: 2.8rem !important;
   font-weight: 900 !important; letter-spacing: -0.03em !important;
   color: var(--text-primary) !important; text-align: center !important;
   margin: 0 0 0.2rem !important; animation: fadeUp 0.6s ease 0.05s both;
-  text-shadow: 0 2px 14px rgba(255,255,255,0.7);
+  text-shadow: 0 2px 14px rgba(255,255,255,0.8);
 }
 
 .page-subtitle {
   font-size: 0.95rem; color: var(--text-secondary); text-align: center;
-  margin-bottom: 2rem; font-weight: 500; animation: fadeUp 0.7s ease 0.1s both;
+  margin-bottom: 1.8rem; font-weight: 600; animation: fadeUp 0.7s ease 0.1s both;
 }
 
-/* ── Frosted Glass Cards ── */
+/* ── Cards ── */
 .card {
   background: var(--bg-card);
   backdrop-filter: var(--glass-blur); -webkit-backdrop-filter: var(--glass-blur);
   border-radius: var(--radius-xl); padding: 22px 20px 20px;
-  box-shadow: var(--shadow-card), inset 0 1px 0 rgba(255,255,255,0.7);
+  box-shadow: var(--shadow-card), inset 0 1px 0 rgba(255,255,255,0.8);
   border: 1px solid var(--glass-border); text-align: center; margin-bottom: 14px;
   position: relative; overflow: hidden;
   transition: all 0.32s cubic-bezier(0.16, 1, 0.3, 1);
@@ -116,8 +116,8 @@ st.markdown("""
 }
 
 .card:hover {
-  transform: translateY(-4px); box-shadow: var(--shadow-card-hover), inset 0 1px 0 rgba(255,255,255,0.85);
-  border-color: rgba(255,255,255,0.9); background: var(--bg-card-hover);
+  transform: translateY(-4px); box-shadow: var(--shadow-card-hover), inset 0 1px 0 rgba(255,255,255,0.9);
+  border-color: rgba(255,255,255,0.95); background: var(--bg-card-hover);
 }
 
 .val { font-family: var(--font-display); font-size: 2.25rem; font-weight: 800; margin: 4px 0; line-height: 1; color: var(--text-primary); letter-spacing: -0.02em; }
@@ -137,6 +137,23 @@ st.markdown("""
 .rag-amber { background: rgba(255, 159, 10, 0.18); color: #C67200; border: 1px solid rgba(255, 159, 10, 0.35); }
 .rag-red   { background: rgba(255, 55, 95, 0.16); color: #D01144; border: 1px solid rgba(255, 55, 95, 0.35); }
 
+/* ── Top Insights Box (Inspired by Image 3) ── */
+.insights-card {
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: var(--glass-blur); -webkit-backdrop-filter: var(--glass-blur);
+  border-radius: var(--radius-xl); padding: 22px 28px;
+  border: 1px solid var(--glass-border); box-shadow: var(--shadow-card);
+  margin-bottom: 20px; text-align: left;
+}
+.insights-title {
+  font-family: var(--font-display); font-size: 0.82rem; font-weight: 800;
+  text-transform: uppercase; letter-spacing: 0.1em; color: var(--blue); margin-bottom: 12px;
+}
+.insight-item {
+  font-size: 0.95rem; color: var(--text-primary); font-weight: 500;
+  margin-bottom: 8px; line-height: 1.5; display: flex; align-items: flex-start; gap: 8px;
+}
+
 /* ── Status Modifiers ── */
 .debuff-container { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin-top: 8px; }
 .debuff-badge {
@@ -153,14 +170,14 @@ st.markdown("""
 
 /* ── Tab Bar ── */
 div[data-baseweb="tab-list"] {
-  background: rgba(255,255,255,0.5) !important; backdrop-filter: var(--glass-blur-sm) !important;
+  background: rgba(255,255,255,0.55) !important; backdrop-filter: var(--glass-blur-sm) !important;
   -webkit-backdrop-filter: var(--glass-blur-sm) !important; border-radius: 16px !important;
   padding: 5px !important; border: 1px solid var(--glass-border) !important;
-  box-shadow: var(--shadow-card) !important; margin-bottom: 2rem !important; flex-wrap: wrap !important; gap: 2px;
+  box-shadow: var(--shadow-card) !important; margin-bottom: 1.8rem !important; flex-wrap: wrap !important; gap: 2px;
 }
 div[data-baseweb="tab"] { border-radius: 11px !important; transition: all 0.25s ease !important; }
 div[data-baseweb="tab"]:hover { background: rgba(255,255,255,0.35) !important; }
-div[data-baseweb="tab"][aria-selected="true"] { background: rgba(255,255,255,0.92) !important; box-shadow: 0 2px 8px rgba(15,23,42,0.12) !important; }
+div[data-baseweb="tab"][aria-selected="true"] { background: rgba(255,255,255,0.95) !important; box-shadow: 0 2px 8px rgba(15,23,42,0.12) !important; }
 div[data-baseweb="tab-list"] button [data-testid="stMarkdownContainer"] p { color: var(--text-secondary) !important; font-size: 0.88rem !important; font-weight: 600 !important; }
 div[data-baseweb="tab"][aria-selected="true"] [data-testid="stMarkdownContainer"] p { color: var(--text-primary) !important; font-weight: 800 !important; }
 div[data-baseweb="tab-highlight"] { display: none !important; }
@@ -170,7 +187,7 @@ div[data-baseweb="tab-highlight"] { display: none !important; }
   background: var(--bg-card) !important; backdrop-filter: var(--glass-blur) !important;
   -webkit-backdrop-filter: var(--glass-blur) !important; border-radius: var(--radius-xl) !important;
   padding: 16px !important; border: 1px solid var(--glass-border) !important;
-  box-shadow: var(--shadow-card), inset 0 1px 0 rgba(255,255,255,0.7) !important;
+  box-shadow: var(--shadow-card), inset 0 1px 0 rgba(255,255,255,0.8) !important;
   transition: all 0.32s cubic-bezier(0.16, 1, 0.3, 1) !important;
 }
 .stPlotlyChart:hover { box-shadow: var(--shadow-card-hover) !important; }
@@ -188,7 +205,7 @@ div[data-baseweb="tab-highlight"] { display: none !important; }
 
 
 # ─────────────────────────────────────────────
-#  PLOTLY THEME
+#  PLOTLY THEME & GAUGE GENERATORS
 # ─────────────────────────────────────────────
 def apply_theme(fig, title="", subtitle=""):
     full_title = f"<b>{title}</b>" + (f"<br><span style='font-size:12px;color:rgba(60,60,67,0.55);font-family:Inter'>{subtitle}</span>" if subtitle else "")
@@ -214,9 +231,31 @@ def apply_theme(fig, title="", subtitle=""):
     )
     return fig
 
+def make_semi_gauge(val, title, min_v, max_v, green_range, amber_range, red_range, unit=""):
+    """Generates semi-circular radial dial gauge inspired by Image 1."""
+    fig = go.Figure(go.Indicator(
+        mode="gauge+number",
+        value=val,
+        number={'suffix': f" {unit}", 'font': {'size': 26, 'color': '#1D1D1F', 'family': 'Inter'}},
+        title={'text': title, 'font': {'size': 14, 'color': 'rgba(60,60,67,0.7)', 'family': 'Inter'}},
+        gauge={
+            'axis': {'range': [min_v, max_v], 'tickwidth': 1, 'tickcolor': "rgba(60,60,67,0.3)"},
+            'bar': {'color': "#1D1D1F", 'thickness': 0.25},
+            'bgcolor': "rgba(0,0,0,0)",
+            'borderwidth': 0,
+            'steps': [
+                {'range': green_range, 'color': 'rgba(48,209,88,0.75)'},
+                {'range': amber_range, 'color': 'rgba(255,159,10,0.75)'},
+                {'range': red_range, 'color': 'rgba(255,55,95,0.75)'}
+            ]
+        }
+    ))
+    fig.update_layout(height=210, margin=dict(l=15, r=15, t=40, b=10), paper_bgcolor='rgba(0,0,0,0)')
+    return fig
+
 
 # ─────────────────────────────────────────────
-#  DATA LOADING PIPELINE
+#  DATA PIPELINE
 # ─────────────────────────────────────────────
 @st.cache_data(ttl=60)
 def load_data():
@@ -228,9 +267,9 @@ def load_data():
     3: Weight (lbs)         13: Approx miles    23: Heart Rate (HR)
     4: Weight (St)          14: Activity time   24: Water (ml)
     5: Gain/Loss            15: Activity cals
-    6: Total loss (lbs)     16: Protein %
-    7: Total loss (St)      17: Net Carbs %
-    8: To tgt (lbs)         18: Fat %
+    6: Total loss (lbs)     16: Protein (% Tgt)
+    7: Total loss (St)      17: Net Carbs (% Tgt)
+    8: To tgt (lbs)         18: Fat (% Tgt)
     9: To tgt (St)          19: Alcohol (kcal)
     """
     try:
@@ -249,7 +288,7 @@ def load_data():
 
 df = load_data()
 
-# Completed days filter (steps Col 12 non-blank)
+# Filter completed rows (Steps Col 12 non-blank)
 if not df.empty:
     df_valid = df[df.iloc[:, 12].astype(str).str.strip() != ""].reset_index(drop=True)
     if df_valid.empty:
@@ -259,7 +298,7 @@ else:
 
 
 # ─────────────────────────────────────────────
-#  RAG MACRO & NUMERICAL HELPERS
+#  HELPERS & RAG RULES
 # ─────────────────────────────────────────────
 def get_num(idx, source=None):
     src = df if source is None else source
@@ -285,7 +324,6 @@ def safe(x):
         return 0.0
 
 def lbs_to_stone(lbs):
-    """Converts weight in lbs into formatted Stone + lbs string."""
     v = safe(lbs)
     st_val = int(v // 14)
     rem_lbs = v % 14
@@ -295,12 +333,12 @@ def fmt_num(value, decimals=0, suffix=''):
     v = safe(value)
     formatted = f"{v:,.{decimals}f}"
     if suffix:
-        formatted += f"<span style='font-size:0.65em; opacity:0.55; margin-left:4px;'>{suffix}</span>"
+        formatted += f"<span style='font-size:0.65em; opacity:0.55; margin-left:4px;'>" + suffix + "</span>"
     return formatted
 
 def eval_macro_rag(val_pct, macro_type):
     """
-    Evaluates RAG Status for Macro Percentages:
+    RAG Rules for Macro % of Target:
     - Protein: <60% RED, 60-85% AMBER, 85%+ GREEN
     - Net Carbs: <90% GREEN, 90-110% AMBER, >110% RED
     - Fat: <90% GREEN, 90-110% AMBER, >110% RED
@@ -353,36 +391,35 @@ def card(label, display_val="", num_target=None, decimals=0, suffix="", delta_va
 #  STATUS MODIFIERS ENGINE
 # ─────────────────────────────────────────────
 def evaluate_debuffs(row_data):
-    """Evaluates telemetry metrics for a row and generates status warning pills."""
     badges = []
     
-    # 1. Alcohol Active (Col 19 kcal)
+    # Alcohol (Col 19 kcal)
     alc_kcal = clean_float(row_data.iloc[19]) if len(row_data) > 19 else 0.0
     if alc_kcal > 0:
         badges.append(f"<div class='debuff-badge debuff-warning'>🍷 Alcohol Active (+{alc_kcal:,.0f} kcal) — Sleep & Recovery Suppressed</div>")
     
-    # 2. Caloric Intake Check (Col 1)
+    # Calories (Col 1)
     cals = clean_float(row_data.iloc[1]) if len(row_data) > 1 else 0.0
     if cals > 1633:
         badges.append(f"<div class='debuff-badge debuff-caution'>🔥 Caloric Surplus (+{cals - 1633:,.0f} kcal over target)</div>")
     elif 0 < cals <= 1633:
         badges.append("<div class='debuff-badge debuff-optimal'>🔥 Caloric Target Hit (≤ 1,633 kcal)</div>")
 
-    # 3. Steps Check (Col 12)
+    # Steps (Col 12)
     steps = clean_float(row_data.iloc[12]) if len(row_data) > 12 else 0.0
     if steps >= 10000:
         badges.append(f"<div class='debuff-badge debuff-optimal'>👟 Kinetic Goal Hit ({steps:,.0f} Steps)</div>")
     elif steps < 8000:
         badges.append(f"<div class='debuff-badge debuff-caution'>👟 Low Activity ({steps:,.0f} Steps)</div>")
 
-    # 4. Water Check (Col 24)
+    # Water (Col 24)
     water_ml = clean_float(row_data.iloc[24]) if len(row_data) > 24 else 0.0
     if water_ml >= 3000:
         badges.append(f"<div class='debuff-badge debuff-optimal'>💧 Hydration Optimal ({water_ml:,.0f} ml)</div>")
     elif 0 < water_ml < 3000:
         badges.append(f"<div class='debuff-badge debuff-caution'>💧 Hydration Under Target ({water_ml:,.0f} / 3,000 ml)</div>")
 
-    # 5. Macro RAG Badges
+    # Macro RAG
     p_pct = clean_float(row_data.iloc[16]) if len(row_data) > 16 else 0.0
     c_pct = clean_float(row_data.iloc[17]) if len(row_data) > 17 else 0.0
     f_pct = clean_float(row_data.iloc[18]) if len(row_data) > 18 else 0.0
@@ -409,22 +446,22 @@ def evaluate_debuffs(row_data):
 # ─────────────────────────────────────────────
 if not df.empty:
 
-    # ── Header ──
+    # ── Top Ticker Header ──
     st.markdown("""
-    <span class='page-eyebrow'><span class='status-dot'></span>MASTERCLASS TELEMETRY ENGINE</span>
+    <span class='page-eyebrow'><span class='status-dot'></span>MASTERCLASS HEALTH TELEMETRY ENGINE</span>
     """, unsafe_allow_html=True)
 
     st.markdown("<div style='text-align:center;'><h1 class='page-title'>Hardy House Health</h1></div>", unsafe_allow_html=True)
-    st.markdown("<div class='page-subtitle'>Advanced biometric analytics, trend smoothing & multi-factor intelligence</div>", unsafe_allow_html=True)
+    st.markdown("<div class='page-subtitle'>World-Class Biometric Intelligence & Multi-Factor Performance Matrix</div>", unsafe_allow_html=True)
 
     # ── 17 Tabs ──
     tab1, tab2, tab3, tab4, tab5, tab6, tab7, tab8, tab9, tab10, tab11, tab12, tab13, tab14, tab15, tab16, tab17 = st.tabs([
-        "🛡️ Review", "📊 Lifetime", "🔥 Calories", "💧 Hydration", "⚖️ Weight",
+        "🛡️ Command", "📊 Lifetime", "🔥 Calories", "💧 Hydration", "⚖️ Weight",
         "📉 Trend", "👟 Steps", "🥗 Macros", "📈 Averages", "❤️ Vitals", "🎯 Target", "🏆 Trophies", "🧠 Analytics", "📋 Sit Rep", "🔮 Forecast", "⚡ Momentum", "🗄️ Data Log"
     ])
 
     # ══════════════════════════════════════════
-    #  TAB 1 — Yesterday's Debrief (Review)
+    #  TAB 1 — Command Center (Review + Gauges)
     # ══════════════════════════════════════════
     with tab1:
         completed = df_valid
@@ -434,10 +471,29 @@ if not df.empty:
             cals  = clean_float(y.iloc[1])
             steps = clean_float(y.iloc[12])
 
+            # ── TOP INSIGHTS ENGINE (Inspired by Image 3) ──
+            last_14 = completed.tail(14)
+            cals_14 = pd.to_numeric(last_14.iloc[:, 1], errors='coerce')
+            p_14    = pd.to_numeric(last_14.iloc[:, 16], errors='coerce')
+            w_14    = pd.to_numeric(last_14.iloc[:, 24], errors='coerce')
+
+            p_green_cnt = (p_14 >= 85).sum()
+            cal_hit_cnt = (cals_14 <= 1633).sum()
+            water_hit_cnt = (w_14 >= 3000).sum()
+
+            st.markdown(f"""
+            <div class='insights-card'>
+                <div class='insights-title'>⚡ AUTOMATED BIOMETRIC INSIGHTS ({date_str})</div>
+                <div class='insight-item'>• <b>Caloric Consistency:</b> Hit caloric target (≤1,633 kcal) on <b>{cal_hit_cnt} of the last 14 days</b> ({(cal_hit_cnt/14*100):.0f}% adherence).</div>
+                <div class='insight-item'>• <b>Protein RAG Adherence:</b> Reached <b>GREEN Protein status (≥85% Target)</b> on <b>{p_green_cnt} of the last 14 days</b>.</div>
+                <div class='insight-item'>• <b>Hydration Performance:</b> Achieved optimal 3,000 ml water volume on <b>{water_hit_cnt} of the last 14 days</b>.</div>
+            </div>
+            """, unsafe_allow_html=True)
+
             st.markdown("<div class='section-header'>Yesterday's Debrief</div>", unsafe_allow_html=True)
             st.markdown(f"<div class='section-sub'>{date_str}</div>", unsafe_allow_html=True)
 
-            # Primary Cards
+            # Primary KPI Cards
             c1, c2 = st.columns(2)
             cal_delta  = cals  - 1633
             step_delta = steps - 10000
@@ -462,10 +518,10 @@ if not df.empty:
 
             st.markdown("<div style='margin-top:16px'></div>", unsafe_allow_html=True)
 
-            # RAG Macro Cards + Alcohol
+            # RAG Macro Grid (% Target) + Alcohol (kcal)
             m1, m2, m3, m4 = st.columns(4)
             
-            # Protein (Col 16: % of Target)
+            # Protein (% Target)
             prot_pct = clean_float(y.iloc[16]) if len(y) > 16 else 0.0
             p_rag, p_color, p_badge_cls, p_desc = eval_macro_rag(prot_pct, 'protein')
             m1.markdown(f"""
@@ -475,7 +531,7 @@ if not df.empty:
                 <div class='rag-badge {p_badge_cls}'>{p_rag}: {p_desc}</div>
               </div>""", unsafe_allow_html=True)
 
-            # Net Carbs (Col 17: % of Target)
+            # Net Carbs (% Target)
             carbs_pct = clean_float(y.iloc[17]) if len(y) > 17 else 0.0
             c_rag, c_color, c_badge_cls, c_desc = eval_macro_rag(carbs_pct, 'carbs')
             m2.markdown(f"""
@@ -485,7 +541,7 @@ if not df.empty:
                 <div class='rag-badge {c_badge_cls}'>{c_rag}: {c_desc}</div>
               </div>""", unsafe_allow_html=True)
 
-            # Fat (Col 18: % of Target)
+            # Fat (% Target)
             fat_pct = clean_float(y.iloc[18]) if len(y) > 18 else 0.0
             f_rag, f_color, f_badge_cls, f_desc = eval_macro_rag(fat_pct, 'fat')
             m3.markdown(f"""
@@ -495,7 +551,7 @@ if not df.empty:
                 <div class='rag-badge {f_badge_cls}'>{f_rag}: {f_desc}</div>
               </div>""", unsafe_allow_html=True)
 
-            # Alcohol (Col 19: kcal consumed)
+            # Alcohol (kcal)
             alc_kcal = clean_float(y.iloc[19]) if len(y) > 19 else 0.0
             alc_border = "#30D158" if alc_kcal == 0 else "#BF5AF2"
             m4.markdown(f"""
@@ -505,9 +561,23 @@ if not df.empty:
                 <div class='rag-badge {"rag-green" if alc_kcal==0 else "rag-red"}'>{"ZERO" if alc_kcal==0 else "ACTIVE"}</div>
               </div>""", unsafe_allow_html=True)
 
-            # Status Engine
+            # ── RADIALLY CLUSTERED GAUGES (Inspired by Image 1) ──
             st.markdown("<div style='margin-top:20px'></div>", unsafe_allow_html=True)
-            st.markdown("<div class='section-sub' style='margin-bottom:0.6rem;'>Active Status Modifiers</div>", unsafe_allow_html=True)
+            st.markdown("<div class='section-sub'>Vitals & Pulse Dial Gauge Cluster</div>", unsafe_allow_html=True)
+            
+            sys_val = clean_float(y.iloc[21]) if len(y) > 21 and clean_float(y.iloc[21]) > 0 else 118.0
+            dia_val = clean_float(y.iloc[22]) if len(y) > 22 and clean_float(y.iloc[22]) > 0 else 78.0
+            hr_val  = clean_float(y.iloc[23]) if len(y) > 23 and clean_float(y.iloc[23]) > 0 else 72.0
+
+            g1, g2, g3 = st.columns(3)
+            with g1:
+                st.plotly_chart(make_semi_gauge(sys_val, "Systolic BP", 80, 180, [80, 120], [120, 140], [140, 180], "mmHg"), use_container_width=True)
+            with g2:
+                st.plotly_chart(make_semi_gauge(dia_val, "Diastolic BP", 50, 120, [50, 80], [80, 90], [90, 120], "mmHg"), use_container_width=True)
+            with g3:
+                st.plotly_chart(make_semi_gauge(hr_val, "Resting HR", 40, 130, [40, 75], [75, 90], [90, 130], "BPM"), use_container_width=True)
+
+            # Debuff Status Engine
             st.markdown(evaluate_debuffs(y), unsafe_allow_html=True)
 
     # ══════════════════════════════════════════
@@ -607,19 +677,16 @@ if not df.empty:
         w_series = get_num(3).dropna()
         dates_w  = df.iloc[:len(w_series), 0]
         
-        # Calculate 7-Day Exponential Moving Average (EMA) to filter water weight noise
+        # 7-Day Exponential Moving Average (EMA) to filter water weight noise
         w_ema = w_series.ewm(span=7, adjust=False).mean()
-        
         w_max = float(w_series.max()) + 2 if not w_series.empty else 210
 
         fig = go.Figure()
-        # Daily Actuals
         fig.add_trace(go.Scatter(
             x=dates_w, y=w_series, name="Raw Daily Scale Weight", mode='markers+lines',
             line=dict(color='rgba(191,90,242,0.4)', width=1.5, dash='dot'),
             marker=dict(color='#BF5AF2', size=6, opacity=0.8), zorder=2
         ))
-        # Smooth EMA Trend
         fig.add_trace(go.Scatter(
             x=dates_w, y=w_ema, name="7-Day Trend EMA (Happy Scale)", mode='lines',
             line=dict(color='#0A84FF', width=3.5), zorder=3
@@ -629,7 +696,6 @@ if not df.empty:
         fig.update_layout(yaxis=dict(range=[168, w_max]), xaxis=dict(rangeslider=dict(visible=True, bgcolor='rgba(0,0,0,0.03)'), type="date"))
         st.plotly_chart(apply_theme(fig, "Weight Trajectory & Trend Smoothing", "RAW SCALE ACTUALS VS 7-DAY EXPONENTIAL MOVING AVERAGE"), use_container_width=True)
 
-        # Stone Display Summary
         latest_lbs = w_series.iloc[-1] if not w_series.empty else 0.0
         st.markdown("<div style='margin-top:16px'></div>", unsafe_allow_html=True)
         wc1, wc2, wc3 = st.columns(3)
@@ -685,11 +751,11 @@ if not df.empty:
         steps_logged = steps_data.dropna()
         sc1, sc2, sc3 = st.columns(3)
         with sc1:
-            st.markdown(card("7-Day Avg Steps", num_target=steps_logged.tail(7).mean(), decimals=0), unsafe_allow_html=True)
+            st.markdown(card("7-Day Avg", num_target=steps_logged.tail(7).mean(), decimals=0), unsafe_allow_html=True)
         with sc2:
-            st.markdown(card("30-Day Avg Steps", num_target=steps_logged.tail(30).mean(), decimals=0), unsafe_allow_html=True)
+            st.markdown(card("30-Day Avg", num_target=steps_logged.tail(30).mean(), decimals=0), unsafe_allow_html=True)
         with sc3:
-            st.markdown(card("90-Day Avg Steps", num_target=steps_logged.tail(90).mean(), decimals=0), unsafe_allow_html=True)
+            st.markdown(card("90-Day Avg", num_target=steps_logged.tail(90).mean(), decimals=0), unsafe_allow_html=True)
 
     # ══════════════════════════════════════════
     #  TAB 8 — RAG Macro Matrix
@@ -703,30 +769,29 @@ if not df.empty:
         f_pcts = get_num(18)
 
         fig_m = go.Figure()
-        fig_m.add_trace(go.Scatter(x=df.iloc[:, 0], y=p_pcts, name="Protein % Target", mode='lines', line=dict(color='#FF375F', width=2.5)))
-        fig_m.add_trace(go.Scatter(x=df.iloc[:, 0], y=c_pcts, name="Net Carbs % Target", mode='lines', line=dict(color='#0A84FF', width=2.5)))
-        fig_m.add_trace(go.Scatter(x=df.iloc[:, 0], y=f_pcts, name="Fat % Target", mode='lines', line=dict(color='#FFD60A', width=2.5)))
+        fig_m.add_trace(go.Scatter(x=df.iloc[:, 0], y=p_pcts, name="Protein (% Target)", mode='lines', line=dict(color='#FF375F', width=2.5)))
+        fig_m.add_trace(go.Scatter(x=df.iloc[:, 0], y=c_pcts, name="Net Carbs (% Target)", mode='lines', line=dict(color='#0A84FF', width=2.5)))
+        fig_m.add_trace(go.Scatter(x=df.iloc[:, 0], y=f_pcts, name="Fat (% Target)", mode='lines', line=dict(color='#FFD60A', width=2.5)))
 
-        # RAG Threshold Lines
         fig_m.add_hline(y=85.0, line_dash="dash", line_color="#30D158", annotation_text="Protein Green Floor (85%)")
         fig_m.add_hline(y=110.0, line_dash="dash", line_color="#FF375F", annotation_text="Carb/Fat Red Ceiling (110%)")
 
         fig_m.update_layout(xaxis=dict(rangeslider=dict(visible=True, bgcolor='rgba(0,0,0,0.03)'), type="date"))
-        st.plotly_chart(apply_theme(fig_m, "Macro Target Compliance (%)", "RAG COMPLIANCE ENGINE"), use_container_width=True)
+        st.plotly_chart(apply_theme(fig_m, "Macro Target Compliance (% Target)", "RAG COMPLIANCE ENGINE"), use_container_width=True)
 
-        # RAG Compliance Breakdown
-        p_green_pct = (p_pcts >= 85).sum() / len(p_pcts) * 100 if len(p_pcts) > 0 else 0
-        c_green_pct = (c_pcts < 90).sum() / len(c_pcts) * 100 if len(c_pcts) > 0 else 0
-        f_green_pct = (f_pcts < 90).sum() / len(f_pcts) * 100 if len(f_pcts) > 0 else 0
+        # RAG Compliance Breakdown Donut (Inspired by Image 2)
+        p_green_cnt = (p_pcts >= 85).sum()
+        p_amber_cnt = ((p_pcts >= 60) & (p_pcts < 85)).sum()
+        p_red_cnt   = (p_pcts < 60).sum()
 
-        st.markdown("<div style='margin-top:16px'></div>", unsafe_allow_html=True)
-        mc1, mc2, mc3 = st.columns(3)
-        with mc1:
-            st.markdown(card("Protein Optimal Days (85%+)", num_target=p_green_pct, decimals=1, suffix="%"), unsafe_allow_html=True)
-        with mc2:
-            st.markdown(card("Net Carbs Optimal Days (<90%)", num_target=c_green_pct, decimals=1, suffix="%"), unsafe_allow_html=True)
-        with mc3:
-            st.markdown(card("Fat Optimal Days (<90%)", num_target=f_green_pct, decimals=1, suffix="%"), unsafe_allow_html=True)
+        fig_pie = go.Figure(data=[go.Pie(
+            labels=['Green (Optimal)', 'Amber (Moderate)', 'Red (Under Target)'],
+            values=[p_green_cnt, p_amber_cnt, p_red_cnt],
+            hole=.6,
+            marker_colors=['#30D158', '#FF9F0A', '#FF375F']
+        )])
+        fig_pie.update_layout(title="Protein RAG Adherence Distribution", paper_bgcolor='rgba(0,0,0,0)', font=dict(family="Inter"))
+        st.plotly_chart(fig_pie, use_container_width=True)
 
     # ══════════════════════════════════════════
     #  TAB 9 — Averages
@@ -772,7 +837,6 @@ if not df.empty:
         fig.update_layout(yaxis=dict(range=[50, 180]), xaxis=dict(rangeslider=dict(visible=True, bgcolor='rgba(0,0,0,0.03)'), type="date"))
         st.plotly_chart(apply_theme(fig, "Cardiovascular Vitals Monitor", "SYSTOLIC // DIASTOLIC // RESTING HR"), use_container_width=True)
 
-        # Pulse Pressure & MAP Intelligence
         last_sys = sys_data.dropna().iloc[-1] if sys_data.dropna().shape[0] > 0 else 120
         last_dia = dia_data.dropna().iloc[-1] if dia_data.dropna().shape[0] > 0 else 80
         pulse_pressure = last_sys - last_dia
@@ -952,7 +1016,7 @@ if not df.empty:
             st.plotly_chart(fig_corr, use_container_width=True)
 
         st.markdown("<div style='margin-top:16px'></div>", unsafe_allow_html=True)
-        
+
         st.markdown(f"""
         <div class='card' style='text-align: left; padding: 26px; margin-bottom: 14px;'>
             <div style='font-size: 1.8rem; margin-bottom: 6px;'>🔥</div>
@@ -1149,7 +1213,7 @@ if not df.empty:
 
         cols_to_show = {
             '0': 'Date', '1': 'Calories', '3': 'Weight (lbs)', '4': 'Weight (St)',
-            '12': 'Steps', '16': 'Protein %', '17': 'Carbs %', '18': 'Fat %',
+            '12': 'Steps', '16': 'Protein % Tgt', '17': 'Carbs % Tgt', '18': 'Fat % Tgt',
             '19': 'Alcohol (kcal)', '21': 'Systolic BP', '22': 'Diastolic BP', '23': 'HR', '24': 'Water (ml)'
         }
 
