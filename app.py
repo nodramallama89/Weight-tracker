@@ -303,7 +303,6 @@ def load_data():
 
 df = load_data()
 
-# Filter completed rows (Steps Col 12 non-blank)
 if not df.empty:
     df_valid = df[df.iloc[:, 12].astype(str).str.strip() != ""].reset_index(drop=True)
     if df_valid.empty:
@@ -438,11 +437,11 @@ def evaluate_debuffs(row_data):
     f_rag, _, _, _ = eval_macro_rag(f_pct, 'fat')
 
     if p_rag == "RED":
-        badges.append("<div class='debuff-badge debuff-warning'>🥩 Protein Deficit (<60% Target)</div>")
+        badges.append("<div class='debuff-badge debuff-warning'>🥩 Protein Deficit (< 60% Target)</div>")
     if c_rag == "RED":
-        badges.append("<div class='debuff-badge debuff-warning'>🍞 Excess Net Carbs (>110% Target)</div>")
+        badges.append("<div class='debuff-badge debuff-warning'>🍞 Excess Net Carbs (> 110% Target)</div>")
     if f_rag == "RED":
-        badges.append("<div class='debuff-badge debuff-warning'>🥑 Excess Dietary Fat (>110% Target)</div>")
+        badges.append("<div class='debuff-badge debuff-warning'>🥑 Excess Dietary Fat (> 110% Target)</div>")
 
     if not badges:
         badges.append("<div class='debuff-badge debuff-optimal'>🛡️ All Telemetry Nominal</div>")
@@ -494,8 +493,8 @@ if not df.empty:
             st.markdown(f"""
             <div class='insights-card'>
                 <div class='insights-title'>⚡ AUTOMATED BIOMETRIC INSIGHTS ({date_str})</div>
-                <div class='insight-item'>• <b>Caloric Adherence:</b> Reached calorie goal (≤1,633 kcal) on <b>{cal_hit_cnt} of the last 14 days</b> ({(cal_hit_cnt/14*100):.0f}% compliance).</div>
-                <div class='insight-item'>• <b>Protein RAG Status:</b> Achieved <b>GREEN Protein status (≥85% Target)</b> on <b>{p_green_cnt} of the last 14 days</b>.</div>
+                <div class='insight-item'>• <b>Caloric Adherence:</b> Reached calorie goal (≤ 1,633 kcal) on <b>{cal_hit_cnt} of the last 14 days</b> ({(cal_hit_cnt/14*100):.0f}% compliance).</div>
+                <div class='insight-item'>• <b>Protein RAG Status:</b> Achieved <b>GREEN Protein status (≥ 85% Target)</b> on <b>{p_green_cnt} of the last 14 days</b>.</div>
                 <div class='insight-item'>• <b>Hydration Performance (5,000 ml Target):</b> Hit target water volume on <b>{water_hit_cnt} of the last 14 days</b>.</div>
             </div>
             """, unsafe_allow_html=True)
@@ -584,7 +583,7 @@ if not df.empty:
             st.markdown(evaluate_debuffs(y), unsafe_allow_html=True)
 
     # ══════════════════════════════════════════
-    #  TAB 2 — 🧬 Metabolic Intelligence (RAG Bar Colors)
+    #  TAB 2 — 🧬 Metabolic Intelligence (No MathJax Glitches)
     # ══════════════════════════════════════════
     with tab2:
         st.markdown("<div class='section-header'>Metabolic Intelligence Engine</div>", unsafe_allow_html=True)
@@ -596,9 +595,9 @@ if not df.empty:
             <div class='context-text'>
                 <b>Total Daily Energy Expenditure (TDEE)</b> is re-calculated directly from your actual scale drops.<br>
                 <b>Bar Color Coding:</b><br>
-                • <b style='color:#30D158;'>GREEN Bar:</b> Intake $\le 1,633\text{ kcal}$ (Target Achieved — Maximum Deficit)<br>
-                • <b style='color:#FF9F0A;'>AMBER Bar:</b> Intake $1,634\text{--}1,750\text{ kcal}$ (Moderate Deficit)<br>
-                • <b style='color:#FF375F;'>RED Bar:</b> Intake $> 1,750\text{ kcal}$ (Surplus / Reduced Deficit)
+                • <b style='color:#30D158;'>GREEN Bar:</b> Intake ≤ 1,633 kcal (Target Achieved — Maximum Deficit)<br>
+                • <b style='color:#FF9F0A;'>AMBER Bar:</b> Intake 1,634–1,750 kcal (Moderate Deficit)<br>
+                • <b style='color:#FF375F;'>RED Bar:</b> Intake > 1,750 kcal (Surplus / Reduced Deficit)
             </div>
         </div>
         """, unsafe_allow_html=True)
@@ -631,7 +630,6 @@ if not df.empty:
             with mc3:
                 st.markdown(card("Projected Fat Loss @ 1633 Target", num_target=weekly_fat_loss_proj, decimals=2, suffix=" lbs/wk"), unsafe_allow_html=True)
 
-            # RAG Bar Assignement
             def get_bar_color(c):
                 if c <= 1633: return '#30D158'
                 elif c <= 1750: return '#FF9F0A'
@@ -693,11 +691,11 @@ if not df.empty:
         st.plotly_chart(apply_theme(fig_cardio, "Blood Pressure & Heart Rate Trends", "HEMODYNAMIC PROFILING"), use_container_width=True)
 
     # ══════════════════════════════════════════
-    #  TAB 4 — Lifetime Stats (Massively Expanded)
+    #  TAB 4 — Lifetime Stats (Complete Unfiltered Grid)
     # ══════════════════════════════════════════
     with tab4:
         l = df.iloc[-1]
-        st.markdown("<div class='section-header'>Lifetime Cumulative Analytics</div>", unsafe_allow_html=True)
+        st.markdown("<div class='section-header'>Lifetime Cumulative Telemetry</div>", unsafe_allow_html=True)
 
         st.markdown(f"""
           <div class='card' style='background:linear-gradient(135deg,#0A84FF 0%,#30D158 130%);
@@ -713,17 +711,40 @@ if not df.empty:
         total_act_mins  = get_num(14).sum()
         total_act_cals  = get_num(15).sum()
         total_water_l   = get_num(24).sum() / 1000.0
+        total_marathons = total_miles_lt / 26.2 if total_miles_lt > 0 else 0.0
 
-        c1, c2, c3 = st.columns(3)
-        with c1:
-            st.markdown(card("Total Weight Loss", num_target=clean_float(l.iloc[6]), decimals=1, suffix=" lbs"), unsafe_allow_html=True)
-            st.markdown(card("Total Miles Walked", num_target=total_miles_lt, decimals=1, suffix=" miles"), unsafe_allow_html=True)
-        with c2:
-            st.markdown(card("To Target", num_target=clean_float(l.iloc[8]), decimals=1, suffix=" lbs"), unsafe_allow_html=True)
-            st.markdown(card("Total Water Consumed", num_target=total_water_l, decimals=0, suffix=" Liters"), unsafe_allow_html=True)
-        with c3:
+        # Row 1: Weight Metrics
+        r1_c1, r1_c2, r1_c3, r1_c4 = st.columns(4)
+        with r1_c1:
+            st.markdown(card("Total Weight Loss (lbs)", num_target=clean_float(l.iloc[6]), decimals=1, suffix=" lbs"), unsafe_allow_html=True)
+        with r1_c2:
+            st.markdown(card("Total Weight Loss (Stone)", display_val=f"{l.iloc[7]}"), unsafe_allow_html=True)
+        with r1_c3:
+            st.markdown(card("To Target (lbs)", num_target=clean_float(l.iloc[8]), decimals=1, suffix=" lbs"), unsafe_allow_html=True)
+        with r1_c4:
+            st.markdown(card("To Target (Stone)", display_val=f"{l.iloc[9]}"), unsafe_allow_html=True)
+
+        # Row 2: BMI & Distance
+        r2_c1, r2_c2, r2_c3, r2_c4 = st.columns(4)
+        with r2_c1:
             st.markdown(card("Current BMI", num_target=clean_float(l.iloc[10]), decimals=1), unsafe_allow_html=True)
+        with r2_c2:
+            st.markdown(card("To Target BMI", num_target=clean_float(l.iloc[11]), decimals=1), unsafe_allow_html=True)
+        with r2_c3:
+            st.markdown(card("Total Distance Walked", num_target=total_miles_lt, decimals=1, suffix=" miles"), unsafe_allow_html=True)
+        with r2_c4:
+            st.markdown(card("Equivalent Marathons", num_target=total_marathons, decimals=1, suffix=" races"), unsafe_allow_html=True)
+
+        # Row 3: Activity & Volume
+        r3_c1, r3_c2, r3_c3, r3_c4 = st.columns(4)
+        with r3_c1:
+            st.markdown(card("Total Steps Walked", num_target=total_steps_lt, decimals=0, suffix=" steps"), unsafe_allow_html=True)
+        with r3_c2:
+            st.markdown(card("Total Active Minutes", num_target=total_act_mins, decimals=0, suffix=" mins"), unsafe_allow_html=True)
+        with r3_c3:
             st.markdown(card("Total Activity Cals Burned", num_target=total_act_cals, decimals=0, suffix=" kcal"), unsafe_allow_html=True)
+        with r3_c4:
+            st.markdown(card("Total Water Consumed", num_target=total_water_l, decimals=0, suffix=" Liters"), unsafe_allow_html=True)
 
     # ══════════════════════════════════════════
     #  TAB 5 — Calories
@@ -764,7 +785,7 @@ if not df.empty:
             st.markdown(card("90-Day Avg", num_target=cal_logged.tail(90).mean(), decimals=0, suffix=" kcal"), unsafe_allow_html=True)
 
     # ══════════════════════════════════════════
-    #  TAB 6 — Hydration (5,000 ml Target Baseline)
+    #  TAB 6 — Hydration (Clear Loss vs Gain Logic)
     # ══════════════════════════════════════════
     with tab6:
         st.markdown("<div class='section-header'>Hydration & Fluid Intelligence</div>", unsafe_allow_html=True)
@@ -783,13 +804,20 @@ if not df.empty:
         avg_drop_high_w = w_delta[high_water_mask].mean() if high_water_mask.sum() > 0 else 0.0
         avg_drop_low_w  = w_delta[low_water_mask].mean() if low_water_mask.sum() > 0 else 0.0
 
+        drop_high_desc = f"{abs(avg_drop_high_w):.2f} lbs drop" if avg_drop_high_w <= 0 else f"{abs(avg_drop_high_w):.2f} lbs gain"
+        drop_low_desc  = f"{abs(avg_drop_low_w):.2f} lbs drop" if avg_drop_low_w <= 0 else f"{abs(avg_drop_low_w):.2f} lbs gain"
+
+        # Highlight whichever group produced the larger scale drop
+        high_color = "#1E9145" if avg_drop_high_w <= avg_drop_low_w else "#0A84FF"
+        low_color  = "#1E9145" if avg_drop_low_w < avg_drop_high_w else "#0A84FF"
+
         st.markdown(f"""
         <div class='context-card'>
-            <div class='context-title'>💧 WHY 5,000 ML WATER ACCELERATES WEIGHT LOSS</div>
+            <div class='context-title'>💧 HYDRATION IMPACT ON SCALE MOVEMENT</div>
             <div class='context-text'>
-                At a <b>5,000 ml (5 Liters) daily volume</b>, fluid retention from sodium and carbohydrate storage is flushed rapidly.<br>
-                • On days drinking <b>≥ 5,000 ml</b>, your average next-morning scale shift was <b style='color:#1E9145;'>{avg_drop_high_w:+.2f} lbs</b>.<br>
-                • On days under 5,000 ml, your average scale shift was <b style='color:#E0264F;'>{avg_drop_low_w:+.2f} lbs</b>.
+                Note: A negative number (e.g. -0.30 lbs) indicates a <b>weight drop on the scale</b>.<br>
+                • On days drinking <b>≥ 5,000 ml</b>, your average scale shift was <b style='color:{high_color};'>{avg_drop_high_w:+.2f} lbs</b> ({drop_high_desc}).<br>
+                • On days under <b>5,000 ml</b>, your average scale shift was <b style='color:{low_color};'>{avg_drop_low_w:+.2f} lbs</b> ({drop_low_desc}).
             </div>
         </div>
         """, unsafe_allow_html=True)
@@ -864,7 +892,7 @@ if not df.empty:
             <div class='context-text'>
                 • <b>Total Lifetime Distance Walked:</b> <b>{miles_data.sum():,.1f} miles</b>.<br>
                 • <b>Marathon Equivalency:</b> Equivalent to completing <b style='color:#0A84FF;'>{total_marathons:.1f} full Marathons</b> (26.2 miles each)!<br>
-                • <b>10k Step Days:</b> Reached $10,000+$ steps on <b>{(steps_logged >= 10000).sum()} days</b> ({(steps_logged >= 10000).sum() / len(steps_logged) * 100:.0f}% of total days).
+                • <b>10k Step Days:</b> Reached 10,000+ steps on <b>{(steps_logged >= 10000).sum()} days</b> ({(steps_logged >= 10000).sum() / len(steps_logged) * 100:.0f}% of total days).
             </div>
         </div>
         """, unsafe_allow_html=True)
@@ -951,13 +979,11 @@ if not df.empty:
         dow_source['Steps']    = pd.to_numeric(dow_source.iloc[:, 12], errors='coerce')
         dow_source['Water']    = pd.to_numeric(dow_source.iloc[:, 24], errors='coerce')
         
-        # Scale shift
         w_s = pd.to_numeric(dow_source.iloc[:, 3], errors='coerce')
         dow_source['Scale_Shift'] = w_s - w_s.shift(1)
 
         dow_summary = dow_source.groupby('Day')[['Calories', 'Steps', 'Water', 'Scale_Shift']].mean().reindex(days_order)
 
-        # Automated Diagnostic Overview
         best_cal_day  = dow_summary['Calories'].idxmin()
         worst_cal_day = dow_summary['Calories'].idxmax()
         best_drop_day = dow_summary['Scale_Shift'].idxmin()
@@ -1169,7 +1195,7 @@ if not df.empty:
             <div style='font-size: 1.8rem; margin-bottom: 6px;'>🥩</div>
             <div class='val-sm' style='margin-bottom: 8px; color: #0A84FF;'>Protein RAG Compliance Effect</div>
             <div style='font-family: var(--font-body); font-size: 1.02rem; color: var(--text-secondary); line-height: 1.6;'>
-                Hitting <b>GREEN Protein (≥85% Target)</b> produces an average scale shift of 
+                Hitting <b>GREEN Protein (≥ 85% Target)</b> produces an average scale shift of 
                 <span style='color: #1E9145; font-weight: 800;'>{avg_prot_green:+.2f} lbs</span>.
             </div>
         </div>
@@ -1224,10 +1250,10 @@ if not df.empty:
             <div class='context-title'>⚡ HOW YOUR MOMENTUM SCORE IS CALCULATED (0–100)</div>
             <div class='context-text'>
                 Your daily score combines <b>4 equal biometrics (25 points each)</b>:<br>
-                1. <b>Caloric Target (25 pts):</b> Full 25 pts for staying $\le 1,633\text{ kcal}$.<br>
-                2. <b>Kinetic Activity (25 pts):</b> Full 25 pts for reaching $\ge 10,000\text{ steps}$.<br>
-                3. <b>Hydration Goal (25 pts):</b> Full 25 pts for drinking $\ge 5,000\text{ ml}$ water.<br>
-                4. <b>Protein RAG Status (25 pts):</b> Full 25 pts for achieving $\ge 85\%$ Protein target.<br><br>
+                1. <b>Caloric Target (25 pts):</b> Full 25 pts for staying ≤ 1,633 kcal.<br>
+                2. <b>Kinetic Activity (25 pts):</b> Full 25 pts for reaching ≥ 10,000 steps.<br>
+                3. <b>Hydration Goal (25 pts):</b> Full 25 pts for drinking ≥ 5,000 ml water.<br>
+                4. <b>Protein RAG Status (25 pts):</b> Full 25 pts for achieving ≥ 85% Protein target.<br><br>
                 <b>WHAT GOOD LOOKS LIKE:</b><br>
                 • <b style='color:#30D158;'>75 – 100 (Optimal Zone):</b> Continuous high-velocity fat loss.<br>
                 • <b style='color:#FF9F0A;'>50 – 74 (Moderate Zone):</b> Steady maintenance or slow loss.<br>
@@ -1245,7 +1271,7 @@ if not df.empty:
 
             cal_score   = (1633 / cal_m).clip(upper=1).fillna(0) * 25.0
             step_score  = (steps_m / 10000).clip(upper=1).fillna(0) * 25.0
-            hyd_score   = (hyd_m / 5000.0).clip(upper=1).fillna(0) * 25.0 # Recalibrated to 5000 ml
+            hyd_score   = (hyd_m / 5000.0).clip(upper=1).fillna(0) * 25.0
             prot_score  = (prot_m / 85.0).clip(upper=1).fillna(0) * 25.0
 
             daily_score_30 = (cal_score + step_score + hyd_score + prot_score).round(0).clip(upper=100)
