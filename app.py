@@ -22,7 +22,7 @@ st.set_page_config(
 if 'booted' not in st.session_state:
     st.toast('VisionOS Health Telemetry Active.', icon='⚡')
     time.sleep(0.4)
-    st.toast('Concentric Rings & Metabolic Engine Online.', icon='💚')
+    st.toast('Masterclass High-Contrast Engine Online.', icon='💚')
     st.session_state.booted = True
 
 # ─────────────────────────────────────────────
@@ -36,7 +36,7 @@ st.markdown("""
   --bg-app:          #0B0C12;
   --bg-card:         rgba(20, 23, 36, 0.78);
   --bg-card-hover:   rgba(28, 32, 50, 0.92);
-  --glass-border:    rgba(255, 255, 255, 0.14);
+  --glass-border:    rgba(255, 255, 255, 0.16);
   --glass-blur:      blur(40px) saturate(220%);
   --glass-blur-sm:   blur(20px) saturate(180%);
 
@@ -44,8 +44,8 @@ st.markdown("""
   --shadow-card-hover: 0 16px 48px rgba(10, 132, 255, 0.25), 0 4px 16px rgba(0, 0, 0, 0.40);
 
   --text-primary:   #FFFFFF;
-  --text-secondary: rgba(235, 235, 245, 0.85);
-  --text-tertiary:  rgba(235, 235, 245, 0.50);
+  --text-secondary: rgba(235, 235, 245, 0.88);
+  --text-tertiary:  rgba(235, 235, 245, 0.55);
 
   --font-display: 'Inter', -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif;
   --font-body:    'Inter', -apple-system, BlinkMacSystemFont, 'SF Pro Text', sans-serif;
@@ -188,33 +188,50 @@ st.markdown("""
 .section-header { font-family: var(--font-display); font-size: 1.7rem; font-weight: 800; color: #FFFFFF; margin: 0 0 0.3rem; text-align: center; letter-spacing: -0.01em; text-shadow: 0 0 20px rgba(255,255,255,0.2); }
 .section-sub { font-size: 0.8rem; color: var(--text-tertiary); text-align: center; margin-top: 0; margin-bottom: 1.6rem; letter-spacing: 0.06em; text-transform: uppercase; font-weight: 700; }
 
-/* ── HIGH-CONTRAST VISIONOS TAB CONTROLS ── */
+/* ── HIGH-CONTRAST TAB CONTROLS (ULTRA-BRIGHT WHITE) ── */
 div[data-baseweb="tab-list"] {
-  background: rgba(18, 21, 35, 0.85) !important; backdrop-filter: var(--glass-blur-sm) !important;
+  background: rgba(18, 21, 35, 0.90) !important; backdrop-filter: var(--glass-blur-sm) !important;
   -webkit-backdrop-filter: var(--glass-blur-sm) !important; border-radius: 20px !important;
   padding: 6px !important; border: 1px solid var(--glass-border) !important;
   box-shadow: var(--shadow-card) !important; margin-bottom: 1.8rem !important; flex-wrap: wrap !important; gap: 4px;
 }
-div[data-baseweb="tab"] { border-radius: 14px !important; transition: all 0.25s ease !important; padding: 8px 16px !important; }
-div[data-baseweb="tab"]:hover { background: rgba(255, 255, 255, 0.12) !important; }
 
-/* Bright High-Contrast Text for Inactive & Active Tabs */
-div[data-baseweb="tab-list"] button [data-testid="stMarkdownContainer"] p {
-  color: rgba(255, 255, 255, 0.82) !important;
-  font-size: 0.90rem !important;
-  font-weight: 600 !important;
+div[data-baseweb="tab"] {
+  background: rgba(255, 255, 255, 0.08) !important;
+  border: 1px solid rgba(255, 255, 255, 0.16) !important;
+  border-radius: 14px !important; transition: all 0.25s ease !important;
+  padding: 8px 18px !important; margin: 2px !important;
+}
+
+div[data-baseweb="tab"]:hover {
+  background: rgba(255, 255, 255, 0.20) !important;
+  border-color: rgba(10, 132, 255, 0.6) !important;
+}
+
+/* Force ALL text inside tab buttons to be 100% High-Contrast Bright White */
+div[data-baseweb="tab-list"] button,
+div[data-baseweb="tab-list"] button *,
+div[data-baseweb="tab"] *,
+div[data-baseweb="tab"] p,
+div[data-baseweb="tab"] span {
+  color: #FFFFFF !important;
+  font-size: 0.92rem !important;
+  font-weight: 700 !important;
+  opacity: 0.95 !important;
 }
 
 /* Glowing Neon Cyan Highlight for Active Tab */
 div[data-baseweb="tab"][aria-selected="true"] {
-  background: rgba(10, 132, 255, 0.28) !important;
-  border: 1px solid rgba(10, 132, 255, 0.65) !important;
-  box-shadow: 0 4px 20px rgba(10, 132, 255, 0.40) !important;
+  background: linear-gradient(135deg, rgba(10, 132, 255, 0.85) 0%, rgba(0, 100, 230, 0.95) 100%) !important;
+  border: 1px solid #64D2FF !important;
+  box-shadow: 0 0 20px rgba(10, 132, 255, 0.60), 0 4px 12px rgba(0, 0, 0, 0.5) !important;
 }
-div[data-baseweb="tab"][aria-selected="true"] [data-testid="stMarkdownContainer"] p {
+
+div[data-baseweb="tab"][aria-selected="true"] * {
   color: #FFFFFF !important;
-  font-weight: 800 !important;
-  text-shadow: 0 0 12px rgba(10, 132, 255, 0.9);
+  font-weight: 900 !important;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.8) !important;
+  opacity: 1.0 !important;
 }
 div[data-baseweb="tab-highlight"] { display: none !important; }
 
@@ -244,7 +261,6 @@ div[data-baseweb="tab-highlight"] { display: none !important; }
 #  HEX TO RGBA HELPER
 # ─────────────────────────────────────────────
 def hex_to_rgba(hex_str, opacity=0.2):
-    """Safely converts hex string (#RRGGBB) to rgba(r,g,b,alpha) string for Plotly."""
     try:
         hex_clean = hex_str.lstrip('#')
         r = int(hex_clean[0:2], 16)
@@ -308,7 +324,6 @@ def make_semi_gauge(val, title, min_v, max_v, green_range, amber_range, red_rang
 #  100% FUNCTIONAL PLOTLY ACTIVITY RING ENGINE
 # ─────────────────────────────────────────────
 def build_plotly_activity_rings(cal_pct, step_pct, water_pct, prot_pct):
-    """Renders interactive concentric Polar Rings (Apple Watch style) using Plotly Barpolar."""
     c_pct = max(0.0, min(100.0, float(cal_pct)))
     s_pct = max(0.0, min(100.0, float(step_pct)))
     w_pct = max(0.0, min(100.0, float(water_pct)))
@@ -360,7 +375,6 @@ def build_plotly_activity_rings(cal_pct, step_pct, water_pct, prot_pct):
 #  INLINE MICRO SPARKLINE GENERATOR
 # ─────────────────────────────────────────────
 def make_sparkline_card(label, current_val, decimals, suffix, data_series, color):
-    """Generates a glass card with an embedded 7-day sparkline chart."""
     recent_7 = data_series.tail(7).dropna()
     rgba_fill = hex_to_rgba(color, 0.18)
     
@@ -588,6 +602,7 @@ if not df.empty:
             cal_pct_y    = ((1633.0 / cals) * 100.0) if cals > 0 else 0.0
             water_pct_y  = (water / 5000.0) * 100.0
 
+            # Activity Ring Widget & Insights
             col_ring, col_insights = st.columns([1, 2])
             with col_ring:
                 st.plotly_chart(build_plotly_activity_rings(cal_pct_y, step_pct_y, water_pct_y, prot), use_container_width=True)
@@ -602,6 +617,7 @@ if not df.empty:
                 </div>
                 """, unsafe_allow_html=True)
 
+            # Micro-Trend Sparklines
             st.markdown("<div class='section-sub'>7-Day Biometric Micro-Trends</div>", unsafe_allow_html=True)
             sp1, sp2, sp3, sp4 = st.columns(4)
             with sp1:
@@ -615,6 +631,28 @@ if not df.empty:
 
             st.markdown("<div style='margin-top:16px'></div>", unsafe_allow_html=True)
 
+            # Energy Substrate Partitioning Explainer
+            carbs_pct_y = clean_float(y.iloc[17])
+            ex_mins_y   = clean_float(y.iloc[29]) if len(y) > 29 else 0.0
+            alc_y       = clean_float(y.iloc[19]) if len(y) > 19 else 0.0
+
+            fat_ox_score = 100.0
+            if carbs_pct_y > 100: fat_ox_score -= 25.0
+            if alc_y > 0: fat_ox_score -= 40.0
+            if ex_mins_y >= 30: fat_ox_score += 15.0
+            fat_ox_score = max(0.0, min(100.0, fat_ox_score))
+
+            st.markdown(f"""
+            <div class='context-card'>
+                <div class='context-title'>🔥 ENERGY SUBSTRATE PARTITIONING & FAT OXIDATION READY STATE</div>
+                <div class='context-text'>
+                    • <b>Fat Oxidation Readiness Index:</b> <b style='color:#30D158;'>{fat_ox_score:.0f} / 100</b>.<br>
+                    • <b>Lipolysis Conditions:</b> Low Net Carbs ({carbs_pct_y:.0f}% Target) and zero alcohol allow hepatic liver glycogen depletion, driving mitochondrial fat oxidation during activity.
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
+
+            # RAG Macro Grid
             m1, m2, m3, m4 = st.columns(4)
             p_rag, p_color, p_badge_cls, p_desc = eval_macro_rag(prot, 'protein')
             m1.markdown(f"""
@@ -668,43 +706,48 @@ if not df.empty:
             st.markdown(evaluate_debuffs(y), unsafe_allow_html=True)
 
     # ══════════════════════════════════════════
-    #  TAB 2 — 🧬 Metabolic Intelligence & TEF
+    #  TAB 2 — 🧬 Metabolic Intelligence & Fat Loss
     # ══════════════════════════════════════════
     with tab2:
         st.markdown("<div class='section-header'>Metabolic Intelligence Engine</div>", unsafe_allow_html=True)
-        st.markdown("<div class='section-sub'>Dynamic TDEE Re-estimation & Thermic Effect of Food (TEF)</div>", unsafe_allow_html=True)
+        st.markdown("<div class='section-sub'>Dynamic TDEE Re-estimation, TEF & True Adipose Loss</div>", unsafe_allow_html=True)
 
         prot_pct_last = get_num(16, df_valid).iloc[-1] if not df_valid.empty else 85.0
         cals_last     = get_num(1, df_valid).iloc[-1] if not df_valid.empty else 1633.0
         tef_burn_cals = (cals_last * (prot_pct_last / 100.0) * 0.25) if prot_pct_last > 0 else 100.0
 
+        w_series = get_num(3, df_valid).dropna()
+        cals_series = get_num(1, df_valid).dropna()
+
+        # Cumulative Fat Mass Lost vs Scale Shift
+        w_30_days  = 30 if len(w_series) >= 30 else len(w_series)
+        w_30_start = w_series.iloc[-w_30_days] if len(w_series) >= w_30_days else w_series.iloc[0]
+        w_30_end   = w_series.iloc[-1] if not w_series.empty else 200.0
+        scale_loss_30 = w_30_start - w_30_end
+
+        avg_cals_30 = cals_series.tail(w_30_days).mean()
+        est_tdee_30 = avg_cals_30 + (scale_loss_30 * 3500.0 / float(w_30_days)) if w_30_days > 0 else 2200.0
+        
+        cum_deficit_30 = (est_tdee_30 - cals_series.tail(w_30_days)).sum()
+        calculated_fat_lbs = cum_deficit_30 / 3500.0
+
         st.markdown(f"""
         <div class='context-card'>
-            <div class='context-title'>💡 METABOLIC BURN & THERMIC EFFECT OF FOOD (TEF)</div>
+            <div class='context-title'>💡 TRUE ADIPOSE FAT LOSS VS. SCALE WEIGHT NOISE</div>
             <div class='context-text'>
-                • <b>Thermic Effect of Protein (TEF):</b> Digesting protein burns <b>20–30% of its caloric value</b> in heat generation.<br>
-                • <b>Yesterday's Digestive TEF Burn:</b> Yesterday's protein intake produced an estimated <b style='color:#30D158;'>+{tef_burn_cals:.0f} kcal metabolic burn bonus</b> simply through digestion!<br>
-                • <b>RAG Caloric Bars:</b> <b style='color:#30D158;'>Green</b> ≤ 1,633 kcal, <b style='color:#FF9F0A;'>Amber</b> 1,634–1,750 kcal, <b style='color:#FF2D55;'>Red</b> > 1,750 kcal.
+                • <b>Thermic Effect of Protein (TEF):</b> Yesterday's protein intake produced an estimated <b style='color:#30D158;'>+{tef_burn_cals:.0f} kcal digestive burn bonus</b>.<br>
+                • <b>30-Day True Fat Mass Lost:</b> Based on your cumulative deficit, you lost <b style='color:#30D158;'>{calculated_fat_lbs:.1f} lbs of pure fat mass</b> over the last 30 days.<br>
+                • <b>Water/Glycogen Variance Delta:</b> Scale weight shifted by <b>{scale_loss_30:.1f} lbs</b> (Difference of <b style='color:#0A84FF;'>{abs(scale_loss_30 - calculated_fat_lbs):.1f} lbs</b> due to intracellular fluid and bowel contents).
             </div>
         </div>
         """, unsafe_allow_html=True)
-
-        w_series = get_num(3, df_valid).dropna()
-        cals_series = get_num(1, df_valid).dropna()
 
         if len(w_series) >= 14:
             w_14_start = w_series.iloc[-14]
             w_14_end   = w_series.iloc[-1]
             w_14_drop  = w_14_start - w_14_end
             avg_cals_14 = cals_series.tail(14).mean()
-
             est_tdee_14 = avg_cals_14 + (w_14_drop * 3500.0 / 14.0)
-
-            w_30_days  = 30 if len(w_series) >= 30 else len(w_series)
-            w_30_start = w_series.iloc[-w_30_days]
-            w_30_drop  = w_30_start - w_14_end
-            avg_cals_30 = cals_series.tail(w_30_days).mean()
-            est_tdee_30 = avg_cals_30 + (w_30_drop * 3500.0 / float(w_30_days))
 
             daily_deficit = est_tdee_30 - 1633.0
             weekly_fat_loss_proj = (daily_deficit * 7.0) / 3500.0
@@ -815,6 +858,7 @@ if not df.empty:
         total_act_cals   = get_num(15).sum()
         total_water_l    = get_num(24).sum() / 1000.0
         total_marathons  = total_miles_lt / 26.2 if total_miles_lt > 0 else 0.0
+        earth_circ_pct   = (total_miles_lt / 24901.0) * 100.0
 
         rhr_series_lt = get_num(27)
         if not rhr_series_lt.notna().any(): rhr_series_lt = get_num(23)
@@ -839,7 +883,7 @@ if not df.empty:
         with r2_c2:
             st.markdown(card("Equivalent Marathons", num_target=total_marathons, decimals=1, suffix=" races"), unsafe_allow_html=True)
         with r2_c3:
-            st.markdown(card("Total Flights Climbed", num_target=total_flights_lt, decimals=0, suffix=" flights"), unsafe_allow_html=True)
+            st.markdown(card("Earth Circumference %", num_target=earth_circ_pct, decimals=3, suffix="%"), unsafe_allow_html=True)
         with r2_c4:
             st.markdown(card("Vertical Elevation Gained", num_target=total_elevation_ft, decimals=0, suffix=" ft"), unsafe_allow_html=True)
 
@@ -929,9 +973,9 @@ if not df.empty:
 
         st.markdown(f"""
         <div class='context-card'>
-            <div class='context-title'>💧 HYDRATION IMPACT ON SCALE MOVEMENT</div>
+            <div class='context-title'>💧 GLYCOGEN FLUSHING & HYDRATION IMPACT</div>
             <div class='context-text'>
-                Note: A negative number (e.g. -0.30 lbs) indicates a <b>weight drop on the scale</b>.<br>
+                • <b>Glycogen Water Flushing:</b> Stored glycogen holds 3–4g of water per gram. Drinking <b>5,000 ml water</b> flushes extracellular fluid and prevents sodium-induced water weight spikes.<br>
                 • On days drinking <b>≥ 5,000 ml</b>, your average scale shift was <b style='color:{high_color};'>{avg_drop_high_w:+.2f} lbs</b> ({drop_high_desc}).<br>
                 • On days under <b>5,000 ml</b>, your average scale shift was <b style='color:{low_color};'>{avg_drop_low_w:+.2f} lbs</b> ({drop_low_desc}).
             </div>
@@ -956,13 +1000,28 @@ if not df.empty:
         st.plotly_chart(apply_theme(fig, "Daily Hydration Volume (ml)", "TARGET: 5,000 ML (5 LITERS)"), use_container_width=True)
 
     # ══════════════════════════════════════════
-    #  TAB 7 — Weight Trajectory
+    #  TAB 7 — Weight Trajectory (Velocity Matrix)
     # ══════════════════════════════════════════
     with tab7:
         w_series = get_num(3).dropna()
         dates_w  = df.iloc[:len(w_series), 0]
         w_ema    = w_series.ewm(span=7, adjust=False).mean()
         w_max    = float(w_series.max()) + 2 if not w_series.empty else 210
+
+        # Calculate Weight Loss Velocity (lbs/week)
+        v_7d  = (w_series.iloc[-7] - w_series.iloc[-1]) if len(w_series) >= 7 else 0.0
+        v_30d = ((w_series.iloc[-30] - w_series.iloc[-1]) / 30.0 * 7.0) if len(w_series) >= 30 else 0.0
+
+        st.markdown(f"""
+        <div class='context-card'>
+            <div class='context-title'>⚖️ WEIGHT LOSS VELOCITY & TREND SMOOTHING</div>
+            <div class='context-text'>
+                • <b>7-Day Loss Velocity:</b> Losing <b style='color:#30D158;'>{v_7d:.2f} lbs/week</b> over the last 7 days.<br>
+                • <b>30-Day Sustained Velocity:</b> Averaging <b style='color:#0A84FF;'>{v_30d:.2f} lbs/week</b> over the last 30 days.<br>
+                • <b>7-Day Trend EMA:</b> The solid blue curve uses Exponential Moving Averages to filter daily fluid noise and isolate true adipose tissue loss.
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
 
         fig = go.Figure()
         fig.add_trace(go.Scatter(
@@ -1268,7 +1327,7 @@ if not df.empty:
     # ══════════════════════════════════════════
     with tab14:
         st.markdown("<div class='section-header'>Masterclass Analytics Engine</div>", unsafe_allow_html=True)
-        st.markdown("<div class='section-sub'>Multi-Factor Correlation Matrix & Cause-and-Effect Analysis</div>", unsafe_allow_html=True)
+        st.markdown("<div class='section-sub'>Multi-Factor Correlation Matrix & Multivariate Scale Drivers</div>", unsafe_allow_html=True)
 
         analytics_window = df_valid.tail(90).reset_index(drop=True)
 
