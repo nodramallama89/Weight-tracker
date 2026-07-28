@@ -34,18 +34,18 @@ st.markdown("""
 
 :root {
   --bg-app:          #0B0C12;
-  --bg-card:         rgba(20, 23, 36, 0.76);
-  --bg-card-hover:   rgba(28, 32, 50, 0.90);
-  --glass-border:    rgba(255, 255, 255, 0.12);
+  --bg-card:         rgba(20, 23, 36, 0.78);
+  --bg-card-hover:   rgba(28, 32, 50, 0.92);
+  --glass-border:    rgba(255, 255, 255, 0.14);
   --glass-blur:      blur(40px) saturate(220%);
   --glass-blur-sm:   blur(20px) saturate(180%);
 
   --shadow-card:       0 8px 32px rgba(0, 0, 0, 0.35), 0 2px 8px rgba(0, 0, 0, 0.20);
-  --shadow-card-hover: 0 16px 48px rgba(10, 132, 255, 0.22), 0 4px 16px rgba(0, 0, 0, 0.40);
+  --shadow-card-hover: 0 16px 48px rgba(10, 132, 255, 0.25), 0 4px 16px rgba(0, 0, 0, 0.40);
 
   --text-primary:   #FFFFFF;
-  --text-secondary: rgba(235, 235, 245, 0.75);
-  --text-tertiary:  rgba(235, 235, 245, 0.45);
+  --text-secondary: rgba(235, 235, 245, 0.85);
+  --text-tertiary:  rgba(235, 235, 245, 0.50);
 
   --font-display: 'Inter', -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif;
   --font-body:    'Inter', -apple-system, BlinkMacSystemFont, 'SF Pro Text', sans-serif;
@@ -103,7 +103,7 @@ st.markdown("""
 
 .page-subtitle {
   font-size: 0.98rem; color: var(--text-secondary); text-align: center;
-  margin-bottom: 1.8rem; font-weight: 500; animation: fadeUp 0.7s ease 0.1s both;
+  margin-bottom: 1.8rem; font-weight: 600; animation: fadeUp 0.7s ease 0.1s both;
 }
 
 /* ── VisionOS Glass Cards ── */
@@ -121,7 +121,7 @@ st.markdown("""
 .card:hover {
   transform: translateY(-6px) scale(1.008);
   box-shadow: var(--shadow-card-hover), inset 0 1px 0 rgba(255,255,255,0.25);
-  border-color: rgba(255,255,255,0.28); background: var(--bg-card-hover);
+  border-color: rgba(255,255,255,0.30); background: var(--bg-card-hover);
 }
 
 .val { font-family: var(--font-display); font-size: 2.4rem; font-weight: 800; margin: 4px 0; line-height: 1; color: #FFFFFF; letter-spacing: -0.025em; text-shadow: 0 2px 12px rgba(0,0,0,0.5); }
@@ -134,7 +134,7 @@ st.markdown("""
 
 /* ── Context Explainer Cards ── */
 .context-card {
-  background: rgba(22, 26, 42, 0.80);
+  background: rgba(22, 26, 42, 0.85);
   backdrop-filter: var(--glass-blur-sm); -webkit-backdrop-filter: var(--glass-blur-sm);
   border-radius: var(--radius-lg); padding: 22px 26px;
   border: 1px solid var(--glass-border); box-shadow: var(--shadow-card);
@@ -150,7 +150,7 @@ st.markdown("""
 
 /* ── Top Insights Box ── */
 .insights-card {
-  background: rgba(22, 26, 42, 0.85);
+  background: rgba(22, 26, 42, 0.88);
   backdrop-filter: var(--glass-blur); -webkit-backdrop-filter: var(--glass-blur);
   border-radius: var(--radius-xl); padding: 22px 28px;
   border: 1px solid var(--glass-border); box-shadow: var(--shadow-card);
@@ -188,18 +188,34 @@ st.markdown("""
 .section-header { font-family: var(--font-display); font-size: 1.7rem; font-weight: 800; color: #FFFFFF; margin: 0 0 0.3rem; text-align: center; letter-spacing: -0.01em; text-shadow: 0 0 20px rgba(255,255,255,0.2); }
 .section-sub { font-size: 0.8rem; color: var(--text-tertiary); text-align: center; margin-top: 0; margin-bottom: 1.6rem; letter-spacing: 0.06em; text-transform: uppercase; font-weight: 700; }
 
-/* ── VisionOS Segmented Control Tabs ── */
+/* ── HIGH-CONTRAST VISIONOS TAB CONTROLS ── */
 div[data-baseweb="tab-list"] {
-  background: rgba(20, 24, 38, 0.75) !important; backdrop-filter: var(--glass-blur-sm) !important;
+  background: rgba(18, 21, 35, 0.85) !important; backdrop-filter: var(--glass-blur-sm) !important;
   -webkit-backdrop-filter: var(--glass-blur-sm) !important; border-radius: 20px !important;
   padding: 6px !important; border: 1px solid var(--glass-border) !important;
-  box-shadow: var(--shadow-card) !important; margin-bottom: 1.8rem !important; flex-wrap: wrap !important; gap: 2px;
+  box-shadow: var(--shadow-card) !important; margin-bottom: 1.8rem !important; flex-wrap: wrap !important; gap: 4px;
 }
-div[data-baseweb="tab"] { border-radius: 14px !important; transition: all 0.25s ease !important; }
-div[data-baseweb="tab"]:hover { background: rgba(255,255,255,0.08) !important; }
-div[data-baseweb="tab"][aria-selected="true"] { background: rgba(255,255,255,0.18) !important; box-shadow: 0 4px 16px rgba(0,0,0,0.3) !important; border: 1px solid rgba(255,255,255,0.15) !important; }
-div[data-baseweb="tab-list"] button [data-testid="stMarkdownContainer"] p { color: var(--text-secondary) !important; font-size: 0.88rem !important; font-weight: 600 !important; }
-div[data-baseweb="tab"][aria-selected="true"] [data-testid="stMarkdownContainer"] p { color: #FFFFFF !important; font-weight: 800 !important; }
+div[data-baseweb="tab"] { border-radius: 14px !important; transition: all 0.25s ease !important; padding: 8px 16px !important; }
+div[data-baseweb="tab"]:hover { background: rgba(255, 255, 255, 0.12) !important; }
+
+/* Bright High-Contrast Text for Inactive & Active Tabs */
+div[data-baseweb="tab-list"] button [data-testid="stMarkdownContainer"] p {
+  color: rgba(255, 255, 255, 0.82) !important;
+  font-size: 0.90rem !important;
+  font-weight: 600 !important;
+}
+
+/* Glowing Neon Cyan Highlight for Active Tab */
+div[data-baseweb="tab"][aria-selected="true"] {
+  background: rgba(10, 132, 255, 0.28) !important;
+  border: 1px solid rgba(10, 132, 255, 0.65) !important;
+  box-shadow: 0 4px 20px rgba(10, 132, 255, 0.40) !important;
+}
+div[data-baseweb="tab"][aria-selected="true"] [data-testid="stMarkdownContainer"] p {
+  color: #FFFFFF !important;
+  font-weight: 800 !important;
+  text-shadow: 0 0 12px rgba(10, 132, 255, 0.9);
+}
 div[data-baseweb="tab-highlight"] { display: none !important; }
 
 /* ── Plotly Containers ── */
@@ -222,6 +238,21 @@ div[data-baseweb="tab-highlight"] { display: none !important; }
 }
 </style>
 """, unsafe_allow_html=True)
+
+
+# ─────────────────────────────────────────────
+#  HEX TO RGBA HELPER (PREVENTS PLOTLY CRASH)
+# ─────────────────────────────────────────────
+def hex_to_rgba(hex_str, opacity=0.2):
+    """Safely converts hex string (#RRGGBB) to rgba(r,g,b,alpha) string for Plotly."""
+    try:
+        hex_clean = hex_str.lstrip('#')
+        r = int(hex_clean[0:2], 16)
+        g = int(hex_clean[2:4], 16)
+        b = int(hex_clean[4:6], 16)
+        return f"rgba({r}, {g}, {b}, {opacity})"
+    except Exception:
+        return f"rgba(10, 132, 255, {opacity})"
 
 
 # ─────────────────────────────────────────────
@@ -277,10 +308,7 @@ def make_semi_gauge(val, title, min_v, max_v, green_range, amber_range, red_rang
 #  100% FUNCTIONAL PLOTLY ACTIVITY RING ENGINE
 # ─────────────────────────────────────────────
 def build_plotly_activity_rings(cal_pct, step_pct, water_pct, prot_pct):
-    """
-    Renders an interactive Concentric Ring Chart (Apple Watch style) using Plotly Barpolar.
-    Guaranteed to fill and animate on all screens.
-    """
+    """Renders interactive concentric Polar Rings (Apple Watch style) using Plotly Barpolar."""
     c_pct = max(0.0, min(100.0, float(cal_pct)))
     s_pct = max(0.0, min(100.0, float(step_pct)))
     w_pct = max(0.0, min(100.0, float(water_pct)))
@@ -291,19 +319,15 @@ def build_plotly_activity_rings(cal_pct, step_pct, water_pct, prot_pct):
     colors = ["#FF2D55", "#30D158", "#0A84FF", "#BF5AF2"]
 
     fig = go.Figure()
-
-    # Outer -> Inner Radii
     radii = [100, 78, 56, 34]
 
     for val, label, color, r in zip(vals, labels, colors, radii):
-        # 1. Background Ring Track (100%)
         fig.add_trace(go.Barpolar(
             r=[20], theta=[180], width=[360],
             base=[r - 10],
             marker_color=color, marker_opacity=0.18,
             showlegend=False, hoverinfo='none'
         ))
-        # 2. Active Filled Arc
         angle = (val / 100.0) * 360.0
         if angle > 0:
             fig.add_trace(go.Barpolar(
@@ -333,17 +357,18 @@ def build_plotly_activity_rings(cal_pct, step_pct, water_pct, prot_pct):
 
 
 # ─────────────────────────────────────────────
-#  INLINE MICRO SPARKLINE GENERATOR
+#  INLINE MICRO SPARKLINE GENERATOR (CRASH FIXED)
 # ─────────────────────────────────────────────
 def make_sparkline_card(label, current_val, decimals, suffix, data_series, color):
-    """Generates an glass card with an embedded 7-day sparkline chart."""
+    """Generates a glass card with an embedded 7-day sparkline chart."""
     recent_7 = data_series.tail(7).dropna()
+    rgba_fill = hex_to_rgba(color, 0.18)
     
     fig = go.Figure()
     fig.add_trace(go.Scatter(
         y=recent_7.values, mode='lines',
         line=dict(color=color, width=2.5, shape='spline'),
-        fill='tozeroy', fillcolor=f"{color}22", hoverinfo='none'
+        fill='tozeroy', fillcolor=rgba_fill, hoverinfo='none'
     ))
     fig.update_layout(
         margin=dict(l=0, r=0, t=0, b=0), height=38,
@@ -535,7 +560,7 @@ if not df.empty:
     ])
 
     # ══════════════════════════════════════════
-    #  TAB 1 — Command Center (With Functional Plotly Rings & Sparklines)
+    #  TAB 1 — Command Center (Sparklines Crash Fixed)
     # ══════════════════════════════════════════
     with tab1:
         completed = df_valid
@@ -563,7 +588,7 @@ if not df.empty:
             cal_pct_y    = ((1633.0 / cals) * 100.0) if cals > 0 else 0.0
             water_pct_y  = (water / 5000.0) * 100.0
 
-            # Row 1: Interactive Apple Activity Ring & Diagnostic Insights
+            # Activity Ring Widget & Insights
             col_ring, col_insights = st.columns([1, 2])
             with col_ring:
                 st.plotly_chart(build_plotly_activity_rings(cal_pct_y, step_pct_y, water_pct_y, prot), use_container_width=True)
@@ -578,7 +603,7 @@ if not df.empty:
                 </div>
                 """, unsafe_allow_html=True)
 
-            # Row 2: Micro-Trend Sparkline Cards
+            # Micro-Trend Sparkline Cards
             st.markdown("<div class='section-sub'>7-Day Biometric Micro-Trends</div>", unsafe_allow_html=True)
             sp1, sp2, sp3, sp4 = st.columns(4)
             with sp1:
@@ -592,7 +617,7 @@ if not df.empty:
 
             st.markdown("<div style='margin-top:16px'></div>", unsafe_allow_html=True)
 
-            # RAG Macro Grid (% Target)
+            # RAG Macro Grid
             m1, m2, m3, m4 = st.columns(4)
             p_rag, p_color, p_badge_cls, p_desc = eval_macro_rag(prot, 'protein')
             m1.markdown(f"""
@@ -629,7 +654,6 @@ if not df.empty:
                 <div class='rag-badge {"rag-green" if alc_kcal==0 else "rag-red"}'>{"ZERO" if alc_kcal==0 else "ACTIVE"}</div>
               </div>""", unsafe_allow_html=True)
 
-            # Vitals Gauges
             st.markdown("<div style='margin-top:20px'></div>", unsafe_allow_html=True)
             sys_val = clean_float(y.iloc[21]) if len(y) > 21 and clean_float(y.iloc[21]) > 0 else 118.0
             dia_val = clean_float(y.iloc[22]) if len(y) > 22 and clean_float(y.iloc[22]) > 0 else 78.0
@@ -647,21 +671,24 @@ if not df.empty:
             st.markdown(evaluate_debuffs(y), unsafe_allow_html=True)
 
     # ══════════════════════════════════════════
-    #  TAB 2 — 🧬 Metabolic Intelligence
+    #  TAB 2 — 🧬 Metabolic Intelligence & TEF Calculator
     # ══════════════════════════════════════════
     with tab2:
         st.markdown("<div class='section-header'>Metabolic Intelligence Engine</div>", unsafe_allow_html=True)
-        st.markdown("<div class='section-sub'>Dynamic TDEE Re-estimation & Caloric Deficit RAG Bars</div>", unsafe_allow_html=True)
+        st.markdown("<div class='section-sub'>Dynamic TDEE Re-estimation & Thermic Effect of Food (TEF)</div>", unsafe_allow_html=True)
 
-        st.markdown("""
+        prot_pct_last = get_num(16, df_valid).iloc[-1] if not df_valid.empty else 85.0
+        cals_last     = get_num(1, df_valid).iloc[-1] if not df_valid.empty else 1633.0
+        # Protein thermogenesis burns 25% of protein calories
+        tef_burn_cals = (cals_last * (prot_pct_last / 100.0) * 0.25) if prot_pct_last > 0 else 100.0
+
+        st.markdown(f"""
         <div class='context-card'>
-            <div class='context-title'>💡 UNDERSTANDING YOUR METABOLIC BURN & RAG BARS</div>
+            <div class='context-title'>💡 METABOLIC BURN & THERMIC EFFECT OF FOOD (TEF)</div>
             <div class='context-text'>
-                <b>Total Daily Energy Expenditure (TDEE)</b> is re-calculated directly from your actual scale drops.<br>
-                <b>Bar Color Coding:</b><br>
-                • <b style='color:#30D158;'>GREEN Bar:</b> Intake ≤ 1,633 kcal (Target Achieved — Maximum Deficit)<br>
-                • <b style='color:#FF9F0A;'>AMBER Bar:</b> Intake 1,634–1,750 kcal (Moderate Deficit)<br>
-                • <b style='color:#FF2D55;'>RED Bar:</b> Intake > 1,750 kcal (Surplus / Reduced Deficit)
+                • <b>Thermic Effect of Protein (TEF):</b> Digesting protein burns <b>20–30% of its caloric value</b> in heat generation.<br>
+                • <b>Yesterday's Digestive TEF Burn:</b> Yesterday's protein intake produced an estimated <b style='color:#30D158;'>+{tef_burn_cals:.0f} kcal metabolic burn bonus</b> simply through digestion!<br>
+                • <b>RAG Caloric Bars:</b> <b style='color:#30D158;'>Green</b> $\le 1,633\text{ kcal}$, <b style='color:#FF9F0A;'>Amber</b> $1,634\text{--}1,750\text{ kcal}$, <b style='color:#FF2D55;'>Red</b> $> 1,750\text{ kcal}$.
             </div>
         </div>
         """, unsafe_allow_html=True)
@@ -733,7 +760,6 @@ if not df.empty:
         avg_rhr_sober = rhr_data[sober_days_mask].mean() if sober_days_mask.sum() > 0 else 0.0
         rhr_diff      = avg_rhr_alc - avg_rhr_sober
 
-        # Rate Pressure Product (RPP) = Systolic BP * Resting HR
         last_sys = sys_data.dropna().iloc[-1] if sys_data.dropna().shape[0] > 0 else 120.0
         last_dia = dia_data.dropna().iloc[-1] if dia_data.dropna().shape[0] > 0 else 80.0
         last_rhr = rhr_data.dropna().iloc[-1] if rhr_data.dropna().shape[0] > 0 else 72.0
@@ -749,7 +775,7 @@ if not df.empty:
         <div class='context-card'>
             <div class='context-title'>❤️ CARDIO WORKLOAD (RPP) & RECOVERY PHYSIOLOGY</div>
             <div class='context-text'>
-                • <b>Rate Pressure Product (RPP):</b> <b style='color:#64D2FF;'>{rpp_index:,.0f}</b> (Systolic BP × Resting HR). Measures myocardial oxygen consumption. Normal resting RPP is <b>6,000–10,000</b>.<br>
+                • <b>Rate Pressure Product (RPP):</b> <b style='color:#64D2FF;'>{rpp_index:,.0f}</b> (Systolic BP × Resting HR). Measures myocardial oxygen demand. Ideal resting RPP is <b>6,000–10,000</b>.<br>
                 • <b>Alcohol Cardio Strain:</b> On days following alcohol consumption, Resting HR averaged <b style='color:{alc_color};'>{avg_rhr_alc:.1f} BPM</b> vs. <b style='color:{sober_color};'>{avg_rhr_sober:.1f} BPM</b> on sober days.
             </div>
         </div>
@@ -771,7 +797,7 @@ if not df.empty:
         st.plotly_chart(apply_theme(fig_cardio, "Blood Pressure & Resting HR Trends", "HEMODYNAMIC & CARDIAC MONITORING"), use_container_width=True)
 
     # ══════════════════════════════════════════
-    #  TAB 4 — Lifetime Cumulative Analytics
+    #  TAB 4 — Lifetime Cumulative Analytics (Full Grid)
     # ══════════════════════════════════════════
     with tab4:
         l = df.iloc[-1]
@@ -1062,7 +1088,7 @@ if not df.empty:
         st.plotly_chart(apply_theme(fig_m, "Macro Target Compliance (% Target)", "RAG COMPLIANCE ENGINE"), use_container_width=True)
 
     # ══════════════════════════════════════════
-    #  TAB 10 — 📅 Patterns
+    #  TAB 10 — 📅 Patterns (Weekend vs Weekday Split)
     # ══════════════════════════════════════════
     with tab10:
         st.markdown("<div class='section-header'>Weekly Pattern Profiler</div>", unsafe_allow_html=True)
@@ -1094,13 +1120,17 @@ if not df.empty:
         best_drop_day = dow_summary['Scale_Shift'].idxmin()
         worst_gain_day = dow_summary['Scale_Shift'].idxmax()
 
+        # Weekday vs Weekend Split
+        weekday_cals = dow_summary.loc[['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'], 'Calories'].mean()
+        weekend_cals = dow_summary.loc[['Saturday', 'Sunday'], 'Calories'].mean()
+
         st.markdown(f"""
         <div class='insights-card'>
             <div class='insights-title'>📅 DIAGNOSTIC PATTERN INSIGHTS ({tf_choice.upper()})</div>
             <div class='insight-item'>• <b>Best Day for Caloric Control:</b> <b style='color:#30D158;'>{best_cal_day}s</b> (Avg intake: <b>{dow_summary.loc[best_cal_day, 'Calories']:.0f} kcal</b>).</div>
             <div class='insight-item'>• <b>Highest Caloric Surplus Risk:</b> <b style='color:#FF2D55;'>{worst_cal_day}s</b> (Avg intake: <b>{dow_summary.loc[worst_cal_day, 'Calories']:.0f} kcal</b>).</div>
+            <div class='insight-item'>• <b>Weekend vs. Weekday Deficit Split:</b> Weekday avg = <b>{weekday_cals:.0f} kcal</b> vs. Weekend avg = <b style='color:#FF9F0A;'>{weekend_cals:.0f} kcal</b>.</div>
             <div class='insight-item'>• <b>Peak Scale Drop Day:</b> <b style='color:#30D158;'>{best_drop_day}s</b> (Avg next-morning scale shift: <b>{dow_summary.loc[best_drop_day, 'Scale_Shift']:+.2f} lbs</b>).</div>
-            <div class='insight-item'>• <b>Most Resistant / Gain Day:</b> <b style='color:#FF2D55;'>{worst_gain_day}s</b> (Avg next-morning scale shift: <b>{dow_summary.loc[worst_gain_day, 'Scale_Shift']:+.2f} lbs</b>).</div>
         </div>
         """, unsafe_allow_html=True)
 
@@ -1110,7 +1140,7 @@ if not df.empty:
         st.plotly_chart(apply_theme(fig_dow, f"Average Caloric Intake by Day of Week ({tf_choice})", "BEHAVIORAL PATTERN ANALYSIS"), use_container_width=True)
 
     # ══════════════════════════════════════════
-    #  TAB 11 — Historical Telemetry Averages
+    #  TAB 11 — Averages
     # ══════════════════════════════════════════
     with tab11:
         w_series = get_num(3).dropna()
