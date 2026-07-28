@@ -241,7 +241,7 @@ div[data-baseweb="tab-highlight"] { display: none !important; }
 
 
 # ─────────────────────────────────────────────
-#  HEX TO RGBA HELPER (PREVENTS PLOTLY CRASH)
+#  HEX TO RGBA HELPER
 # ─────────────────────────────────────────────
 def hex_to_rgba(hex_str, opacity=0.2):
     """Safely converts hex string (#RRGGBB) to rgba(r,g,b,alpha) string for Plotly."""
@@ -357,7 +357,7 @@ def build_plotly_activity_rings(cal_pct, step_pct, water_pct, prot_pct):
 
 
 # ─────────────────────────────────────────────
-#  INLINE MICRO SPARKLINE GENERATOR (CRASH FIXED)
+#  INLINE MICRO SPARKLINE GENERATOR
 # ─────────────────────────────────────────────
 def make_sparkline_card(label, current_val, decimals, suffix, data_series, color):
     """Generates a glass card with an embedded 7-day sparkline chart."""
@@ -560,7 +560,7 @@ if not df.empty:
     ])
 
     # ══════════════════════════════════════════
-    #  TAB 1 — Command Center (Sparklines Crash Fixed)
+    #  TAB 1 — Command Center
     # ══════════════════════════════════════════
     with tab1:
         completed = df_valid
@@ -588,7 +588,6 @@ if not df.empty:
             cal_pct_y    = ((1633.0 / cals) * 100.0) if cals > 0 else 0.0
             water_pct_y  = (water / 5000.0) * 100.0
 
-            # Activity Ring Widget & Insights
             col_ring, col_insights = st.columns([1, 2])
             with col_ring:
                 st.plotly_chart(build_plotly_activity_rings(cal_pct_y, step_pct_y, water_pct_y, prot), use_container_width=True)
@@ -603,7 +602,6 @@ if not df.empty:
                 </div>
                 """, unsafe_allow_html=True)
 
-            # Micro-Trend Sparkline Cards
             st.markdown("<div class='section-sub'>7-Day Biometric Micro-Trends</div>", unsafe_allow_html=True)
             sp1, sp2, sp3, sp4 = st.columns(4)
             with sp1:
@@ -617,7 +615,6 @@ if not df.empty:
 
             st.markdown("<div style='margin-top:16px'></div>", unsafe_allow_html=True)
 
-            # RAG Macro Grid
             m1, m2, m3, m4 = st.columns(4)
             p_rag, p_color, p_badge_cls, p_desc = eval_macro_rag(prot, 'protein')
             m1.markdown(f"""
@@ -671,7 +668,7 @@ if not df.empty:
             st.markdown(evaluate_debuffs(y), unsafe_allow_html=True)
 
     # ══════════════════════════════════════════
-    #  TAB 2 — 🧬 Metabolic Intelligence & TEF Calculator
+    #  TAB 2 — 🧬 Metabolic Intelligence & TEF
     # ══════════════════════════════════════════
     with tab2:
         st.markdown("<div class='section-header'>Metabolic Intelligence Engine</div>", unsafe_allow_html=True)
@@ -679,7 +676,6 @@ if not df.empty:
 
         prot_pct_last = get_num(16, df_valid).iloc[-1] if not df_valid.empty else 85.0
         cals_last     = get_num(1, df_valid).iloc[-1] if not df_valid.empty else 1633.0
-        # Protein thermogenesis burns 25% of protein calories
         tef_burn_cals = (cals_last * (prot_pct_last / 100.0) * 0.25) if prot_pct_last > 0 else 100.0
 
         st.markdown(f"""
@@ -688,7 +684,7 @@ if not df.empty:
             <div class='context-text'>
                 • <b>Thermic Effect of Protein (TEF):</b> Digesting protein burns <b>20–30% of its caloric value</b> in heat generation.<br>
                 • <b>Yesterday's Digestive TEF Burn:</b> Yesterday's protein intake produced an estimated <b style='color:#30D158;'>+{tef_burn_cals:.0f} kcal metabolic burn bonus</b> simply through digestion!<br>
-                • <b>RAG Caloric Bars:</b> <b style='color:#30D158;'>Green</b> $\le 1,633\text{ kcal}$, <b style='color:#FF9F0A;'>Amber</b> $1,634\text{--}1,750\text{ kcal}$, <b style='color:#FF2D55;'>Red</b> $> 1,750\text{ kcal}$.
+                • <b>RAG Caloric Bars:</b> <b style='color:#30D158;'>Green</b> ≤ 1,633 kcal, <b style='color:#FF9F0A;'>Amber</b> 1,634–1,750 kcal, <b style='color:#FF2D55;'>Red</b> > 1,750 kcal.
             </div>
         </div>
         """, unsafe_allow_html=True)
@@ -797,7 +793,7 @@ if not df.empty:
         st.plotly_chart(apply_theme(fig_cardio, "Blood Pressure & Resting HR Trends", "HEMODYNAMIC & CARDIAC MONITORING"), use_container_width=True)
 
     # ══════════════════════════════════════════
-    #  TAB 4 — Lifetime Cumulative Analytics (Full Grid)
+    #  TAB 4 — Lifetime Cumulative Telemetry
     # ══════════════════════════════════════════
     with tab4:
         l = df.iloc[-1]
@@ -1120,7 +1116,6 @@ if not df.empty:
         best_drop_day = dow_summary['Scale_Shift'].idxmin()
         worst_gain_day = dow_summary['Scale_Shift'].idxmax()
 
-        # Weekday vs Weekend Split
         weekday_cals = dow_summary.loc[['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'], 'Calories'].mean()
         weekend_cals = dow_summary.loc[['Saturday', 'Sunday'], 'Calories'].mean()
 
