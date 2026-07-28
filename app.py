@@ -13,35 +13,35 @@ import re
 #  PAGE CONFIGURATION
 # ─────────────────────────────────────────────
 st.set_page_config(
-    page_title="Hardy House Health — Biometric Intelligence",
+    page_title="Hardy House Health — Showcase Intelligence",
     layout="wide",
     initial_sidebar_state="collapsed"
 )
 
-# ── Boot Sequence ──
+# ── Boot Sequence Notification ──
 if 'booted' not in st.session_state:
-    st.toast('Masterclass Health Engine Active.', icon='✅')
+    st.toast('Apple Health Visual Showcase Engine Active.', icon='✅')
     time.sleep(0.4)
-    st.toast('RAG Movement Suite & Forecast Engine Online.', icon='💚')
+    st.toast('Glassmorphic Rendering & SVG Activity Rings Online.', icon='💚')
     st.session_state.booted = True
 
 # ─────────────────────────────────────────────
-#  PREMIUM GLASSMORPHISM CSS
+#  ULTRA-PREMIUM APPLE HEALTH GLASSMORPHISM CSS
 # ─────────────────────────────────────────────
 st.markdown("""
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
 
 :root {
   --bg-app:          #F2F2F7;
-  --bg-card:         rgba(255, 255, 255, 0.78);
-  --bg-card-hover:   rgba(255, 255, 255, 0.92);
-  --glass-border:    rgba(255, 255, 255, 0.75);
-  --glass-blur:      blur(30px) saturate(200%);
-  --glass-blur-sm:   blur(18px) saturate(170%);
+  --bg-card:         rgba(255, 255, 255, 0.76);
+  --bg-card-hover:   rgba(255, 255, 255, 0.94);
+  --glass-border:    rgba(255, 255, 255, 0.80);
+  --glass-blur:      blur(35px) saturate(210%);
+  --glass-blur-sm:   blur(20px) saturate(180%);
 
-  --shadow-card:       0 2px 10px rgba(15,23,42,0.04), 0 18px 40px rgba(15,23,42,0.09);
-  --shadow-card-hover: 0 8px 24px rgba(15,23,42,0.08), 0 30px 64px rgba(15,23,42,0.15);
+  --shadow-card:       0 4px 14px rgba(15,23,42,0.04), 0 20px 48px rgba(15,23,42,0.08);
+  --shadow-card-hover: 0 12px 28px rgba(15,23,42,0.10), 0 36px 72px rgba(15,23,42,0.16);
 
   --text-primary:   #1D1D1F;
   --text-secondary: rgba(60,60,67,0.72);
@@ -50,16 +50,16 @@ st.markdown("""
   --font-display: 'Inter', -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif;
   --font-body:    'Inter', -apple-system, BlinkMacSystemFont, 'SF Pro Text', sans-serif;
 
-  /* RAG & Accents */
-  --red:    #FF375F;
+  /* Apple Fitness System Colors */
+  --red:    #FF2D55;
   --amber:  #FF9F0A;
   --green:  #30D158;
   --teal:   #64D2FF;
   --blue:   #0A84FF;
   --purple: #BF5AF2;
 
-  --radius-xl: 22px;
-  --radius-lg: 16px;
+  --radius-xl: 24px;
+  --radius-lg: 18px;
   --radius-md: 12px;
 }
 
@@ -67,7 +67,10 @@ st.markdown("""
 
 .stApp {
   background-image:
-    linear-gradient(180deg, rgba(242,242,247,0.50) 0%, rgba(242,242,247,0.82) 50%, rgba(242,242,247,0.95) 100%),
+    radial-gradient(at 10% 10%, rgba(10, 132, 255, 0.12) 0px, transparent 50%),
+    radial-gradient(at 90% 15%, rgba(255, 45, 85, 0.10) 0px, transparent 50%),
+    radial-gradient(at 50% 85%, rgba(48, 209, 88, 0.10) 0px, transparent 50%),
+    linear-gradient(180deg, rgba(242,242,247,0.55) 0%, rgba(242,242,247,0.85) 50%, rgba(242,242,247,0.96) 100%),
     url('https://github.com/nodramallama89/Weight-tracker/blob/33fc966fe489b029049541e417658a7441afa776/Gemini_Generated_Image_1zukku1zukku1zuk.png?raw=true');
   background-size: cover;
   background-attachment: fixed;
@@ -76,13 +79,13 @@ st.markdown("""
 }
 
 #MainMenu, footer, header { visibility: hidden; }
-.block-container { padding: 1.5rem 2rem 3rem; max-width: 1680px; }
+.block-container { padding: 1.2rem 2rem 3rem; max-width: 1720px; }
 
 /* ── Typography ── */
 .page-eyebrow {
-  font-size: 0.78rem; font-weight: 800; letter-spacing: 0.1em;
+  font-size: 0.78rem; font-weight: 800; letter-spacing: 0.12em;
   text-transform: uppercase; color: var(--text-tertiary); text-align: center;
-  display: block; margin-bottom: 0.3rem; animation: fadeUp 0.5s ease both;
+  display: block; margin-bottom: 0.2rem; animation: fadeUp 0.5s ease both;
 }
 .page-eyebrow .status-dot {
   display: inline-block; width: 8px; height: 8px; border-radius: 50%;
@@ -91,67 +94,59 @@ st.markdown("""
 }
 
 .page-title {
-  font-family: var(--font-display) !important; font-size: 2.8rem !important;
+  font-family: var(--font-display) !important; font-size: 3rem !important;
   font-weight: 900 !important; letter-spacing: -0.03em !important;
   color: var(--text-primary) !important; text-align: center !important;
-  margin: 0 0 0.2rem !important; animation: fadeUp 0.6s ease 0.05s both;
-  text-shadow: 0 2px 14px rgba(255,255,255,0.8);
+  margin: 0 0 0.15rem !important; animation: fadeUp 0.6s ease 0.05s both;
+  text-shadow: 0 2px 16px rgba(255,255,255,0.85);
 }
 
 .page-subtitle {
-  font-size: 0.95rem; color: var(--text-secondary); text-align: center;
+  font-size: 0.98rem; color: var(--text-secondary); text-align: center;
   margin-bottom: 1.8rem; font-weight: 600; animation: fadeUp 0.7s ease 0.1s both;
 }
 
-/* ── Cards ── */
+/* ── Frosted Glass Cards ── */
 .card {
   background: var(--bg-card);
   backdrop-filter: var(--glass-blur); -webkit-backdrop-filter: var(--glass-blur);
   border-radius: var(--radius-xl); padding: 22px 20px 20px;
-  box-shadow: var(--shadow-card), inset 0 1px 0 rgba(255,255,255,0.8);
+  box-shadow: var(--shadow-card), inset 0 1px 0 rgba(255,255,255,0.85);
   border: 1px solid var(--glass-border); text-align: center; margin-bottom: 14px;
   position: relative; overflow: hidden;
-  transition: all 0.32s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
   animation: springUpFade 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
 .card:hover {
-  transform: translateY(-4px); box-shadow: var(--shadow-card-hover), inset 0 1px 0 rgba(255,255,255,0.9);
-  border-color: rgba(255,255,255,0.95); background: var(--bg-card-hover);
+  transform: translateY(-5px) scale(1.006);
+  box-shadow: var(--shadow-card-hover), inset 0 1px 0 rgba(255,255,255,0.95);
+  border-color: rgba(255,255,255,0.98); background: var(--bg-card-hover);
 }
 
-.val { font-family: var(--font-display); font-size: 2.25rem; font-weight: 800; margin: 4px 0; line-height: 1; color: var(--text-primary); letter-spacing: -0.02em; }
-.val-sm { font-family: var(--font-display); font-size: 1.55rem; font-weight: 800; margin: 4px 0; line-height: 1; color: var(--text-primary); letter-spacing: -0.01em; }
-.label { font-size: 0.7rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.09em; color: var(--text-tertiary); }
+.val { font-family: var(--font-display); font-size: 2.35rem; font-weight: 800; margin: 4px 0; line-height: 1; color: var(--text-primary); letter-spacing: -0.02em; }
+.val-sm { font-family: var(--font-display); font-size: 1.6rem; font-weight: 800; margin: 4px 0; line-height: 1; color: var(--text-primary); letter-spacing: -0.01em; }
+.label { font-size: 0.72rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-tertiary); }
 
 .delta { font-size: 0.78rem; font-weight: 700; margin-top: 10px; padding: 5px 13px; border-radius: 50px; display: inline-block; box-shadow: 0 2px 8px rgba(15,23,42,0.06); }
-.delta-pos { background: rgba(48, 209, 88, 0.16); color: #1E9145; border: 1px solid rgba(48, 209, 88, 0.3); }
-.delta-neg { background: rgba(255, 55, 95, 0.14); color: #E0264F; border: 1px solid rgba(255, 55, 95, 0.28); }
+.delta-pos { background: rgba(48, 209, 88, 0.16); color: #1E9145; border: 1px solid rgba(48, 209, 88, 0.35); }
+.delta-neg { background: rgba(255, 45, 85, 0.14); color: #E0264F; border: 1px solid rgba(255, 45, 85, 0.32); }
 
-/* ── Context & Explainer Cards ── */
+/* ── Context Explainer Cards ── */
 .context-card {
   background: rgba(255, 255, 255, 0.85);
   backdrop-filter: var(--glass-blur-sm); -webkit-backdrop-filter: var(--glass-blur-sm);
-  border-radius: var(--radius-lg); padding: 20px 24px;
+  border-radius: var(--radius-lg); padding: 22px 26px;
   border: 1px solid var(--glass-border); box-shadow: var(--shadow-card);
   margin-bottom: 20px; text-align: left;
 }
 .context-title {
   font-family: var(--font-display); font-size: 0.85rem; font-weight: 800;
-  text-transform: uppercase; letter-spacing: 0.09em; color: var(--blue); margin-bottom: 8px;
+  text-transform: uppercase; letter-spacing: 0.1em; color: var(--blue); margin-bottom: 8px;
 }
 .context-text {
-  font-size: 0.94rem; color: var(--text-secondary); line-height: 1.6; font-weight: 500;
+  font-size: 0.95rem; color: var(--text-secondary); line-height: 1.6; font-weight: 500;
 }
-
-/* ── RAG Macro Badges ── */
-.rag-badge {
-  display: inline-block; font-size: 0.72rem; font-weight: 800; text-transform: uppercase;
-  padding: 4px 10px; border-radius: 20px; margin-top: 6px; letter-spacing: 0.06em;
-}
-.rag-green { background: rgba(48, 209, 88, 0.18); color: #198038; border: 1px solid rgba(48, 209, 88, 0.35); }
-.rag-amber { background: rgba(255, 159, 10, 0.18); color: #C67200; border: 1px solid rgba(255, 159, 10, 0.35); }
-.rag-red   { background: rgba(255, 55, 95, 0.16); color: #D01144; border: 1px solid rgba(255, 55, 95, 0.35); }
 
 /* ── Top Insights Box ── */
 .insights-card {
@@ -170,6 +165,15 @@ st.markdown("""
   margin-bottom: 8px; line-height: 1.5; display: flex; align-items: flex-start; gap: 8px;
 }
 
+/* ── RAG Macro Badges ── */
+.rag-badge {
+  display: inline-block; font-size: 0.72rem; font-weight: 800; text-transform: uppercase;
+  padding: 4px 10px; border-radius: 20px; margin-top: 6px; letter-spacing: 0.06em;
+}
+.rag-green { background: rgba(48, 209, 88, 0.18); color: #198038; border: 1px solid rgba(48, 209, 88, 0.35); }
+.rag-amber { background: rgba(255, 159, 10, 0.18); color: #C67200; border: 1px solid rgba(255, 159, 10, 0.35); }
+.rag-red   { background: rgba(255, 45, 85, 0.16); color: #D01144; border: 1px solid rgba(255, 45, 85, 0.35); }
+
 /* ── Status Modifiers ── */
 .debuff-container { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin-top: 8px; }
 .debuff-badge {
@@ -177,23 +181,23 @@ st.markdown("""
   border-radius: 20px; font-size: 0.78rem; font-weight: 700; letter-spacing: 0.02em;
   backdrop-filter: var(--glass-blur-sm); box-shadow: 0 2px 6px rgba(0,0,0,0.05);
 }
-.debuff-warning { background: rgba(255, 55, 95, 0.14); color: #D01144; border: 1px solid rgba(255, 55, 95, 0.3); }
+.debuff-warning { background: rgba(255, 45, 85, 0.14); color: #D01144; border: 1px solid rgba(255, 45, 85, 0.3); }
 .debuff-caution { background: rgba(255, 159, 10, 0.16); color: #C67200; border: 1px solid rgba(255, 159, 10, 0.3); }
 .debuff-optimal { background: rgba(48, 209, 88, 0.16); color: #198038; border: 1px solid rgba(48, 209, 88, 0.3); }
 
-.section-header { font-family: var(--font-display); font-size: 1.65rem; font-weight: 800; color: var(--text-primary); margin: 0 0 0.3rem; text-align: center; letter-spacing: -0.01em; text-shadow: 0 1px 12px rgba(255,255,255,0.6); }
+.section-header { font-family: var(--font-display); font-size: 1.7rem; font-weight: 800; color: var(--text-primary); margin: 0 0 0.3rem; text-align: center; letter-spacing: -0.01em; text-shadow: 0 1px 12px rgba(255,255,255,0.6); }
 .section-sub { font-size: 0.8rem; color: var(--text-tertiary); text-align: center; margin-top: 0; margin-bottom: 1.6rem; letter-spacing: 0.05em; text-transform: uppercase; font-weight: 700; }
 
-/* ── Tab Bar ── */
+/* ── iOS Segmented Tab Controls ── */
 div[data-baseweb="tab-list"] {
-  background: rgba(255,255,255,0.55) !important; backdrop-filter: var(--glass-blur-sm) !important;
-  -webkit-backdrop-filter: var(--glass-blur-sm) !important; border-radius: 16px !important;
-  padding: 5px !important; border: 1px solid var(--glass-border) !important;
+  background: rgba(255,255,255,0.60) !important; backdrop-filter: var(--glass-blur-sm) !important;
+  -webkit-backdrop-filter: var(--glass-blur-sm) !important; border-radius: 18px !important;
+  padding: 6px !important; border: 1px solid var(--glass-border) !important;
   box-shadow: var(--shadow-card) !important; margin-bottom: 1.8rem !important; flex-wrap: wrap !important; gap: 2px;
 }
-div[data-baseweb="tab"] { border-radius: 11px !important; transition: all 0.25s ease !important; }
-div[data-baseweb="tab"]:hover { background: rgba(255,255,255,0.35) !important; }
-div[data-baseweb="tab"][aria-selected="true"] { background: rgba(255,255,255,0.95) !important; box-shadow: 0 2px 8px rgba(15,23,42,0.12) !important; }
+div[data-baseweb="tab"] { border-radius: 12px !important; transition: all 0.25s ease !important; }
+div[data-baseweb="tab"]:hover { background: rgba(255,255,255,0.4) !important; }
+div[data-baseweb="tab"][aria-selected="true"] { background: rgba(255,255,255,0.96) !important; box-shadow: 0 3px 10px rgba(15,23,42,0.12) !important; }
 div[data-baseweb="tab-list"] button [data-testid="stMarkdownContainer"] p { color: var(--text-secondary) !important; font-size: 0.88rem !important; font-weight: 600 !important; }
 div[data-baseweb="tab"][aria-selected="true"] [data-testid="stMarkdownContainer"] p { color: var(--text-primary) !important; font-weight: 800 !important; }
 div[data-baseweb="tab-highlight"] { display: none !important; }
@@ -204,11 +208,11 @@ div[data-baseweb="tab-highlight"] { display: none !important; }
   -webkit-backdrop-filter: var(--glass-blur) !important; border-radius: var(--radius-xl) !important;
   padding: 16px !important; border: 1px solid var(--glass-border) !important;
   box-shadow: var(--shadow-card), inset 0 1px 0 rgba(255,255,255,0.8) !important;
-  transition: all 0.32s cubic-bezier(0.16, 1, 0.3, 1) !important;
+  transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1) !important;
 }
 .stPlotlyChart:hover { box-shadow: var(--shadow-card-hover) !important; }
 
-@keyframes springUpFade { 0% { opacity: 0; transform: translateY(18px); } 100% { opacity: 1; transform: translateY(0); } }
+@keyframes springUpFade { 0% { opacity: 0; transform: translateY(20px); } 100% { opacity: 1; transform: translateY(0); } }
 @keyframes fadeUp { 0% { opacity: 0; transform: translateY(10px); } 100% { opacity: 1; transform: translateY(0); } }
 
 [data-testid="stDataFrame"] {
@@ -221,7 +225,7 @@ div[data-baseweb="tab-highlight"] { display: none !important; }
 
 
 # ─────────────────────────────────────────────
-#  PLOTLY THEME & GAUGE GENERATORS
+#  PLOTLY THEME ENGINE
 # ─────────────────────────────────────────────
 def apply_theme(fig, title="", subtitle=""):
     full_title = f"<b>{title}</b>" + (f"<br><span style='font-size:12px;color:rgba(60,60,67,0.55);font-family:Inter'>{subtitle}</span>" if subtitle else "")
@@ -261,12 +265,67 @@ def make_semi_gauge(val, title, min_v, max_v, green_range, amber_range, red_rang
             'steps': [
                 {'range': green_range, 'color': 'rgba(48,209,88,0.75)'},
                 {'range': amber_range, 'color': 'rgba(255,159,10,0.75)'},
-                {'range': red_range, 'color': 'rgba(255,55,95,0.75)'}
+                {'range': red_range, 'color': 'rgba(255,45,85,0.75)'}
             ]
         }
     ))
     fig.update_layout(height=210, margin=dict(l=15, r=15, t=40, b=10), paper_bgcolor='rgba(0,0,0,0)')
     return fig
+
+
+# ─────────────────────────────────────────────
+#  APPLE WATCH MULTI-RING WIDGET (PURE SVG/CSS)
+# ─────────────────────────────────────────────
+def render_apple_activity_rings(cal_pct, step_pct, water_pct, prot_pct):
+    """
+    Renders pure SVG multi-layer Activity Rings inspired by Apple Watch.
+    Outer -> Inner:
+      Ring 1 (Red): Calories Target
+      Ring 2 (Green): Steps Goal
+      Ring 3 (Blue): Hydration Goal (5,000 ml)
+      Ring 4 (Purple): Protein RAG Goal
+    """
+    def calc_dash(pct, radius):
+        circumference = 2 * np.pi * radius
+        clamped = max(0.0, min(1.0, pct / 100.0))
+        filled = circumference * clamped
+        gap = circumference - filled
+        return f"{filled:.1f}, {gap:.1f}", circumference
+
+    # Radius for concentric rings
+    r1, r2, r3, r4 = 82, 64, 46, 28
+    d1, c1 = calc_dash(cal_pct, r1)
+    d2, c2 = calc_dash(step_pct, r2)
+    d3, c3 = calc_dash(water_pct, r3)
+    d4, c4 = calc_dash(prot_pct, r4)
+
+    svg_html = f"""
+    <div class='card' style='padding: 24px 20px; display:flex; flex-direction:column; align-items:center; justify-content:center;'>
+        <div class='label' style='margin-bottom:12px;'>APPLE FITNESS ACTIVITY RINGS</div>
+        <div style='position:relative; width:200px; height:200px;'>
+            <svg width="200" height="200" viewBox="0 0 200 200" style="transform: rotate(-90deg);">
+                <!-- Background Circles -->
+                <circle cx="100" cy="100" r="{r1}" stroke="rgba(255, 45, 85, 0.2)" stroke-width="14" fill="none" />
+                <circle cx="100" cy="100" r="{r2}" stroke="rgba(48, 209, 88, 0.2)" stroke-width="14" fill="none" />
+                <circle cx="100" cy="100" r="{r3}" stroke="rgba(10, 132, 255, 0.2)" stroke-width="14" fill="none" />
+                <circle cx="100" cy="100" r="{r4}" stroke="rgba(191, 90, 242, 0.2)" stroke-width="14" fill="none" />
+
+                <!-- Active Animated Progress Rings -->
+                <circle cx="100" cy="100" r="{r1}" stroke="#FF2D55" stroke-width="14" fill="none" stroke-dasharray="{d1}" stroke-linecap="round" />
+                <circle cx="100" cy="100" r="{r2}" stroke="#30D158" stroke-width="14" fill="none" stroke-dasharray="{d2}" stroke-linecap="round" />
+                <circle cx="100" cy="100" r="{r3}" stroke="#0A84FF" stroke-width="14" fill="none" stroke-dasharray="{d3}" stroke-linecap="round" />
+                <circle cx="100" cy="100" r="{r4}" stroke="#BF5AF2" stroke-width="14" fill="none" stroke-dasharray="{d4}" stroke-linecap="round" />
+            </svg>
+        </div>
+        <div style='display:flex; gap:16px; margin-top:16px; font-size:0.78rem; font-weight:700;'>
+            <span style='color:#FF2D55;'>🔴 Cals ({cal_pct:.0f}%)</span>
+            <span style='color:#30D158;'>🟢 Steps ({step_pct:.0f}%)</span>
+            <span style='color:#0A84FF;'>🔵 Water ({water_pct:.0f}%)</span>
+            <span style='color:#BF5AF2;'>🟣 Protein ({prot_pct:.0f}%)</span>
+        </div>
+    </div>
+    """
+    return svg_html
 
 
 # ─────────────────────────────────────────────
@@ -341,7 +400,7 @@ def eval_macro_rag(val_pct, macro_type):
     v = safe(val_pct)
     if macro_type == 'protein':
         if v < 60.0:
-            return "RED", "#FF375F", "rag-red", "Under Target (<60%)"
+            return "RED", "#FF2D55", "rag-red", "Under Target (<60%)"
         elif v <= 85.0:
             return "AMBER", "#FF9F0A", "rag-amber", "Moderate (60–85%)"
         else:
@@ -352,7 +411,7 @@ def eval_macro_rag(val_pct, macro_type):
         elif v <= 110.0:
             return "AMBER", "#FF9F0A", "rag-amber", "Moderate (90–110%)"
         else:
-            return "RED", "#FF375F", "rag-red", "Excess (>110%)"
+            return "RED", "#FF2D55", "rag-red", "Excess (>110%)"
 
 def card(label, display_val="", num_target=None, decimals=0, suffix="", delta_val=None, delta_label="", size="normal", invert=False):
     val_class = "val" if size == "normal" else "val-sm"
@@ -414,7 +473,7 @@ def evaluate_debuffs(row_data):
     elif 0 < water_ml < 5000:
         badges.append(f"<div class='debuff-badge debuff-caution'>💧 Hydration Under Target ({water_ml:,.0f} / 5,000 ml)</div>")
 
-    # Resting HR Check
+    # Resting HR
     rhr = clean_float(row_data.iloc[27]) if len(row_data) > 27 else 0.0
     if rhr > 0 and rhr <= 65:
         badges.append(f"<div class='debuff-badge debuff-optimal'>❤️ Excellent Resting HR ({rhr:,.0f} BPM)</div>")
@@ -449,11 +508,11 @@ def evaluate_debuffs(row_data):
 if not df.empty:
 
     st.markdown("""
-    <span class='page-eyebrow'><span class='status-dot'></span>MASTERCLASS HEALTH TELEMETRY ENGINE</span>
+    <span class='page-eyebrow'><span class='status-dot'></span>SHOWCASE BIOMETRIC ENGINE</span>
     """, unsafe_allow_html=True)
 
     st.markdown("<div style='text-align:center;'><h1 class='page-title'>Hardy House Health</h1></div>", unsafe_allow_html=True)
-    st.markdown("<div class='page-subtitle'>World-Class Biometric Intelligence & Multi-Factor Performance Matrix</div>", unsafe_allow_html=True)
+    st.markdown("<div class='page-subtitle'>World-Class Apple Fitness Biometric Intelligence & Showcase Suite</div>", unsafe_allow_html=True)
 
     tab1, tab2, tab3, tab4, tab5, tab6, tab7, tab8, tab9, tab10, tab11, tab12, tab13, tab14, tab15, tab16, tab17 = st.tabs([
         "🛡️ Command", "🧬 Metabolic", "🫀 Cardio", "📊 Lifetime", "🔥 Calories",
@@ -463,7 +522,7 @@ if not df.empty:
     ])
 
     # ══════════════════════════════════════════
-    #  TAB 1 — Command Center (With Percentages)
+    #  TAB 1 — Command Center (With Apple Rings)
     # ══════════════════════════════════════════
     with tab1:
         completed = df_valid
@@ -485,15 +544,23 @@ if not df.empty:
             cal_pct_14   = (cal_hit_cnt / 14.0) * 100.0
             p_pct_14     = (p_green_cnt / 14.0) * 100.0
             water_pct_14 = (water_hit_cnt / 14.0) * 100.0
+            step_pct_y   = (steps / 10000.0) * 100.0
+            cal_pct_y    = ((1633.0 / cals) * 100.0) if cals > 0 else 0.0
 
-            st.markdown(f"""
-            <div class='insights-card'>
-                <div class='insights-title'>⚡ AUTOMATED BIOMETRIC INSIGHTS ({date_str})</div>
-                <div class='insight-item'>• <b>Caloric Adherence:</b> Reached calorie goal (≤ 1,633 kcal) on <b>{cal_hit_cnt} of the last 14 days</b> (<b>{cal_pct_14:.0f}% compliance</b>).</div>
-                <div class='insight-item'>• <b>Protein RAG Status:</b> Reached <b>GREEN Protein status (≥ 85% Target)</b> on <b>{p_green_cnt} of the last 14 days</b> (<b>{p_pct_14:.0f}% compliance</b>).</div>
-                <div class='insight-item'>• <b>Hydration Performance (5,000 ml Target):</b> Reached target water volume on <b>{water_hit_cnt} of the last 14 days</b> (<b>{water_pct_14:.0f}% compliance</b>).</div>
-            </div>
-            """, unsafe_allow_html=True)
+            # Ring Widget & Insights Layout
+            col_ring, col_insights = st.columns([1, 2])
+            with col_ring:
+                st.markdown(render_apple_activity_rings(cal_pct_y, step_pct_y, (clean_float(y.iloc[24])/5000.0)*100.0, clean_float(y.iloc[16])), unsafe_allow_html=True)
+
+            with col_insights:
+                st.markdown(f"""
+                <div class='insights-card'>
+                    <div class='insights-title'>⚡ AUTOMATED BIOMETRIC INSIGHTS ({date_str})</div>
+                    <div class='insight-item'>• <b>Caloric Adherence:</b> Reached calorie goal (≤ 1,633 kcal) on <b>{cal_hit_cnt} of the last 14 days</b> (<b>{cal_pct_14:.0f}% compliance</b>).</div>
+                    <div class='insight-item'>• <b>Protein RAG Status:</b> Reached <b>GREEN Protein status (≥ 85% Target)</b> on <b>{p_green_cnt} of the last 14 days</b> (<b>{p_pct_14:.0f}% compliance</b>).</div>
+                    <div class='insight-item'>• <b>Hydration Performance (5,000 ml Target):</b> Reached target water volume on <b>{water_hit_cnt} of the last 14 days</b> (<b>{water_pct_14:.0f}% compliance</b>).</div>
+                </div>
+                """, unsafe_allow_html=True)
 
             st.markdown("<div class='section-header'>Yesterday's Debrief</div>", unsafe_allow_html=True)
             st.markdown(f"<div class='section-sub'>{date_str}</div>", unsafe_allow_html=True)
@@ -593,7 +660,7 @@ if not df.empty:
                 <b>Bar Color Coding:</b><br>
                 • <b style='color:#30D158;'>GREEN Bar:</b> Intake ≤ 1,633 kcal (Target Achieved — Maximum Deficit)<br>
                 • <b style='color:#FF9F0A;'>AMBER Bar:</b> Intake 1,634–1,750 kcal (Moderate Deficit)<br>
-                • <b style='color:#FF375F;'>RED Bar:</b> Intake > 1,750 kcal (Surplus / Reduced Deficit)
+                • <b style='color:#FF2D55;'>RED Bar:</b> Intake > 1,750 kcal (Surplus / Reduced Deficit)
             </div>
         </div>
         """, unsafe_allow_html=True)
@@ -629,7 +696,7 @@ if not df.empty:
             def get_bar_color(c):
                 if c <= 1633: return '#30D158'
                 elif c <= 1750: return '#FF9F0A'
-                else: return '#FF375F'
+                else: return '#FF2D55'
 
             recent_cals = cals_series.tail(w_30_days)
             bar_colors = [get_bar_color(c) for c in recent_cals]
@@ -657,7 +724,6 @@ if not df.empty:
 
         alc_series = get_num(19)
 
-        # Corrected RHR vs Alcohol Comparison
         valid_rhr_mask  = rhr_data.notna() & (rhr_data > 0)
         alc_days_mask   = (alc_series > 0) & valid_rhr_mask
         sober_days_mask = (alc_series == 0) & valid_rhr_mask
@@ -666,20 +732,19 @@ if not df.empty:
         avg_rhr_sober = rhr_data[sober_days_mask].mean() if sober_days_mask.sum() > 0 else 0.0
         rhr_diff      = avg_rhr_alc - avg_rhr_sober
 
-        # RHR vs Weight Loss Regression
         w_s = get_num(3, df_valid)
         common_idx = w_s.dropna().index.intersection(rhr_data.dropna().index)
         if len(common_idx) > 5:
             w_matched = w_s.loc[common_idx]
             rhr_matched = rhr_data.loc[common_idx]
             slope, _ = np.polyfit(w_matched, rhr_matched, 1)
-            rhr_drop_per_10lb = slope * 10.0 # BPM change per 10 lbs lost
+            rhr_drop_per_10lb = slope * 10.0
             rhr_insight = f"For every 10 lbs of scale weight lost, your Resting Heart Rate improved by <b>{abs(rhr_drop_per_10lb):.1f} BPM</b>."
         else:
             rhr_insight = "Resting Heart Rate trends downward as body mass decreases and vascular resistance drops."
 
-        alc_color   = "#FF375F" if avg_rhr_alc > avg_rhr_sober else "#30D158"
-        sober_color = "#30D158" if avg_rhr_sober <= avg_rhr_alc else "#FF375F"
+        alc_color   = "#FF2D55" if avg_rhr_alc > avg_rhr_sober else "#30D158"
+        sober_color = "#30D158" if avg_rhr_sober <= avg_rhr_alc else "#FF2D55"
 
         st.markdown(f"""
         <div class='context-card'>
@@ -706,14 +771,14 @@ if not df.empty:
             st.markdown(card("Latest Resting HR", num_target=rhr_data.dropna().iloc[-1] if rhr_data.dropna().shape[0]>0 else 72, decimals=0, suffix=" BPM"), unsafe_allow_html=True)
 
         fig_cardio = go.Figure()
-        fig_cardio.add_trace(go.Scatter(x=df.iloc[:, 0], y=sys_data, name="Systolic BP", mode='lines+markers', connectgaps=True, line=dict(color='#FF375F', width=2.5)))
+        fig_cardio.add_trace(go.Scatter(x=df.iloc[:, 0], y=sys_data, name="Systolic BP", mode='lines+markers', connectgaps=True, line=dict(color='#FF2D55', width=2.5)))
         fig_cardio.add_trace(go.Scatter(x=df.iloc[:, 0], y=dia_data, name="Diastolic BP", mode='lines+markers', connectgaps=True, line=dict(color='#0A84FF', width=2.5)))
         if rhr_data.notna().any():
             fig_cardio.add_trace(go.Scatter(x=df.iloc[:, 0], y=rhr_data, name="Resting HR (BPM)", mode='lines+markers', connectgaps=True, line=dict(color='#30D158', width=2.5)))
         st.plotly_chart(apply_theme(fig_cardio, "Blood Pressure & Resting HR Trends", "HEMODYNAMIC & CARDIAC MONITORING"), use_container_width=True)
 
     # ══════════════════════════════════════════
-    #  TAB 4 — Lifetime Cumulative Analytics (Full Grid)
+    #  TAB 4 — Lifetime Cumulative Analytics
     # ══════════════════════════════════════════
     with tab4:
         l = df.iloc[-1]
@@ -793,7 +858,7 @@ if not df.empty:
         cal_range = cal_max - cal_min if cal_max != cal_min else 1
 
         def norm(v): return max(0.0, min(1.0, (v - cal_min) / cal_range))
-        colorscale = [[0.0, '#2FA84F'], [norm(1633), '#30D158'], [norm(1634), '#FF9F0A'], [norm(1700), '#FF7A1A'], [norm(1701), '#FF375F'], [1.0, '#D01144']]
+        colorscale = [[0.0, '#2FA84F'], [norm(1633), '#30D158'], [norm(1634), '#FF9F0A'], [norm(1700), '#FF7A1A'], [norm(1701), '#FF2D55'], [1.0, '#D01144']]
         clean_cs = []
         seen = set()
         for pos, col in colorscale:
@@ -876,7 +941,7 @@ if not df.empty:
         st.plotly_chart(apply_theme(fig, "Daily Hydration Volume (ml)", "TARGET: 5,000 ML (5 LITERS)"), use_container_width=True)
 
     # ══════════════════════════════════════════
-    #  TAB 7 — Weight Trajectory (Smoothing Engine)
+    #  TAB 7 — Weight Trajectory (Neon Spline Glow)
     # ══════════════════════════════════════════
     with tab7:
         w_series = get_num(3).dropna()
@@ -885,19 +950,21 @@ if not df.empty:
         w_max    = float(w_series.max()) + 2 if not w_series.empty else 210
 
         fig = go.Figure()
+        # Raw Daily Points
         fig.add_trace(go.Scatter(
-            x=dates_w, y=w_series, name="Raw Daily Scale Weight", mode='markers+lines',
-            line=dict(color='rgba(191,90,242,0.4)', width=1.5, dash='dot'),
-            marker=dict(color='#BF5AF2', size=6, opacity=0.8), zorder=2
+            x=dates_w, y=w_series, name="Raw Scale Weight", mode='markers',
+            marker=dict(color='#BF5AF2', size=7, opacity=0.8, line=dict(color='#ffffff', width=1)), zorder=2
         ))
+        # Neon Spline EMA Line
         fig.add_trace(go.Scatter(
             x=dates_w, y=w_ema, name="7-Day Trend EMA (Happy Scale)", mode='lines',
-            line=dict(color='#0A84FF', width=3.5), zorder=3
+            line=dict(color='#0A84FF', width=3.5, shape='spline'), zorder=3,
+            fill='tozeroy', fillcolor='rgba(10, 132, 255, 0.05)'
         ))
         fig.add_hline(y=170, line_dash="dash", line_color="#30D158", annotation_text="🎯 GOAL: 170 lbs (12 st 2 lbs)", annotation_font_color="#1E9145", annotation_position="top left")
 
         fig.update_layout(yaxis=dict(range=[168, w_max]), xaxis=dict(rangeslider=dict(visible=True, bgcolor='rgba(0,0,0,0.03)'), type="date"))
-        st.plotly_chart(apply_theme(fig, "Weight Trajectory & Trend Smoothing", "RAW SCALE ACTUALS VS 7-DAY EXPONENTIAL MOVING AVERAGE"), use_container_width=True)
+        st.plotly_chart(apply_theme(fig, "Weight Trajectory & Trend Smoothing", "NEON SMOOTHING ENGINE VS DAILY ACTUALS"), use_container_width=True)
 
         latest_lbs = w_series.iloc[-1] if not w_series.empty else 0.0
         st.markdown("<div style='margin-top:16px'></div>", unsafe_allow_html=True)
@@ -917,39 +984,34 @@ if not df.empty:
         st.markdown("<div class='section-sub'>3-Dimensional Activity Tracking with RAG Color Assignment</div>", unsafe_allow_html=True)
 
         steps_data   = get_num(12)
-        flights_data = get_num(26) # Col 26: Flights Climbed
-        ex_mins_data = get_num(29) # Col 29: Exercise Mins
-        stand_data   = get_num(28) # Col 28: Stand Hours
+        flights_data = get_num(26)
+        ex_mins_data = get_num(29)
 
-        # RAG Colors
         def step_color(s):
             if s >= 10000: return '#30D158'
             elif s >= 8000: return '#FF9F0A'
-            else: return '#FF375F'
+            else: return '#FF2D55'
 
         def flight_color(f):
             if f >= 10: return '#30D158'
             elif f >= 5: return '#FF9F0A'
-            else: return '#FF375F'
+            else: return '#FF2D55'
 
         def ex_color(m):
             if m >= 50: return '#30D158'
             elif m >= 30: return '#FF9F0A'
-            else: return '#FF375F'
+            else: return '#FF2D55'
 
-        # Chart 1: Steps
         fig_s = go.Figure()
         fig_s.add_trace(go.Bar(x=df.iloc[:, 0], y=steps_data, name="Steps", marker_color=[step_color(s) for s in steps_data.fillna(0)]))
         fig_s.add_hline(y=10000, line_dash="dash", line_color="#30D158", annotation_text="10,000 Target")
         st.plotly_chart(apply_theme(fig_s, "1. Daily Step Volume", "GREEN ≥ 10k // AMBER 8k-9.9k // RED < 8k"), use_container_width=True)
 
-        # Chart 2: Flights Climbed
         fig_f = go.Figure()
         fig_f.add_trace(go.Bar(x=df.iloc[:, 0], y=flights_data, name="Flights", marker_color=[flight_color(f) for f in flights_data.fillna(0)]))
         fig_f.add_hline(y=10, line_dash="dash", line_color="#30D158", annotation_text="10 Flights Target")
         st.plotly_chart(apply_theme(fig_f, "2. Daily Flights Climbed", "GREEN ≥ 10 // AMBER 5-9 // RED < 5"), use_container_width=True)
 
-        # Chart 3: Exercise Minutes
         fig_e = go.Figure()
         fig_e.add_trace(go.Bar(x=df.iloc[:, 0], y=ex_mins_data, name="Exercise Mins", marker_color=[ex_color(m) for m in ex_mins_data.fillna(0)]))
         fig_e.add_hline(y=50, line_dash="dash", line_color="#30D158", annotation_text="50 Mins Goal")
@@ -983,12 +1045,12 @@ if not df.empty:
         """, unsafe_allow_html=True)
 
         fig_m = go.Figure()
-        fig_m.add_trace(go.Scatter(x=df.iloc[:, 0], y=p_pcts, name="Protein (% Target)", mode='lines', line=dict(color='#FF375F', width=2.5)))
+        fig_m.add_trace(go.Scatter(x=df.iloc[:, 0], y=p_pcts, name="Protein (% Target)", mode='lines', line=dict(color='#FF2D55', width=2.5)))
         fig_m.add_trace(go.Scatter(x=df.iloc[:, 0], y=c_pcts, name="Net Carbs (% Target)", mode='lines', line=dict(color='#0A84FF', width=2.5)))
         fig_m.add_trace(go.Scatter(x=df.iloc[:, 0], y=f_pcts, name="Fat (% Target)", mode='lines', line=dict(color='#FFD60A', width=2.5)))
 
         fig_m.add_hline(y=85.0, line_dash="dash", line_color="#30D158", annotation_text="Protein Green Floor (85%)")
-        fig_m.add_hline(y=110.0, line_dash="dash", line_color="#FF375F", annotation_text="Carb/Fat Red Ceiling (110%)")
+        fig_m.add_hline(y=110.0, line_dash="dash", line_color="#FF2D55", annotation_text="Carb/Fat Red Ceiling (110%)")
 
         fig_m.update_layout(xaxis=dict(rangeslider=dict(visible=True, bgcolor='rgba(0,0,0,0.03)'), type="date"))
         st.plotly_chart(apply_theme(fig_m, "Macro Target Compliance (% Target)", "RAG COMPLIANCE ENGINE"), use_container_width=True)
@@ -1042,7 +1104,7 @@ if not df.empty:
         st.plotly_chart(apply_theme(fig_dow, f"Average Caloric Intake by Day of Week ({tf_choice})", "BEHAVIORAL PATTERN ANALYSIS"), use_container_width=True)
 
     # ══════════════════════════════════════════
-    #  TAB 11 — Averages (With Flights & Cardio)
+    #  TAB 11 — Averages
     # ══════════════════════════════════════════
     with tab11:
         w_series = get_num(3).dropna()
@@ -1086,11 +1148,11 @@ if not df.empty:
         st.markdown(f"""
         <div class='card' style='padding:24px; margin-bottom:20px;'>
             <div class='label' style='font-size:0.85rem;'>OVERALL GOAL PROGRESS</div>
-            <div class='val' style='color:#0A84FF; font-size:3rem;'>{pct_achieved:.1f}%</div>
-            <div style='background:rgba(0,0,0,0.06); border-radius:10px; height:12px; margin-top:12px; overflow:hidden;'>
+            <div class='val' style='color:#0A84FF; font-size:3.2rem;'>{pct_achieved:.1f}%</div>
+            <div style='background:rgba(0,0,0,0.06); border-radius:10px; height:14px; margin-top:12px; overflow:hidden;'>
                 <div style='background:linear-gradient(90deg, #0A84FF, #30D158); width:{pct_achieved}%; height:100%;'></div>
             </div>
-            <div style='font-size:0.85rem; color:var(--text-secondary); margin-top:8px;'><b>{latest_w - goal_w:.1f} lbs</b> remaining until 170 lbs target</div>
+            <div style='font-size:0.85rem; color:var(--text-secondary); margin-top:10px;'><b>{latest_w - goal_w:.1f} lbs</b> remaining until 170 lbs target</div>
         </div>
         """, unsafe_allow_html=True)
 
@@ -1263,23 +1325,21 @@ if not df.empty:
             recent = w_series.tail(window).reset_index(drop=True)
             x = np.arange(len(recent))
             slope, _ = np.polyfit(x, recent.values, 1)
-            current_rate_per_day = -slope # lbs/day lost
+            current_rate_per_day = -slope
             current_rate_per_wk  = current_rate_per_day * 7.0
             current_w = w_series.iloc[-1]
 
-            # Scenario Projections to 170 lbs
             goal_w = 170.0
             lbs_left = current_w - goal_w
 
             days_current = int(lbs_left / current_rate_per_day) if current_rate_per_day > 0 else 999
-            days_aggr    = int(lbs_left / (2.0 / 7.0)) # 2 lbs/wk
-            days_cons    = int(lbs_left / (1.0 / 7.0)) # 1 lb/wk
+            days_aggr    = int(lbs_left / (2.0 / 7.0))
+            days_cons    = int(lbs_left / (1.0 / 7.0))
 
             eta_current = pd.Timestamp.now() + pd.Timedelta(days=days_current)
             eta_aggr    = pd.Timestamp.now() + pd.Timedelta(days=days_aggr)
             eta_cons    = pd.Timestamp.now() + pd.Timedelta(days=days_cons)
 
-            # Scenario Matrix Cards
             fc1, fc2, fc3 = st.columns(3)
             with fc1:
                 st.markdown(f"""
@@ -1305,7 +1365,6 @@ if not df.empty:
                     <div style='font-size:0.8rem; color:var(--text-secondary); margin-top:6px;'>In {days_aggr} days</div>
                 </div>""", unsafe_allow_html=True)
 
-            # Stepping Stone Countdown Table
             milestones = [190.0, 185.0, 180.0, 175.0, 170.0]
             m_rows = []
             for m in milestones:
@@ -1321,7 +1380,6 @@ if not df.empty:
             st.markdown("<div class='section-sub'>Gateway Milestone Arrival Table</div>", unsafe_allow_html=True)
             st.dataframe(pd.DataFrame(m_rows), use_container_width=True, hide_index=True)
 
-            # Future Trajectory Curve
             future_days = np.arange(0, days_current + 10)
             proj_weights = current_w - (future_days * current_rate_per_day)
 
@@ -1354,7 +1412,7 @@ if not df.empty:
                 <b>WHAT GOOD LOOKS LIKE:</b><br>
                 • <b style='color:#30D158;'>75 – 100 (Optimal Zone):</b> Continuous high-velocity fat loss.<br>
                 • <b style='color:#FF9F0A;'>50 – 74 (Moderate Zone):</b> Steady maintenance or slow loss.<br>
-                • <b style='color:#FF375F;'>0 – 49 (Needs Focus):</b> At risk of plateau or weight bounce.
+                • <b style='color:#FF2D55;'>0 – 49 (Needs Focus):</b> At risk of plateau or weight bounce.
             </div>
         </div>
         """, unsafe_allow_html=True)
@@ -1376,7 +1434,7 @@ if not df.empty:
             def score_band(s):
                 if s >= 75: return ("Optimal", "#30D158", "rgba(48,209,88,0.14)")
                 elif s >= 50: return ("Moderate", "#FF9F0A", "rgba(255,159,10,0.14)")
-                else: return ("Needs Focus", "#FF375F", "rgba(255,55,95,0.12)")
+                else: return ("Needs Focus", "#FF2D55", "rgba(255,45,85,0.12)")
 
             latest_score = safe(daily_score_30.iloc[-1])
             latest_label, latest_color, latest_fill = score_band(latest_score)
